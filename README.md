@@ -1,1 +1,0 @@
-# abdullah-arafat.github.io
