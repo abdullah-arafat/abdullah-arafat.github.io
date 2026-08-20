@@ -5,20 +5,20 @@
 HOW TO EDIT THIS PORTFOLIO
 =============================================================================================
 This file is designed to be easily updated without knowing complex HTML or CSS.
-Scroll down to the bottom of the file (around line 300) to find the `portfolioData` object.
+Scroll down to the bottom of the file (around line 400) to find the `portfolioData` object.
 
 You only need to edit the text inside the quotes, brackets, or braces in the `portfolioData` object.
 
 1. PROFILE, METRICS & SOCIALS: 
    Update your name, role, email, citations, and h-index in the `profile` and `metrics` sections.
-   Update or add social links in the `socialLinks` array.
+   Update or add social links in the `socialLinks` array. (Keep the SVG icon strings intact).
 
 2. ABOUT TEXT: 
    Edit `aboutText`. Use `\n` to create a new line. Start a line with a hyphen `-` or bullet `•` 
    to create a clean bullet point.
 
 3. ADDING A NEW EDUCATION ENTRY:
-   Go to the `education` array. Copy an existing block { ... }, paste it, and edit:
+   Go to the `education` array. Copy an existing block { ... }, paste it at the top, and edit:
    {
        degree: "Your Degree",
        institution: "University Name",
@@ -73,8 +73,8 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
    }
 
 8. ICONS/IMAGES/CV: 
-   Replace `profile_picture.png` and `cv.pdf` in your `assets` folder to match the filenames, 
-   or change the text in `imageUrl` and `cvUrl` to match your actual files.
+   Replace `profile_picture.jpg` in your `assets` folder to match the filename, 
+   or change the text in `imageUrl` to match your actual files.
 =============================================================================================
 -->
 <head>
@@ -184,7 +184,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Hide Scrollbar for Slider */
+        /* Hide Scrollbar universally for sidebar and sliders, but allow scrolling */
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -193,44 +193,69 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
             scrollbar-width: none;
         }
 
-        /* Subtle scrollbar for sidebar (desktop only) */
-        @media (min-width: 768px) {
-            .sidebar-scroll {
-                max-height: calc(100vh - 4rem);
-                overflow-y: auto;
-                scrollbar-width: thin;
-                scrollbar-color: transparent transparent;
-                transition: scrollbar-color 0.3s ease;
-            }
-            .sidebar-scroll:hover {
-                scrollbar-color: #cbd5e1 transparent; /* Tailwind academic-300 */
-            }
-            .sidebar-scroll::-webkit-scrollbar {
-                width: 4px;
-            }
-            .sidebar-scroll::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            .sidebar-scroll::-webkit-scrollbar-thumb {
-                background-color: transparent;
-                border-radius: 4px;
-            }
-            .sidebar-scroll:hover::-webkit-scrollbar-thumb {
-                background-color: #cbd5e1;
-            }
+        /* Dynamic PDF / Print Styles (Triggered when clicking "View / Download CV") */
+        @media print {
+            @page { margin: 0.75in; }
+            body { background: white !important; -webkit-print-color-adjust: exact; }
+            
+            /* Hide UI elements and unneeded sections */
+            .gradient-top, aside, footer, #testimonials, #feedbacks { display: none !important; }
+            .cv-hide-print { display: none !important; }
+            
+            /* Reset main layout for print */
+            main { border: none !important; box-shadow: none !important; padding: 0 !important; width: 100% !important; margin: 0 !important; max-width: 100% !important; }
+            
+            /* Force expand hover wrappers so the short info is visible */
+            .expand-wrapper { grid-template-rows: 1fr !important; opacity: 1 !important; }
+            .expand-inner { overflow: visible !important; }
+            
+            /* Flatten UI timeline to a normal list */
+            .hover-trigger { border-left: none !important; padding-left: 0 !important; margin-left: 0 !important; margin-bottom: 1.5rem !important; }
+            .hover-trigger span.absolute { display: none !important; }
+            .border-t.border-academic-100 { border-top: none !important; padding-top: 0 !important; margin-top: 0 !important; }
+            .pl-4, .pl-5 { padding-left: 0 !important; }
+            .absolute.w-px { display: none !important; }
+            
+            /* Clean up education boxes */
+            #education-container > div { background: white !important; border: none !important; padding: 0 !important; box-shadow: none !important; margin-bottom: 1.5rem !important;}
+            
+            /* Clean up publication items */
+            .pub-item { border: none !important; padding: 0 0 0.5rem 0 !important; margin: 0 !important; }
+            
+            /* Typography reset for print */
+            * { color: black !important; }
+            .compact-section { margin-bottom: 2rem !important; page-break-inside: avoid; }
+            h2 { border-bottom: 1px solid black; padding-bottom: 4px; margin-bottom: 12px; }
         }
     </style>
 </head>
 <body class="text-academic-800 font-sans antialiased">
     
-    <div class="gradient-top"></div>
+    <div class="gradient-top print:hidden"></div>
 
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-12">
-        <div class="flex flex-col md:flex-row gap-8 items-start">
+    <!-- Mobile Header (Visible only on small screens) -->
+    <div class="md:hidden sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-academic-100 px-5 py-3 flex items-center justify-between print:hidden shadow-sm">
+        <span class="font-bold text-academic-900 text-lg tracking-tight" id="mobile-header-name">Abdullah Arafat</span>
+        <button id="mobile-menu-btn" class="p-2 -mr-2 text-academic-600 hover:text-academic-900 focus:outline-none transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-academic-900/40 backdrop-blur-sm z-40 hidden md:hidden transition-opacity duration-300 opacity-0 print:hidden"></div>
+
+    <!-- Expanded Container to scale with browser size on larger screens -->
+    <div class="w-full max-w-[95%] xl:max-w-[90%] 2xl:max-w-[1600px] mx-auto px-0 sm:px-4 py-6 md:py-12">
+        <div class="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-12 items-start relative">
             
-            <!-- Left Sidebar (Sticky Profile Card) -->
-            <aside class="md:w-[320px] shrink-0 bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-academic-100 md:sticky md:top-8 z-10 sidebar-scroll">
+            <!-- Left Sidebar (Sticky Profile Card - Off-canvas on Mobile) -->
+            <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-[280px] md:w-[320px] lg:w-[360px] bg-white p-6 sm:p-8 border-r md:border border-academic-100 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out md:relative md:sticky md:top-8 md:rounded-2xl md:shadow-sm md:max-h-[calc(100vh-4rem)] overflow-y-auto hide-scrollbar print:hidden flex flex-col shrink-0">
                 
+                <!-- Close Button (Mobile Only) -->
+                <button id="close-menu-btn" class="md:hidden absolute top-4 right-4 p-2 text-academic-400 hover:text-academic-900 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+
                 <!-- Profile Image & Info -->
                 <div class="flex flex-col items-center mb-6 text-center">
                     <img 
@@ -268,9 +293,9 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                     <!-- Injected via JS -->
                 </div>
 
-                <!-- CV Download Button -->
+                <!-- CV Download Button (Triggers Print to PDF) -->
                 <div class="flex justify-center mb-2">
-                    <a id="cv-link" href="#" target="_blank" class="flex items-center justify-center gap-2 w-full bg-academic-800 hover:bg-academic-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                    <a id="cv-link" href="#" class="flex items-center justify-center gap-2 w-full bg-academic-800 hover:bg-academic-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         View / Download CV
                     </a>
@@ -287,13 +312,19 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                         <li><a href="#awards" class="nav-link hover:text-academic-900 block">Awards & Honors</a></li>
                         <li><a href="#extracurricular" class="nav-link hover:text-academic-900 block">Extracurriculars</a></li>
                         <li><a href="#testimonials" class="nav-link hover:text-academic-900 block">Testimonials</a></li>
-                        <li><a href="#feedbacks" class="nav-link hover:text-academic-900 block">Feedback</a></li>
+                        <li><a href="#feedbacks" class="nav-link hover:text-academic-900 block">Student Feedback</a></li>
                     </ul>
                 </nav>
             </aside>
 
-            <main class="flex-1 bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-academic-100 w-full overflow-hidden">
+            <!-- Main Content Area (Fluid scaling) -->
+            <main class="flex-1 bg-white p-6 sm:p-8 md:p-10 lg:p-14 rounded-2xl shadow-sm border border-academic-100 w-full min-w-0 overflow-hidden mt-2 md:mt-0">
                 
+                <!-- Print CV Header (Hidden on Web) -->
+                <div id="print-header" class="hidden print:block mb-8 pb-6 border-b-2 border-black">
+                    <!-- Injected via JS -->
+                </div>
+
                 <!-- About -->
                 <section id="about" class="compact-section">
                     <h2 class="text-xl font-bold text-academic-900 mb-4">About</h2>
@@ -307,7 +338,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 <section id="education" class="compact-section">
                     <div class="flex items-center justify-between mb-4 border-b border-academic-100 pb-2">
                         <h2 class="text-xl font-bold text-academic-900">Education</h2>
-                        <span class="text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover to expand</span>
+                        <span class="cv-hide-print text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover to expand</span>
                     </div>
                     <div id="education-container" class="space-y-4">
                         <!-- Injected via JS -->
@@ -318,7 +349,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 <section id="research-experience" class="compact-section">
                     <div class="flex items-center justify-between mb-6 border-b border-academic-100 pb-2">
                         <h2 class="text-xl font-bold text-academic-900">Research & Teaching Experience</h2>
-                        <span class="text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover roles to expand</span>
+                        <span class="cv-hide-print text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover roles to expand</span>
                     </div>
                     <div id="experience-research-container">
                         <!-- Injected via JS -->
@@ -329,7 +360,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 <section id="industry-experience" class="compact-section">
                     <div class="flex items-center justify-between mb-6 border-b border-academic-100 pb-2">
                         <h2 class="text-xl font-bold text-academic-900">Industry Experience</h2>
-                        <span class="text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover roles to expand</span>
+                        <span class="cv-hide-print text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover roles to expand</span>
                     </div>
                     <div id="experience-industry-container">
                         <!-- Injected via JS -->
@@ -340,9 +371,9 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 <section id="publications" class="compact-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 border-b border-academic-100 pb-4 gap-2">
                         <div class="flex flex-wrap items-center gap-3">
-                            <h2 class="text-xl font-bold text-academic-900">Publications</h2>
+                            <h2 class="text-xl font-bold text-academic-900 mb-0 border-none pb-0">Publications</h2>
                             <!-- Metrics beside title -->
-                            <div class="flex gap-2">
+                            <div class="flex gap-2 cv-hide-print">
                                 <span class="inline-flex items-center gap-1 text-xs font-bold bg-academic-100 text-academic-800 px-2.5 py-1 rounded-md">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                                     <span id="header-citations">0</span> Citations
@@ -352,7 +383,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                                 </span>
                             </div>
                         </div>
-                        <span class="text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover for preview</span>
+                        <span class="cv-hide-print text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover for preview</span>
                     </div>
                     <div id="publications-container">
                         <!-- Injected via JS -->
@@ -371,17 +402,17 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 <section id="extracurricular" class="compact-section">
                     <div class="flex items-center justify-between mb-6 border-b border-academic-100 pb-2">
                         <h2 class="text-xl font-bold text-academic-900">Extracurricular Activities</h2>
-                        <span class="text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover roles to expand</span>
+                        <span class="cv-hide-print text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover roles to expand</span>
                     </div>
                     <div id="experience-extracurricular-container">
                         <!-- Injected via JS -->
                     </div>
                 </section>
 
-                <!-- Testimonials -->
-                <section id="testimonials" class="compact-section">
+                <!-- Professional Testimonials -->
+                <section id="testimonials" class="compact-section print:hidden">
                     <div class="flex items-center justify-between mb-4 border-b border-academic-100 pb-4">
-                        <h2 class="text-xl font-bold text-academic-900">Professional Testimonials</h2>
+                        <h2 class="text-xl font-bold text-academic-900 mb-0 border-none pb-0">Professional Testimonials</h2>
                         <div class="flex gap-2">
                             <button id="btn-prev-test" class="p-1 rounded-md bg-academic-50 hover:bg-academic-200 border border-academic-200 text-academic-600 transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -398,10 +429,10 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                     </div>
                 </section>
 
-                <!-- Student Feedbacks -->
-                <section id="feedbacks" class="compact-section">
+                <!-- Student Feedback -->
+                <section id="feedbacks" class="compact-section print:hidden">
                     <div class="flex items-center justify-between mb-4 border-b border-academic-100 pb-4">
-                        <h2 class="text-xl font-bold text-academic-900">Student Feedback</h2>
+                        <h2 class="text-xl font-bold text-academic-900 mb-0 border-none pb-0">Student Feedback</h2>
                         <div class="flex gap-2">
                             <button id="btn-prev-fb" class="p-1 rounded-md bg-academic-50 hover:bg-academic-200 border border-academic-200 text-academic-600 transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -418,7 +449,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                     </div>
                 </section>
                 
-                <footer class="mt-8 pt-8 border-t border-academic-100 text-center">
+                <footer class="mt-8 pt-8 border-t border-academic-100 text-center print:hidden">
                     <div class="flex justify-center items-center gap-2 mb-2">
                         <div class="w-2 h-2 rounded-full bg-academic-300"></div>
                         <div class="w-2 h-2 rounded-full bg-academic-300"></div>
@@ -446,9 +477,8 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 name: "Abdullah Arafat",
                 role: "Computational Scientist",
                 institution: "The University of Utah",
-                imageUrl: "assets/profile_picture.png", 
-                email: "abdullah.arafat@utah.edu",
-                cvUrl: "assets/cv.pdf" 
+                imageUrl: "assets/profile_picture.jpg", 
+                email: "abdullah.arafat@utah.edu"
             },
             metrics: {
                 citations: 61,
@@ -464,6 +494,36 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
             aboutText: "I am a computational chemist specializing in molecular dynamics, nanomaterials, and computational mechanics.\n\nMy work focuses on understanding the nano-mechanical behavior of materials, exploring structure-property relationships, and applying atomistic simulations to solve complex challenges.",
             keywords: ["Molecular Dynamics", "Nanomaterials", "Computational Mechanics", "Mechanics of Materials"],
             
+            education: [
+                {
+                    degree: "Ph.D. in Chemistry",
+                    institution: "The University of Utah",
+                    location: "Salt Lake City, UT",
+                    locationUrl: "https://maps.google.com/?q=The+University+of+Utah",
+                    period: "2024 — Now",
+                    description: "Specializing in the intersection of thermodynamics and nanoscale material properties.\n- Leading independent dissertation research on subsurface mechanics.\n- Presenting findings at annual departmental symposiums.",
+                    courses: ["Advanced Molecular Dynamics", "Quantum Chemistry", "Statistical Thermodynamics"]
+                },
+                {
+                    degree: "M.S. in Mechanical Engineering",
+                    institution: "The University of Utah",
+                    location: "Salt Lake City, UT",
+                    locationUrl: "https://maps.google.com/?q=The+University+of+Utah",
+                    period: "2022 — 2024",
+                    description: "Focused heavily on computational modeling and stress simulations for structural engineering.",
+                    courses: ["Continuum Mechanics", "Computational Materials Science", "Finite Element Analysis"]
+                },
+                {
+                    degree: "B.S. in Materials Science & Engineering",
+                    institution: "Khulna University of Engineering and Technology (KUET)",
+                    location: "Khulna, Bangladesh",
+                    locationUrl: "https://maps.google.com/?q=Khulna+University+of+Engineering+and+Technology",
+                    period: "2017 — 2022",
+                    description: "Graduated with honors. Completed a capstone project on the stability of 2D layered materials.",
+                    courses: ["Material Characterization", "Crystallography", "Solid State Physics", "Nanotechnology"]
+                }
+            ],
+
             experiences: {
                 researchTeaching: [
                     {
@@ -575,36 +635,6 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                     }
                 ]
             },
-            
-            education: [
-                {
-                    degree: "Ph.D. in Chemistry",
-                    institution: "The University of Utah",
-                    location: "Salt Lake City, UT",
-                    locationUrl: "https://maps.google.com/?q=The+University+of+Utah",
-                    period: "2024 — Now",
-                    description: "Specializing in the intersection of thermodynamics and nanoscale material properties.\n- Leading independent dissertation research on subsurface mechanics.\n- Presenting findings at annual departmental symposiums.",
-                    courses: ["Advanced Molecular Dynamics", "Quantum Chemistry", "Statistical Thermodynamics"]
-                },
-                {
-                    degree: "M.S. in Mechanical Engineering",
-                    institution: "The University of Utah",
-                    location: "Salt Lake City, UT",
-                    locationUrl: "https://maps.google.com/?q=The+University+of+Utah",
-                    period: "2022 — 2024",
-                    description: "Focused heavily on computational modeling and stress simulations for structural engineering.",
-                    courses: ["Continuum Mechanics", "Computational Materials Science", "Finite Element Analysis"]
-                },
-                {
-                    degree: "B.S. in Materials Science & Engineering",
-                    institution: "Khulna University of Engineering and Technology (KUET)",
-                    location: "Khulna, Bangladesh",
-                    locationUrl: "https://maps.google.com/?q=Khulna+University+of+Engineering+and+Technology",
-                    period: "2017 — 2022",
-                    description: "Graduated with honors. Completed a capstone project on the stability of 2D layered materials.",
-                    courses: ["Material Characterization", "Crystallography", "Solid State Physics", "Nanotechnology"]
-                }
-            ],
             
             publications: {
                 journals: [
@@ -740,21 +770,13 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
         
         const formatText = (text) => {
             if (!text) return "";
-            
             return text.split('\n').map(line => {
                 let t = line.trim();
-                
-                // If it's an empty line after trimming, return a spacer div
                 if (!t) return '<div class="h-2"></div>';
-                
-                // Detect bullet points (hyphens or actual bullets)
                 if (t.startsWith('-') || t.startsWith('•')) {
-                    // Extract the content after the bullet
                     let content = t.substring(1).trim();
                     return `<div class="flex gap-2 mt-1.5"><span class="text-academic-400 font-bold">•</span><span>${content}</span></div>`;
                 }
-                
-                // Standard paragraph format for lines without bullets
                 return `<p class="mb-1">${t}</p>`;
             }).join('');
         };
@@ -767,13 +789,32 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
             document.getElementById("profile-institution").textContent = portfolioData.profile.institution;
             document.getElementById("profile-image").src = portfolioData.profile.imageUrl;
 
-            if (portfolioData.profile.cvUrl && portfolioData.profile.cvUrl.trim() !== "") {
-                document.getElementById("cv-link").href = portfolioData.profile.cvUrl;
-            } else {
-                document.getElementById("cv-link").parentElement.style.display = 'none';
-            }
+            // Setup CV Download / Print functionality
+            document.getElementById("cv-link").addEventListener("click", (e) => {
+                e.preventDefault();
+                window.print();
+            });
 
-            // Render Metrics (Sidebar & Header)
+            // Inject Print Header
+            document.getElementById("print-header").innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <h1 style="font-size: 24pt; font-weight: bold; margin-bottom: 4px;">${portfolioData.profile.name}</h1>
+                        <p style="font-size: 12pt; font-weight: 600;">${portfolioData.profile.role} | ${portfolioData.profile.institution}</p>
+                        <div style="font-size: 10pt; margin-top: 8px;">
+                            ${portfolioData.profile.email} <br/>
+                            ${portfolioData.socialLinks.map(l => l.url).join(' | ')}
+                        </div>
+                    </div>
+                    <div style="text-align: right; font-size: 10pt;">
+                        <p><strong>Citations:</strong> ${portfolioData.metrics.citations}</p>
+                        <p><strong>h-index:</strong> ${portfolioData.metrics.hIndex}</p>
+                        <p><strong>I-10 INDEX:</strong> ${portfolioData.metrics.i10Index}</p>
+                    </div>
+                </div>
+            `;
+
+            // Render Metrics
             document.getElementById("metric-citations").textContent = portfolioData.metrics.citations;
             document.getElementById("metric-hindex").textContent = portfolioData.metrics.hIndex;
             document.getElementById("metric-i10").textContent = portfolioData.metrics.i10Index;
@@ -826,9 +867,9 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                                     : `<span class="text-xs font-semibold text-academic-600">${group.institution}</span>`
                                 }
                                 ${group.location ? `
-                                    <span class="text-academic-300 text-[10px]">•</span>
+                                    <span class="text-academic-300 text-[10px] cv-hide-print">•</span>
                                     <span class="text-[10px] text-academic-500 flex items-center gap-0.5">
-                                        <svg class="w-3 h-3 text-academic-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        <svg class="w-3 h-3 text-academic-400 cv-hide-print" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                         ${group.location}
                                     </span>
                                 ` : ''}
@@ -838,34 +879,34 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                         <div class="expand-wrapper mt-0">
                             <div class="expand-inner">
                                 <div class="pt-2 pb-1">
-                                    <div class="text-xs text-academic-600 leading-relaxed pl-1 mt-1">
+                                    <div class="cv-hide-print text-xs text-academic-600 leading-relaxed pl-1 mt-1">
                                         ${formatText(latestRole.description)}
                                     </div>
                                     ${latestRole.skills && latestRole.skills.length > 0 ? `
-                                    <div class="mt-2 pl-1 ${hasPromotions ? 'mb-4' : ''}">
+                                    <div class="cv-hide-print mt-2 pl-1 ${hasPromotions ? 'mb-4' : ''}">
                                         <div class="flex flex-wrap gap-1.5">
                                             ${latestRole.skills.map(skill => `<span class="px-2 py-0.5 bg-white border border-academic-200 text-academic-600 text-[10px] rounded shadow-sm">${skill}</span>`).join('')}
                                         </div>
                                     </div>
-                                    ` : (hasPromotions ? '<div class="mb-4"></div>' : '')}
+                                    ` : (hasPromotions ? '<div class="mb-4 cv-hide-print"></div>' : '')}
 
                                     ${hasPromotions ? `
                                         <div class="relative pl-4 mt-3 border-t border-academic-100 pt-4">
-                                            <div class="absolute left-[5px] top-6 bottom-2 w-px bg-academic-200"></div>
+                                            <div class="absolute left-[5px] top-6 bottom-2 w-px bg-academic-200 cv-hide-print"></div>
                                             ${group.roles.slice(1).map(role => `
                                                 <div class="relative pl-5 pb-4 last:pb-0">
-                                                    <span class="absolute w-2 h-2 bg-academic-300 rounded-full left-[-7.5px] top-[4px] ring-2 ring-white group-hover:bg-academic-400 transition-colors"></span>
+                                                    <span class="absolute w-2 h-2 bg-academic-300 rounded-full left-[-7.5px] top-[4px] ring-2 ring-white group-hover:bg-academic-400 transition-colors cv-hide-print"></span>
                                                     <div class="flex flex-col mb-1.5">
                                                         <div class="flex justify-between items-baseline">
                                                             <h4 class="text-sm font-semibold text-academic-800">${role.title}</h4>
                                                             <span class="text-[10px] font-medium text-academic-500 whitespace-nowrap ml-2">${role.period}</span>
                                                         </div>
                                                     </div>
-                                                    <div class="text-xs text-academic-600 leading-relaxed pl-0.5">
+                                                    <div class="cv-hide-print text-xs text-academic-600 leading-relaxed pl-0.5">
                                                         ${formatText(role.description)}
                                                     </div>
                                                     ${role.skills && role.skills.length > 0 ? `
-                                                    <div class="mt-2 pl-0.5">
+                                                    <div class="cv-hide-print mt-2 pl-0.5">
                                                         <div class="flex flex-wrap gap-1.5">
                                                             ${role.skills.map(skill => `<span class="px-2 py-0.5 bg-white border border-academic-200 text-academic-600 text-[10px] rounded shadow-sm">${skill}</span>`).join('')}
                                                         </div>
@@ -900,9 +941,9 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                                 : `<span class="text-xs font-semibold text-academic-600">${edu.institution}</span>`
                             }
                             ${edu.location ? `
-                                <span class="text-academic-300 text-[10px]">•</span>
+                                <span class="text-academic-300 text-[10px] cv-hide-print">•</span>
                                 <span class="text-[10px] text-academic-500 flex items-center gap-0.5">
-                                    <svg class="w-3 h-3 text-academic-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    <svg class="w-3 h-3 text-academic-400 cv-hide-print" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                     ${edu.location}
                                 </span>
                             ` : ''}
@@ -910,7 +951,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                     </div>
                     <div class="expand-wrapper mt-0">
                         <div class="expand-inner">
-                            <div class="pt-3 mt-2 border-t border-academic-100 space-y-3">
+                            <div class="cv-hide-print pt-3 mt-2 border-t border-academic-100 space-y-3">
                                 ${edu.description ? `
                                     <div class="text-xs text-academic-600 leading-relaxed pl-1">
                                         ${formatText(edu.description)}
@@ -941,7 +982,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                         <p class="text-sm text-academic-700 leading-relaxed text-justify relative z-10">
                             ${formattedMla} ${citationBadge}
                         </p>
-                        <div class="pub-preview absolute top-full left-0 mt-2 w-full sm:w-[105%] bg-white border border-academic-200 rounded-lg shadow-xl opacity-0 invisible z-50 p-4 pointer-events-none">
+                        <div class="pub-preview cv-hide-print absolute top-full left-0 mt-2 w-full sm:w-[105%] bg-white border border-academic-200 rounded-lg shadow-xl opacity-0 invisible z-50 p-4 pointer-events-none">
                             <div class="flex items-center gap-2 mb-2 pb-2 border-b border-academic-100">
                                 <svg class="w-4 h-4 text-academic-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                 <span class="text-xs font-bold text-academic-700 uppercase tracking-wide">Research Abstract</span>
@@ -1053,6 +1094,49 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
 
             setupSlider('testimonials-container', 'btn-prev-test', 'btn-next-test');
             setupSlider('feedbacks-container', 'btn-prev-fb', 'btn-next-fb');
+
+            // --- Sidebar Toggle Logic for Mobile ---
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const closeMenuBtn = document.getElementById('close-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            // Set mobile header name dynamically
+            document.getElementById("mobile-header-name").textContent = portfolioData.profile.name;
+
+            function toggleSidebar() {
+                const isClosed = sidebar.classList.contains('-translate-x-full');
+                if (isClosed) {
+                    // Open sidebar
+                    overlay.classList.remove('hidden');
+                    // Small delay to allow display:block to apply before fading in
+                    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                    sidebar.classList.remove('-translate-x-full');
+                    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                } else {
+                    // Close sidebar
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => overlay.classList.add('hidden'), 300); // wait for transition
+                    document.body.style.overflow = ''; // Restore background scrolling
+                }
+            }
+
+            if (mobileMenuBtn && closeMenuBtn && overlay) {
+                mobileMenuBtn.addEventListener('click', toggleSidebar);
+                closeMenuBtn.addEventListener('click', toggleSidebar);
+                overlay.addEventListener('click', toggleSidebar);
+            }
+
+            // Close sidebar when clicking a navigation link on mobile
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                        toggleSidebar();
+                    }
+                });
+            });
 
         });
     </script>
