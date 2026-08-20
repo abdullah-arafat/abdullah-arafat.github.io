@@ -53,7 +53,6 @@
       letter-spacing: 0.2px;
     }
 
-    /* Floating tooltip for week info on hover/click */
     .tooltip {
       position: fixed;
       background: #fff;
@@ -164,13 +163,11 @@
       border-color: #000;
     }
 
-    /* Red outline for active selected sticky tooltip box */
     .box.selected-sticky {
       outline: 2px solid #ff0000 !important;
       z-index: 20;
     }
 
-    /* Dark gray dot or marker inside box when it has an event note */
     .box.has-note::after {
       content: '';
       position: absolute;
@@ -309,7 +306,17 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'life-in-weeks-default';
+    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+    let db, auth, userId = null;
+    let isInitialized = false;
+
     const dob = new Date(1998, 2, 9); // March 9, 1998
     const today = new Date();
     const msPerWeek = 1000 * 60 * 60 * 24 * 7;
@@ -317,7 +324,7 @@
     const totalYears = 70;
     const totalWeeks = totalYears * 52;
 
-    const weekData = Array.from({ length: totalWeeks }, (_, i) => ({
+    let weekData = Array.from({ length: totalWeeks }, (_, i) => ({
       filled: i < weeksLivedTillToday, 
       note: ''
     }));
@@ -334,13 +341,11 @@
     const eventText = document.getElementById('eventText');
     let currentEditIndex = -1;
     let editModeActive = false;
-    let lockedTooltipIndex = null; // for clicked sticky tooltip when selected
-
+    let lockedTooltipIndex = null;
     const boxElements = [];
 
     function generateGrid() {
       let weekCounter = 0;
-
       for (let year = 0; year < totalYears; year++) {
         const row = document.createElement('div');
         row.className = 'year-row';
@@ -403,8 +408,13 @@
       if (data.filled) box.classList.add('filled');
       else box.classList.remove('filled');
       
-      if (data.note.trim() !== '') box.classList.add('has-note');
+      if (data.note && data.note.trim() !== '') box.classList.add('has-note');
       else box.classList.remove('has-note');
+    }
+
+    function refreshAllBoxes() {
+      weekData.forEach((_, i) => renderBoxState(i));
+      updateCounts();
     }
 
     function clearStickySelection() {
@@ -414,7 +424,7 @@
       lockedTooltipIndex = null;
     }
 
-    function toggleEditMode() {
+    window.toggleEditMode = function() {
       editModeActive = !editModeActive;
       if (editModeActive) {
         editModeBtn.textContent = "Edit: ON";
@@ -425,7 +435,7 @@
       }
       clearStickySelection();
       tooltip.style.display = 'none';
-    }
+    };
 
     function showTooltip(index, clientX, clientY) {
       tooltip.innerHTML = getWeekInfoContent(index);
@@ -435,7 +445,7 @@
     }
 
     grid.addEventListener('mouseover', (e) => {
-      if (editModeActive) return; // Don't trigger hover info popup when edit is ON
+      if (editModeActive) return;
       if (lockedTooltipIndex === null && e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
         showTooltip(index, e.clientX, e.clientY);
@@ -466,27 +476,24 @@
       }
     });
 
-    // Middle click handling for editing event when Edit = ON
     grid.addEventListener('mousedown', (e) => {
-      if (e.button === 1 && e.target.classList.contains('box')) { // Middle click
+      if (e.button === 1 && e.target.classList.contains('box')) {
         e.preventDefault();
         const index = parseInt(e.target.dataset.index);
         openModal(index);
       }
     });
 
-    // Click handling based on Edit mode state
     grid.addEventListener('click', (e) => {
       if (e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
         
         if (editModeActive) {
-          // Edit = ON: Single click toggles filled state (makes it black)
           weekData[index].filled = !weekData[index].filled;
           renderBoxState(index);
           updateCounts();
+          saveDataToCloud();
         } else {
-          // Edit = OFF: Click toggles sticky tooltip box with red outline
           if (lockedTooltipIndex === index) {
             clearStickySelection();
             tooltip.style.display = 'none';
@@ -509,7 +516,6 @@
       }
     });
 
-    // Double click handling: Only active when Edit = ON to edit event via double click too
     grid.addEventListener('dblclick', (e) => {
       if (editModeActive && e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
@@ -535,54 +541,134 @@
       setTimeout(() => eventText.focus(), 50);
     }
 
-    function closeModal() {
+    window.closeModal = function() {
       noteModal.classList.remove('active');
       currentEditIndex = -1;
-    }
+    };
 
-    function saveNote() {
+    window.saveNote = function() {
       if (currentEditIndex > -1) {
         weekData[currentEditIndex].note = eventText.value;
         if (eventText.value.trim() !== '') {
-          weekData[currentEditIndex].filled = true; // Auto fill black if event added
+          weekData[currentEditIndex].filled = true;
         }
         renderBoxState(currentEditIndex);
         updateCounts();
+        saveDataToCloud();
         if (lockedTooltipIndex === currentEditIndex) {
           tooltip.innerHTML = getWeekInfoContent(currentEditIndex);
         }
       }
-      closeModal();
-    }
+      window.closeModal();
+    };
 
     eventText.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        saveNote();
+        window.saveNote();
       }
       if (e.key === 'Escape') {
-        closeModal();
+        window.closeModal();
       }
     });
 
-    function selectTillToday() {
+    window.selectTillToday = function() {
       weekData.forEach((data, i) => {
         data.filled = (i < weeksLivedTillToday);
         renderBoxState(i);
       });
       updateCounts();
-    }
+      saveDataToCloud();
+    };
 
-    function clearAll() {
+    window.clearAll = function() {
       weekData.forEach((data, i) => {
         data.filled = false;
         data.note = '';
         renderBoxState(i);
       });
       updateCounts();
+      saveDataToCloud();
+    };
+
+    async function initFirebase() {
+      try {
+        if (!firebaseConfig.apiKey) {
+          // Fallback to localStorage if Firebase isn't configured
+          loadFromLocal();
+          generateGrid();
+          updateCounts();
+          return;
+        }
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        userId = auth.currentUser?.uid || crypto.randomUUID();
+        isInitialized = true;
+
+        const docRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'weeksState');
+        
+        onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const serverData = docSnap.data();
+            if (serverData && Array.isArray(serverData.weeks)) {
+              weekData = serverData.weeks;
+              refreshAllBoxes();
+            }
+          } else {
+            saveDataToCloud();
+          }
+        }, (error) => {
+          console.error("Firestore sync error:", error);
+        });
+
+      } catch (err) {
+        console.error("Firebase init failed, falling back to local storage:", err);
+        loadFromLocal();
+      } finally {
+        if (!grid.hasChildNodes() || grid.children.length <= 1) {
+          generateGrid();
+          updateCounts();
+        }
+      }
+    }
+
+    async function saveDataToCloud() {
+      // Always save to localStorage as a reliable backup
+      try {
+        localStorage.setItem('life_in_weeks_data', JSON.stringify(weekData));
+      } catch (e) {}
+
+      if (!isInitialized || !db || !userId) return;
+      try {
+        const docRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'weeksState');
+        await setDoc(docRef, { weeks: weekData });
+      } catch (e) {
+        console.error("Error saving data to cloud:", e);
+      }
+    }
+
+    function loadFromLocal() {
+      try {
+        const saved = localStorage.getItem('life_in_weeks_data');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length === totalWeeks) {
+            weekData = parsed;
+          }
+        }
+      } catch (e) {}
     }
 
     generateGrid();
     updateCounts();
+    initFirebase();
   </script>
 </body>
 </html>
