@@ -2,13 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Life in Weeks (70 Years)</title>
   <style>
-    @page {
-      size: letter portrait;
-      margin: 0.3in;
-    }
-    
     * {
       box-sizing: border-box;
       margin: 0;
@@ -22,19 +18,18 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: space-between;
       min-height: 100vh;
-      padding: 0.3in;
+      padding: 24px 16px;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 6px;
+      margin-bottom: 12px;
       width: 100%;
     }
 
     .header h1 {
-      font-size: 18pt;
+      font-size: 16pt;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       font-weight: 700;
@@ -42,24 +37,12 @@
     }
 
     .header p {
-      font-size: 8.5pt;
+      font-size: 8pt;
       color: #555;
     }
 
-    .info-bar {
-      height: 22px;
-      margin-top: 4px;
-      font-size: 8.5pt;
-      font-weight: 600;
-      color: #222;
-      background-color: #f0f0f0;
-      padding: 3px 10px;
-      border-radius: 4px;
-      display: inline-block;
-    }
-
     .controls {
-      margin-bottom: 8px;
+      margin-bottom: 16px;
       display: flex;
       gap: 8px;
     }
@@ -67,10 +50,11 @@
     .btn {
       background: #eee;
       border: 1px solid #ccc;
-      padding: 3px 8px;
+      padding: 5px 12px;
       font-size: 7.5pt;
-      border-radius: 3px;
+      border-radius: 4px;
       cursor: pointer;
+      color: #333;
     }
 
     .btn:hover {
@@ -82,27 +66,27 @@
       flex-direction: column;
       gap: 2px;
       width: 100%;
-      max-width: 7.2in;
+      max-width: 680px;
     }
 
     .week-labels {
       display: flex;
       justify-content: space-between;
-      font-size: 6.5pt;
+      font-size: 6pt;
       color: #777;
-      margin-left: 22px;
-      padding-right: 2px;
+      margin-left: 20px;
+      padding-right: 1px;
     }
 
     .year-row {
       display: flex;
       align-items: center;
-      gap: 2.2px;
+      gap: 2px;
     }
 
     .year-label {
-      width: 20px;
-      font-size: 6.5pt;
+      width: 18px;
+      font-size: 6pt;
       color: #777;
       text-align: right;
       padding-right: 4px;
@@ -118,15 +102,16 @@
     .box {
       flex: 1;
       aspect-ratio: 1;
-      border: 0.8px solid #bbb;
+      border: 0.6px solid #ccc;
       border-radius: 0.5px;
       cursor: pointer;
-      transition: border-color 0.1s;
+      transition: all 0.1s;
+      position: relative;
     }
 
     .box:hover {
       border-color: #000;
-      outline: 1.5px solid #000;
+      outline: 1px solid #000;
       z-index: 10;
     }
 
@@ -135,11 +120,87 @@
       border-color: #111;
     }
 
+    /* Indicator for boxes that contain an event/note */
+    .box.has-note::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 35%;
+      height: 35%;
+      border-radius: 50%;
+      background-color: #3b82f6;
+      z-index: 5;
+    }
+    
+    .box.filled.has-note::after {
+      background-color: #60a5fa;
+    }
+
     .footer {
       text-align: center;
       font-size: 8pt;
       color: #666;
-      margin-top: 6px;
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .info-bar {
+      font-size: 7pt;
+      color: #555;
+      background-color: #f0f0f0;
+      padding: 4px 12px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    #tooltip {
+      position: absolute;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.1s ease;
+      transform: translate(-50%, -100%);
+      margin-top: -10px;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 320px;
+      overflow: hidden;
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
     }
 
     @media print {
@@ -147,11 +208,12 @@
         background-color: #fff;
         padding: 0;
       }
-      .controls {
-        display: none;
+      .no-print, .controls {
+        display: none !important;
       }
       .box:hover {
         outline: none;
+        transform: none;
       }
     }
   </style>
@@ -160,13 +222,12 @@
 
   <div class="header">
     <h1>My Life in Weeks</h1>
-    <p>70 Years (3,640 Weeks) | Born: March 9, 1998</p>
-    <div class="info-bar" id="dateDisplay">Hover over any week box to see its date</div>
+    <p>70 Years (3,640 Weeks)</p>
   </div>
 
-  <div class="controls">
-    <button class="btn" onclick="selectTillToday()">Select Till Today</button>
-    <button class="btn" onclick="clearAll()">Clear All</button>
+  <div class="controls no-print">
+    <button onclick="selectTillToday()" class="btn">Select Till Today</button>
+    <button onclick="clearAll()" class="btn">Clear All</button>
   </div>
 
   <div class="grid-container" id="grid">
@@ -178,10 +239,38 @@
       <span>40</span>
       <span>52</span>
     </div>
+    <!-- Rows will be populated via JavaScript -->
   </div>
 
   <div class="footer">
     <p>Selected: <strong id="filledCount">0</strong> weeks &nbsp;|&nbsp; Remaining: <strong id="remainingCount">3,640</strong> weeks</p>
+    <div class="info-bar no-print">
+      <strong>Hover</strong>: View Info &nbsp;&middot;&nbsp; 
+      <strong>1 Click</strong>: Edit Event &nbsp;&middot;&nbsp; 
+      <strong>2 Clicks</strong>: Toggle Fill
+    </div>
+  </div>
+
+  <div id="tooltip" style="background:#111; color:#fff; padding:4px 8px; border-radius:4px; font-size:10px; max-width:200px; width:max-content;" class="no-print">
+    <div id="tooltipDate" style="font-weight:bold; color:#cbd5e1; margin-bottom:2px;"></div>
+    <div id="tooltipNote" style="color:#f8fafc; white-space:pre-wrap;" class="hidden"></div>
+  </div>
+
+  <div id="noteModal" class="modal-overlay no-print">
+    <div class="modal-card">
+      <div style="padding:12px 16px; border-bottom:1px solid #eee; background:#f9fafb; display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:13px; font-weight:600; color:#111;">Edit Week Event</h3>
+        <button onclick="closeModal()" style="background:none; border:none; cursor:pointer; color:#666; font-size:14px;">&times;</button>
+      </div>
+      <div style="padding:16px;">
+        <div id="modalDateDisplay" style="font-size:11px; color:#2563eb; font-weight:500; background:#eff6ff; padding:6px 8px; border-radius:4px; margin-bottom:12px;"></div>
+        <textarea id="eventText" rows="4" style="width:100%; border:1px solid #d1d5db; border-radius:4px; padding:8px; font-size:12px; outline:none; resize:none;" placeholder="Write your milestones, memories, or notes here..."></textarea>
+      </div>
+      <div style="padding:10px 16px; background:#f9fafb; border-top:1px solid #eee; display:flex; justify-content:end; gap:8px;">
+        <button onclick="closeModal()" class="btn" style="padding:4px 10px;">Cancel</button>
+        <button onclick="saveNote()" class="btn" style="background:#2563eb; color:#fff; border-color:#2563eb; padding:4px 10px;">Save Event</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -189,87 +278,200 @@
     const today = new Date();
     const msPerWeek = 1000 * 60 * 60 * 24 * 7;
     const weeksLivedTillToday = Math.floor((today - dob) / msPerWeek);
+    const totalYears = 70;
+    const totalWeeks = totalYears * 52;
+
+    const weekData = Array.from({ length: totalWeeks }, (_, i) => ({
+      filled: i < weeksLivedTillToday, 
+      note: ''
+    }));
 
     const grid = document.getElementById('grid');
-    const dateDisplay = document.getElementById('dateDisplay');
     const filledCountEl = document.getElementById('filledCount');
     const remainingCountEl = document.getElementById('remainingCount');
+    
+    const tooltip = document.getElementById('tooltip');
+    const tooltipDate = document.getElementById('tooltipDate');
+    const tooltipNote = document.getElementById('tooltipNote');
+    
+    const noteModal = document.getElementById('noteModal');
+    const modalDateDisplay = document.getElementById('modalDateDisplay');
+    const eventText = document.getElementById('eventText');
+    let currentEditIndex = -1;
+    let clickTimer = null;
 
-    const totalYears = 70;
-    const boxes = [];
+    const boxElements = [];
 
-    let weekCounter = 0;
+    function generateGrid() {
+      let weekCounter = 0;
 
-    for (let year = 0; year < totalYears; year++) {
-      const row = document.createElement('div');
-      row.className = 'year-row';
+      for (let year = 0; year < totalYears; year++) {
+        const row = document.createElement('div');
+        row.className = 'year-row';
 
-      const label = document.createElement('div');
-      label.className = 'year-label';
-      label.textContent = (year % 5 === 0 || year === totalYears - 1) ? year : '';
-      row.appendChild(label);
+        const label = document.createElement('div');
+        label.className = 'year-label';
+        label.textContent = year;
+        row.appendChild(label);
 
-      const weeksRow = document.createElement('div');
-      weeksRow.className = 'weeks-row';
+        const weeksRow = document.createElement('div');
+        weeksRow.className = 'weeks-row';
 
-      for (let week = 0; week < 52; week++) {
-        const box = document.createElement('div');
-        box.className = 'box';
+        for (let week = 0; week < 52; week++) {
+          const box = document.createElement('div');
+          box.className = 'box';
+          box.dataset.index = weekCounter;
+          
+          if (weekData[weekCounter].filled) box.classList.add('filled');
+          if (weekData[weekCounter].note) box.classList.add('has-note');
 
-        const index = weekCounter;
-        const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
-        const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
-
-        if (index < weeksLivedTillToday) {
-          box.classList.add('filled');
+          weeksRow.appendChild(box);
+          boxElements.push(box);
+          weekCounter++;
         }
 
-        // Hover effect to show dates
-        box.addEventListener('mouseenter', () => {
-          const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          dateDisplay.textContent = `Year ${year}, Week ${week + 1} (${startStr} – ${endStr})`;
-        });
-
-        // Toggle week state on click
-        box.addEventListener('click', () => {
-          box.classList.toggle('filled');
-          updateCounts();
-        });
-
-        weeksRow.appendChild(box);
-        boxes.push(box);
-        weekCounter++;
+        row.appendChild(weeksRow);
+        grid.appendChild(row);
       }
+    }
 
-      row.appendChild(weeksRow);
-      grid.appendChild(row);
+    function getWeekDateRange(index) {
+      const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
+      const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
+      
+      const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      
+      const yearStr = Math.floor(index / 52);
+      const weekStr = (index % 52) + 1;
+      
+      return `Year ${yearStr}, Week ${weekStr} (${startStr} – ${endStr})`;
     }
 
     function updateCounts() {
-      const filled = document.querySelectorAll('.box.filled').length;
+      const filled = weekData.filter(w => w.filled).length;
       filledCountEl.textContent = filled.toLocaleString();
-      remainingCountEl.textContent = (totalYears * 52 - filled).toLocaleString();
+      remainingCountEl.textContent = (totalWeeks - filled).toLocaleString();
     }
 
-    function selectTillToday() {
-      boxes.forEach((box, i) => {
-        if (i < weeksLivedTillToday) {
-          box.classList.add('filled');
+    function renderBoxState(index) {
+      const box = boxElements[index];
+      const data = weekData[index];
+      
+      if (data.filled) box.classList.add('filled');
+      else box.classList.remove('filled');
+      
+      if (data.note.trim() !== '') box.classList.add('has-note');
+      else box.classList.remove('has-note');
+    }
+
+    grid.addEventListener('mouseover', (e) => {
+      if (e.target.classList.contains('box')) {
+        const index = parseInt(e.target.dataset.index);
+        const data = weekData[index];
+        
+        tooltipDate.textContent = getWeekDateRange(index);
+        if (data.note) {
+          tooltipNote.textContent = data.note;
+          tooltipNote.classList.remove('hidden');
         } else {
-          box.classList.remove('filled');
+          tooltipNote.classList.add('hidden');
         }
+
+        tooltip.style.opacity = '1';
+      }
+    });
+
+    grid.addEventListener('mousemove', (e) => {
+      if (e.target.classList.contains('box')) {
+        tooltip.style.left = (e.pageX) + 'px';
+        tooltip.style.top = (e.pageY - 15) + 'px';
+      }
+    });
+
+    grid.addEventListener('mouseout', (e) => {
+      if (e.target.classList.contains('box')) {
+        tooltip.style.opacity = '0';
+      }
+    });
+
+    grid.addEventListener('click', (e) => {
+      if (e.target.classList.contains('box')) {
+        const index = parseInt(e.target.dataset.index);
+        
+        if (e.detail === 1) {
+          clickTimer = setTimeout(() => {
+            openModal(index);
+          }, 200); 
+        }
+      }
+    });
+
+    grid.addEventListener('dblclick', (e) => {
+      if (e.target.classList.contains('box')) {
+        clearTimeout(clickTimer);
+        
+        const index = parseInt(e.target.dataset.index);
+        weekData[index].filled = !weekData[index].filled;
+        renderBoxState(index);
+        updateCounts();
+        
+        tooltip.style.opacity = '0';
+      }
+    });
+
+    function openModal(index) {
+      currentEditIndex = index;
+      const data = weekData[index];
+      
+      modalDateDisplay.textContent = getWeekDateRange(index);
+      eventText.value = data.note || '';
+      
+      tooltip.style.opacity = '0';
+      noteModal.classList.add('active');
+      setTimeout(() => eventText.focus(), 50);
+    }
+
+    function closeModal() {
+      noteModal.classList.remove('active');
+      currentEditIndex = -1;
+    }
+
+    function saveNote() {
+      if (currentEditIndex > -1) {
+        weekData[currentEditIndex].note = eventText.value;
+        renderBoxState(currentEditIndex);
+      }
+      closeModal();
+    }
+
+    eventText.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        saveNote();
+      }
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    function selectTillToday() {
+      weekData.forEach((data, i) => {
+        data.filled = (i < weeksLivedTillToday);
+        renderBoxState(i);
       });
       updateCounts();
     }
 
     function clearAll() {
-      boxes.forEach(box => box.classList.remove('filled'));
+      weekData.forEach((data, i) => {
+        data.filled = false;
+        renderBoxState(i);
+      });
       updateCounts();
     }
 
+    generateGrid();
     updateCounts();
   </script>
-
 </body>
 </html>
