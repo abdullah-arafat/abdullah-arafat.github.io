@@ -39,9 +39,9 @@
       font-weight: 700;
     }
 
-    .sub-header {
-      font-size: 9pt;
-      font-weight: 500;
+    .hover-display {
+      font-size: 8pt;
+      font-weight: 400;
       color: #000;
       background: transparent;
       border: none;
@@ -53,36 +53,10 @@
       letter-spacing: 0.2px;
     }
 
-    .auth-bar {
+    .controls {
       margin-bottom: 12px;
       display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 8pt;
-    }
-
-    .tooltip {
-      position: fixed;
-      background: #fff;
-      color: #000;
-      border: 1px solid #000;
-      padding: 8px 12px;
-      font-size: 8pt;
-      border-radius: 4px;
-      z-index: 1000;
-      display: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      max-width: 260px;
-      line-height: 1.3;
-    }
-
-    .controls {
-      margin-top: 14px;
-      margin-bottom: 14px;
-      display: flex;
       gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
     }
 
     .btn {
@@ -101,15 +75,10 @@
       color: #fff;
     }
 
-    .btn.active-mode {
-      background: #000;
-      color: #fff;
-    }
-
     .grid-container {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
       width: 100%;
       max-width: 680px;
     }
@@ -133,7 +102,7 @@
     .year-row {
       display: flex;
       align-items: center;
-      gap: 2px;
+      gap: 3px;
     }
 
     .year-label {
@@ -148,7 +117,7 @@
     .weeks-row {
       display: flex;
       flex: 1;
-      gap: 2px;
+      gap: 3px;
     }
 
     .box {
@@ -171,11 +140,6 @@
       border-color: #000;
     }
 
-    .box.selected-sticky {
-      outline: 2px solid #ff0000 !important;
-      z-index: 20;
-    }
-
     .box.has-note::after {
       content: '';
       position: absolute;
@@ -185,7 +149,7 @@
       width: 40%;
       height: 40%;
       border-radius: 50%;
-      background-color: #555;
+      background-color: #fff;
       z-index: 5;
     }
     
@@ -200,9 +164,16 @@
       margin-top: 14px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
-      width: 100%;
+    }
+
+    .info-bar {
+      font-size: 7pt;
+      color: #000;
+      background-color: transparent;
+      padding: 4px 12px;
+      display: inline-block;
     }
 
     .modal-overlay {
@@ -212,7 +183,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 2000;
+      z-index: 100;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
@@ -238,21 +209,32 @@
     .modal-overlay.active .modal-card {
       transform: scale(1);
     }
+
+    @media print {
+      body {
+        background-color: #fff;
+        padding: 0;
+      }
+      .no-print, .controls {
+        display: none !important;
+      }
+      .box:hover {
+        outline: none;
+      }
+    }
   </style>
 </head>
 <body>
 
   <div class="header">
     <h1>My Life in Weeks</h1>
-    <div id="subHeader" class="sub-header">70 Years (3,640 Weeks)</div>
+    <div id="hoverDisplay" class="hover-display">70 Years (3,640 Weeks)</div>
   </div>
 
-  <div class="auth-bar no-print" id="authBar">
-    <button onclick="signInWithGoogle()" class="btn" style="background:#000; color:#fff;">Sign in with Google</button>
-    <span id="authStatus" style="font-size:7.5pt; color:#444;">Not signed in (using local backup)</span>
+  <div class="controls no-print">
+    <button onclick="selectTillToday()" class="btn">Select Till Today</button>
+    <button onclick="clearAll()" class="btn">Clear All</button>
   </div>
-
-  <div id="tooltip" class="tooltip"></div>
 
   <div class="grid-container" id="grid">
     <div class="top-header-row">
@@ -269,15 +251,8 @@
 
   <div class="footer">
     <p>Selected: <strong id="filledCount">0</strong> weeks &nbsp;|&nbsp; Remaining: <strong id="remainingCount">3,640</strong> weeks</p>
-    
-    <div class="controls no-print">
-      <button id="editModeBtn" onclick="toggleEditMode()" class="btn">Edit: OFF</button>
-      <button onclick="selectTillToday()" class="btn">Select Till Today</button>
-      <button onclick="clearAll()" class="btn">Clear All</button>
-    </div>
-
-    <div style="font-size:7pt; color:#444;">
-      Edit: OFF &rarr; Click/Hover: View Info &middot; Edit: ON &rarr; Click: Edit Event, Double Click: Toggle Fill
+    <div class="info-bar no-print">
+      Hover: View Info &nbsp;&middot;&nbsp; 1 Click: Toggle Fill &nbsp;&middot;&nbsp; 2 Clicks: Edit Event
     </div>
   </div>
 
@@ -298,17 +273,7 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'life-in-weeks-default';
-    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-
-    let db, auth, userId = null;
-    let isInitialized = false;
-
+  <script>
     const dob = new Date(1998, 2, 9); // March 9, 1998
     const today = new Date();
     const msPerWeek = 1000 * 60 * 60 * 24 * 7;
@@ -316,7 +281,7 @@
     const totalYears = 70;
     const totalWeeks = totalYears * 52;
 
-    let weekData = Array.from({ length: totalWeeks }, (_, i) => ({
+    const weekData = Array.from({ length: totalWeeks }, (_, i) => ({
       filled: i < weeksLivedTillToday, 
       note: ''
     }));
@@ -324,21 +289,19 @@
     const grid = document.getElementById('grid');
     const filledCountEl = document.getElementById('filledCount');
     const remainingCountEl = document.getElementById('remainingCount');
-    const subHeader = document.getElementById('subHeader');
-    const tooltip = document.getElementById('tooltip');
-    const editModeBtn = document.getElementById('editModeBtn');
-    const authBar = document.getElementById('authBar');
+    const hoverDisplay = document.getElementById('hoverDisplay');
     
     const noteModal = document.getElementById('noteModal');
     const modalDateDisplay = document.getElementById('modalDateDisplay');
     const eventText = document.getElementById('eventText');
     let currentEditIndex = -1;
-    let editModeActive = false;
-    let lockedTooltipIndex = null;
+    let clickTimer = null;
+
     const boxElements = [];
 
     function generateGrid() {
       let weekCounter = 0;
+
       for (let year = 0; year < totalYears; year++) {
         const row = document.createElement('div');
         row.className = 'year-row';
@@ -369,23 +332,21 @@
       }
     }
 
-    function getWeekInfoContent(index) {
+    function getWeekInfoText(index) {
       const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
       const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
       
       const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       
-      const yearNum = Math.floor(index / 52);
-      const weekNum = (index % 52) + 1;
+      const yearStr = Math.floor(index / 52);
+      const weekStr = (index % 52) + 1;
       
-      let noteContent = weekData[index].note && weekData[index].note.trim() !== '' 
-        ? `<strong>Event:</strong> ${weekData[index].note}` 
-        : `<em>No significant event in this week</em>`;
-
-      return `<strong>Year ${yearNum}, Week ${weekNum}</strong><br>` +
-             `<span style="font-size:7.5pt; color:#444;">${startStr} – ${endStr}</span><br>` +
-             `<div style="margin-top:4px; border-top:1px solid #eee; padding-top:4px;">${noteContent}</div>`;
+      let text = `Year ${yearStr}, Week ${weekStr} (${startStr} – ${endStr})`;
+      if (weekData[index].note) {
+        text += ` — "${weekData[index].note}"`;
+      }
+      return text;
     }
 
     function updateCounts() {
@@ -401,70 +362,20 @@
       if (data.filled) box.classList.add('filled');
       else box.classList.remove('filled');
       
-      if (data.note && data.note.trim() !== '') box.classList.add('has-note');
+      if (data.note.trim() !== '') box.classList.add('has-note');
       else box.classList.remove('has-note');
-    }
-
-    function refreshAllBoxes() {
-      weekData.forEach((_, i) => renderBoxState(i));
-      updateCounts();
-    }
-
-    function clearStickySelection() {
-      if (lockedTooltipIndex !== null && boxElements[lockedTooltipIndex]) {
-        boxElements[lockedTooltipIndex].classList.remove('selected-sticky');
-      }
-      lockedTooltipIndex = null;
-    }
-
-    window.toggleEditMode = function() {
-      editModeActive = !editModeActive;
-      if (editModeActive) {
-        editModeBtn.textContent = "Edit: ON";
-        editModeBtn.classList.add('active-mode');
-      } else {
-        editModeBtn.textContent = "Edit: OFF";
-        editModeBtn.classList.remove('active-mode');
-      }
-      clearStickySelection();
-      tooltip.style.display = 'none';
-    };
-
-    function showTooltip(index, clientX, clientY) {
-      tooltip.innerHTML = getWeekInfoContent(index);
-      tooltip.style.display = 'block';
-      tooltip.style.left = Math.min(clientX + 12, window.innerWidth - 280) + 'px';
-      tooltip.style.top = Math.min(clientY + 12, window.innerHeight - 120) + 'px';
     }
 
     grid.addEventListener('mouseover', (e) => {
       if (e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
-        if (lockedTooltipIndex === null) {
-          showTooltip(index, e.clientX, e.clientY);
-        }
-        
-        const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
-        const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
-        const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const yearNum = Math.floor(index / 52);
-        const weekNum = (index % 52) + 1;
-        subHeader.textContent = `Year ${yearNum}, Week ${weekNum} (${startStr} – ${endStr})`;
-      }
-    });
-
-    grid.addEventListener('mousemove', (e) => {
-      if (lockedTooltipIndex === null && tooltip.style.display === 'block' && e.target.classList.contains('box')) {
-        tooltip.style.left = Math.min(e.clientX + 12, window.innerWidth - 280) + 'px';
-        tooltip.style.top = Math.min(e.clientY + 12, window.innerHeight - 120) + 'px';
+        hoverDisplay.textContent = getWeekInfoText(index);
       }
     });
 
     grid.addEventListener('mouseout', (e) => {
-      if (lockedTooltipIndex === null && e.target.classList.contains('box')) {
-        tooltip.style.display = 'none';
-        subHeader.textContent = `70 Years (3,640 Weeks)`;
+      if (e.target.classList.contains('box')) {
+        hoverDisplay.textContent = "70 Years (3,640 Weeks)";
       }
     });
 
@@ -472,38 +383,24 @@
       if (e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
         
-        if (editModeActive) {
-          openModal(index);
-        } else {
-          if (lockedTooltipIndex === index) {
-            clearStickySelection();
-            tooltip.style.display = 'none';
-            subHeader.textContent = `70 Years (3,640 Weeks)`;
-          } else {
-            clearStickySelection();
-            lockedTooltipIndex = index;
-            boxElements[index].classList.add('selected-sticky');
-            showTooltip(index, e.clientX, e.clientY);
-            
-            const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
-            const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
-            const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const yearNum = Math.floor(index / 52);
-            const weekNum = (index % 52) + 1;
-            subHeader.textContent = `Year ${yearNum}, Week ${weekNum} (${startStr} – ${endStr})`;
-          }
-        }
+        if (clickTimer) clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+          weekData[index].filled = !weekData[index].filled;
+          renderBoxState(index);
+          updateCounts();
+          clickTimer = null;
+        }, 250);
       }
     });
 
     grid.addEventListener('dblclick', (e) => {
-      if (editModeActive && e.target.classList.contains('box')) {
+      if (e.target.classList.contains('box')) {
+        if (clickTimer) {
+          clearTimeout(clickTimer);
+          clickTimer = null;
+        }
         const index = parseInt(e.target.dataset.index);
-        weekData[index].filled = !weekData[index].filled;
-        renderBoxState(index);
-        updateCounts();
-        saveDataToCloud();
+        openModal(index);
       }
     });
 
@@ -515,167 +412,56 @@
       const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
       const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const yearNum = Math.floor(index / 52);
-      const weekNum = (index % 52) + 1;
+      const yearStr = Math.floor(index / 52);
+      const weekStr = (index % 52) + 1;
 
-      modalDateDisplay.textContent = `Year ${yearNum}, Week ${weekNum} (${startStr} – ${endStr})`;
+      modalDateDisplay.textContent = `Year ${yearStr}, Week ${weekStr} (${startStr} – ${endStr})`;
       eventText.value = data.note || '';
       
       noteModal.classList.add('active');
       setTimeout(() => eventText.focus(), 50);
     }
 
-    window.closeModal = function() {
+    function closeModal() {
       noteModal.classList.remove('active');
       currentEditIndex = -1;
-    };
+    }
 
-    window.saveNote = function() {
+    function saveNote() {
       if (currentEditIndex > -1) {
         weekData[currentEditIndex].note = eventText.value;
-        if (eventText.value.trim() !== '') {
-          weekData[currentEditIndex].filled = true;
-        }
         renderBoxState(currentEditIndex);
-        updateCounts();
-        saveDataToCloud();
-        if (lockedTooltipIndex === currentEditIndex || tooltip.style.display === 'block') {
-          tooltip.innerHTML = getWeekInfoContent(currentEditIndex);
-        }
       }
-      window.closeModal();
-    };
+      closeModal();
+    }
 
     eventText.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        window.saveNote();
+        saveNote();
       }
       if (e.key === 'Escape') {
-        window.closeModal();
+        closeModal();
       }
     });
 
-    window.selectTillToday = function() {
+    function selectTillToday() {
       weekData.forEach((data, i) => {
         data.filled = (i < weeksLivedTillToday);
         renderBoxState(i);
       });
       updateCounts();
-      saveDataToCloud();
-    };
+    }
 
-    window.clearAll = function() {
+    function clearAll() {
       weekData.forEach((data, i) => {
         data.filled = false;
-        data.note = '';
         renderBoxState(i);
       });
       updateCounts();
-      saveDataToCloud();
-    };
-
-    async function initFirebase() {
-      try {
-        if (!firebaseConfig.apiKey) {
-          loadFromLocal();
-          generateGrid();
-          updateCounts();
-          return;
-        }
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            userId = user.uid;
-            isInitialized = true;
-            authBar.innerHTML = `<span style="font-size:7.5pt;">Signed in as <strong>${user.email || user.displayName}</strong></span> <button onclick="signOutUser()" class="btn">Sign Out</button>`;
-            
-            const docRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'weeksState');
-            onSnapshot(docRef, (docSnap) => {
-              if (docSnap.exists()) {
-                const serverData = docSnap.data();
-                if (serverData && Array.isArray(serverData.weeks)) {
-                  weekData = serverData.weeks;
-                  refreshAllBoxes();
-                }
-              } else {
-                saveDataToCloud();
-              }
-            }, (error) => {
-              console.error("Firestore sync error:", error);
-            });
-          } else {
-            loadFromLocal();
-            authBar.innerHTML = `<button onclick="signInWithGoogle()" class="btn" style="background:#000; color:#fff;">Sign in with Google</button> <span style="font-size:7.5pt; color:#444;">Not signed in (using local backup)</span>`;
-          }
-        });
-
-      } catch (err) {
-        console.error("Firebase init failed, falling back to local storage:", err);
-        loadFromLocal();
-      } finally {
-        if (!grid.hasChildNodes() || grid.children.length <= 1) {
-          generateGrid();
-          updateCounts();
-        }
-      }
-    }
-
-    window.signInWithGoogle = async function() {
-      if (!auth) {
-        alert("Firebase is not fully configured.");
-        return;
-      }
-      try {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-      } catch (error) {
-        console.error("Google Sign-In error:", error);
-      }
-    };
-
-    window.signOutUser = async function() {
-      if (!auth) return;
-      try {
-        await signOut(auth);
-        userId = null;
-        isInitialized = false;
-      } catch (error) {
-        console.error("Sign out error:", error);
-      }
-    };
-
-    async function saveDataToCloud() {
-      try {
-        localStorage.setItem('life_in_weeks_data', JSON.stringify(weekData));
-      } catch (e) {}
-
-      if (!isInitialized || !db || !userId) return;
-      try {
-        const docRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'weeksState');
-        await setDoc(docRef, { weeks: weekData });
-      } catch (e) {
-        console.error("Error saving data to cloud:", e);
-      }
-    }
-
-    function loadFromLocal() {
-      try {
-        const saved = localStorage.getItem('life_in_weeks_data');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length === totalWeeks) {
-            weekData = parsed;
-          }
-        }
-      } catch (e) {}
     }
 
     generateGrid();
     updateCounts();
-    initFirebase();
   </script>
 </body>
 </html>
