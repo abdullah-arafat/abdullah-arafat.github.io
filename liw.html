@@ -13,8 +13,8 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #111;
-      background-color: #fcfcfc;
+      color: #000;
+      background-color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -26,39 +26,77 @@
       text-align: center;
       margin-bottom: 12px;
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
     }
 
     .header h1 {
-      font-size: 16pt;
+      font-size: 15pt;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       font-weight: 700;
-      margin-bottom: 2px;
     }
 
-    .header p {
+    .hover-display {
       font-size: 8pt;
-      color: #555;
+      font-weight: 400;
+      color: #000;
+      background: transparent;
+      border: none;
+      padding: 0;
+      min-height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: 0.2px;
+    }
+
+    /* Floating tooltip for week info on hover/click */
+    .tooltip {
+      position: fixed;
+      background: #fff;
+      color: #000;
+      border: 1px solid #000;
+      padding: 8px 12px;
+      font-size: 8pt;
+      border-radius: 4px;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 260px;
+      line-height: 1.3;
     }
 
     .controls {
-      margin-bottom: 16px;
+      margin-top: 14px;
+      margin-bottom: 14px;
       display: flex;
       gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
     .btn {
-      background: #eee;
-      border: 1px solid #ccc;
-      padding: 5px 12px;
+      background: #fff;
+      border: 1px solid #000;
+      padding: 4px 10px;
       font-size: 7.5pt;
       border-radius: 4px;
       cursor: pointer;
-      color: #333;
+      color: #000;
+      font-weight: 500;
     }
 
     .btn:hover {
-      background: #ddd;
+      background: #000;
+      color: #fff;
+    }
+
+    .btn.active-mode {
+      background: #000;
+      color: #fff;
     }
 
     .grid-container {
@@ -69,13 +107,20 @@
       max-width: 680px;
     }
 
+    .top-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-left: 20px;
+      padding-right: 0px;
+    }
+
     .week-labels {
       display: flex;
       justify-content: space-between;
       font-size: 6pt;
-      color: #777;
-      margin-left: 20px;
-      padding-right: 1px;
+      color: #000;
+      flex: 1;
     }
 
     .year-row {
@@ -87,7 +132,7 @@
     .year-label {
       width: 18px;
       font-size: 6pt;
-      color: #777;
+      color: #000;
       text-align: right;
       padding-right: 4px;
       font-variant-numeric: tabular-nums;
@@ -102,82 +147,75 @@
     .box {
       flex: 1;
       aspect-ratio: 1;
-      border: 0.6px solid #ccc;
+      border: 0.6px solid #000;
       border-radius: 0.5px;
       cursor: pointer;
-      transition: all 0.1s;
       position: relative;
     }
 
     .box:hover {
       border-color: #000;
-      outline: 1px solid #000;
+      outline: 1.5px solid #000;
       z-index: 10;
     }
 
     .box.filled {
-      background-color: #111;
-      border-color: #111;
+      background-color: #000;
+      border-color: #000;
     }
 
-    /* Indicator for boxes that contain an event/note */
+    /* Red outline for active selected sticky tooltip box */
+    .box.selected-sticky {
+      outline: 2px solid #ff0000 !important;
+      z-index: 20;
+    }
+
+    /* Dark gray dot or marker inside box when it has an event note */
     .box.has-note::after {
       content: '';
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 35%;
-      height: 35%;
+      width: 40%;
+      height: 40%;
       border-radius: 50%;
-      background-color: #3b82f6;
+      background-color: #555;
       z-index: 5;
     }
     
     .box.filled.has-note::after {
-      background-color: #60a5fa;
+      background-color: #fff;
     }
 
     .footer {
       text-align: center;
       font-size: 8pt;
-      color: #666;
-      margin-top: 16px;
+      color: #000;
+      margin-top: 14px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
+      width: 100%;
     }
 
     .info-bar {
       font-size: 7pt;
-      color: #555;
-      background-color: #f0f0f0;
+      color: #000;
+      background-color: transparent;
       padding: 4px 12px;
-      border-radius: 4px;
       display: inline-block;
     }
 
-    #tooltip {
-      position: absolute;
-      pointer-events: none;
-      z-index: 50;
-      opacity: 0;
-      transition: opacity 0.15s ease, transform 0.1s ease;
-      transform: translate(-50%, -100%);
-      margin-top: -10px;
-    }
-
-    /* Modal styles */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(2px);
+      background: rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 100;
+      z-index: 2000;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
@@ -190,8 +228,9 @@
 
     .modal-card {
       background: #fff;
-      border-radius: 6px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      border: 1px solid #000;
+      border-radius: 4px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
       width: 100%;
       max-width: 320px;
       overflow: hidden;
@@ -208,12 +247,11 @@
         background-color: #fff;
         padding: 0;
       }
-      .no-print, .controls {
+      .no-print, .controls, .tooltip {
         display: none !important;
       }
       .box:hover {
         outline: none;
-        transform: none;
       }
     }
   </style>
@@ -222,53 +260,51 @@
 
   <div class="header">
     <h1>My Life in Weeks</h1>
-    <p>70 Years (3,640 Weeks)</p>
+    <div id="hoverDisplay" class="hover-display">70 Years (3,640 Weeks)</div>
   </div>
 
-  <div class="controls no-print">
-    <button onclick="selectTillToday()" class="btn">Select Till Today</button>
-    <button onclick="clearAll()" class="btn">Clear All</button>
-  </div>
+  <div id="tooltip" class="tooltip"></div>
 
   <div class="grid-container" id="grid">
-    <div class="week-labels">
-      <span>Week 1</span>
-      <span>10</span>
-      <span>20</span>
-      <span>30</span>
-      <span>40</span>
-      <span>52</span>
+    <div class="top-header-row">
+      <div class="week-labels">
+        <span>Week 1</span>
+        <span>10</span>
+        <span>20</span>
+        <span>30</span>
+        <span>40</span>
+        <span>52</span>
+      </div>
     </div>
-    <!-- Rows will be populated via JavaScript -->
   </div>
 
   <div class="footer">
     <p>Selected: <strong id="filledCount">0</strong> weeks &nbsp;|&nbsp; Remaining: <strong id="remainingCount">3,640</strong> weeks</p>
-    <div class="info-bar no-print">
-      <strong>Hover</strong>: View Info &nbsp;&middot;&nbsp; 
-      <strong>1 Click</strong>: Edit Event &nbsp;&middot;&nbsp; 
-      <strong>2 Clicks</strong>: Toggle Fill
+    
+    <div class="controls no-print">
+      <button id="editModeBtn" onclick="toggleEditMode()" class="btn">Edit: OFF</button>
+      <button onclick="selectTillToday()" class="btn">Select Till Today</button>
+      <button onclick="clearAll()" class="btn">Clear All</button>
     </div>
-  </div>
 
-  <div id="tooltip" style="background:#111; color:#fff; padding:4px 8px; border-radius:4px; font-size:10px; max-width:200px; width:max-content;" class="no-print">
-    <div id="tooltipDate" style="font-weight:bold; color:#cbd5e1; margin-bottom:2px;"></div>
-    <div id="tooltipNote" style="color:#f8fafc; white-space:pre-wrap;" class="hidden"></div>
+    <div class="info-bar no-print">
+      Edit: OFF &rarr; Hover/Click: View Info &middot; Edit: ON &rarr; Click: Toggle Fill, Middle Click: Edit Event
+    </div>
   </div>
 
   <div id="noteModal" class="modal-overlay no-print">
     <div class="modal-card">
-      <div style="padding:12px 16px; border-bottom:1px solid #eee; background:#f9fafb; display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="font-size:13px; font-weight:600; color:#111;">Edit Week Event</h3>
-        <button onclick="closeModal()" style="background:none; border:none; cursor:pointer; color:#666; font-size:14px;">&times;</button>
+      <div style="padding:12px 16px; border-bottom:1px solid #000; background:#fff; display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:12px; font-weight:700; color:#000; text-transform:uppercase;">Edit Week Event</h3>
+        <button onclick="closeModal()" style="background:none; border:none; cursor:pointer; color:#000; font-size:16px; font-weight:bold;">&times;</button>
       </div>
       <div style="padding:16px;">
-        <div id="modalDateDisplay" style="font-size:11px; color:#2563eb; font-weight:500; background:#eff6ff; padding:6px 8px; border-radius:4px; margin-bottom:12px;"></div>
-        <textarea id="eventText" rows="4" style="width:100%; border:1px solid #d1d5db; border-radius:4px; padding:8px; font-size:12px; outline:none; resize:none;" placeholder="Write your milestones, memories, or notes here..."></textarea>
+        <div id="modalDateDisplay" style="font-size:10.5pt; color:#000; font-weight:600; background:#fff; border-bottom:1px solid #000; padding-bottom:6px; margin-bottom:12px;"></div>
+        <textarea id="eventText" rows="4" style="width:100%; border:1px solid #000; border-radius:2px; padding:8px; font-size:11px; outline:none; resize:none; background:#fff; color:#000;" placeholder="Write your milestones, memories, or notes here..."></textarea>
       </div>
-      <div style="padding:10px 16px; background:#f9fafb; border-top:1px solid #eee; display:flex; justify-content:end; gap:8px;">
+      <div style="padding:10px 16px; background:#fff; border-top:1px solid #000; display:flex; justify-content:end; gap:8px;">
         <button onclick="closeModal()" class="btn" style="padding:4px 10px;">Cancel</button>
-        <button onclick="saveNote()" class="btn" style="background:#2563eb; color:#fff; border-color:#2563eb; padding:4px 10px;">Save Event</button>
+        <button onclick="saveNote()" class="btn" style="background:#000; color:#fff; border-color:#000; padding:4px 10px;">Save Event</button>
       </div>
     </div>
   </div>
@@ -289,16 +325,16 @@
     const grid = document.getElementById('grid');
     const filledCountEl = document.getElementById('filledCount');
     const remainingCountEl = document.getElementById('remainingCount');
-    
+    const hoverDisplay = document.getElementById('hoverDisplay');
     const tooltip = document.getElementById('tooltip');
-    const tooltipDate = document.getElementById('tooltipDate');
-    const tooltipNote = document.getElementById('tooltipNote');
+    const editModeBtn = document.getElementById('editModeBtn');
     
     const noteModal = document.getElementById('noteModal');
     const modalDateDisplay = document.getElementById('modalDateDisplay');
     const eventText = document.getElementById('eventText');
     let currentEditIndex = -1;
-    let clickTimer = null;
+    let editModeActive = false;
+    let lockedTooltipIndex = null; // for clicked sticky tooltip when selected
 
     const boxElements = [];
 
@@ -335,17 +371,23 @@
       }
     }
 
-    function getWeekDateRange(index) {
+    function getWeekInfoContent(index) {
       const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
       const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
       
       const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       
-      const yearStr = Math.floor(index / 52);
-      const weekStr = (index % 52) + 1;
+      const yearNum = Math.floor(index / 52);
+      const weekNum = (index % 52) + 1;
       
-      return `Year ${yearStr}, Week ${weekStr} (${startStr} – ${endStr})`;
+      let noteContent = weekData[index].note && weekData[index].note.trim() !== '' 
+        ? `<strong>Event:</strong> ${weekData[index].note}` 
+        : `<em>No significant event in this week</em>`;
+
+      return `<strong>Year ${yearNum}, Week ${weekNum}</strong><br>` +
+             `<span style="font-size:7.5pt; color:#444;">${startStr} – ${endStr}</span><br>` +
+             `<div style="margin-top:4px; border-top:1px solid #eee; padding-top:4px;">${noteContent}</div>`;
     }
 
     function updateCounts() {
@@ -365,58 +407,113 @@
       else box.classList.remove('has-note');
     }
 
-    grid.addEventListener('mouseover', (e) => {
-      if (e.target.classList.contains('box')) {
-        const index = parseInt(e.target.dataset.index);
-        const data = weekData[index];
-        
-        tooltipDate.textContent = getWeekDateRange(index);
-        if (data.note) {
-          tooltipNote.textContent = data.note;
-          tooltipNote.classList.remove('hidden');
-        } else {
-          tooltipNote.classList.add('hidden');
-        }
+    function clearStickySelection() {
+      if (lockedTooltipIndex !== null && boxElements[lockedTooltipIndex]) {
+        boxElements[lockedTooltipIndex].classList.remove('selected-sticky');
+      }
+      lockedTooltipIndex = null;
+    }
 
-        tooltip.style.opacity = '1';
+    function toggleEditMode() {
+      editModeActive = !editModeActive;
+      if (editModeActive) {
+        editModeBtn.textContent = "Edit: ON";
+        editModeBtn.classList.add('active-mode');
+      } else {
+        editModeBtn.textContent = "Edit: OFF";
+        editModeBtn.classList.remove('active-mode');
+      }
+      clearStickySelection();
+      tooltip.style.display = 'none';
+    }
+
+    function showTooltip(index, clientX, clientY) {
+      tooltip.innerHTML = getWeekInfoContent(index);
+      tooltip.style.display = 'block';
+      tooltip.style.left = Math.min(clientX + 12, window.innerWidth - 280) + 'px';
+      tooltip.style.top = Math.min(clientY + 12, window.innerHeight - 120) + 'px';
+    }
+
+    grid.addEventListener('mouseover', (e) => {
+      if (editModeActive) return; // Don't trigger hover info popup when edit is ON
+      if (lockedTooltipIndex === null && e.target.classList.contains('box')) {
+        const index = parseInt(e.target.dataset.index);
+        showTooltip(index, e.clientX, e.clientY);
+        
+        const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
+        const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
+        const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const yearNum = Math.floor(index / 52);
+        const weekNum = (index % 52) + 1;
+        hoverDisplay.textContent = `Year ${yearNum}, Week ${weekNum} (${startStr} – ${endStr})`;
       }
     });
 
     grid.addEventListener('mousemove', (e) => {
-      if (e.target.classList.contains('box')) {
-        tooltip.style.left = (e.pageX) + 'px';
-        tooltip.style.top = (e.pageY - 15) + 'px';
+      if (editModeActive) return;
+      if (lockedTooltipIndex === null && tooltip.style.display === 'block' && e.target.classList.contains('box')) {
+        tooltip.style.left = Math.min(e.clientX + 12, window.innerWidth - 280) + 'px';
+        tooltip.style.top = Math.min(e.clientY + 12, window.innerHeight - 120) + 'px';
       }
     });
 
     grid.addEventListener('mouseout', (e) => {
-      if (e.target.classList.contains('box')) {
-        tooltip.style.opacity = '0';
+      if (editModeActive) return;
+      if (lockedTooltipIndex === null && e.target.classList.contains('box')) {
+        tooltip.style.display = 'none';
+        hoverDisplay.textContent = `70 Years (3,640 Weeks)`;
       }
     });
 
+    // Middle click handling for editing event when Edit = ON
+    grid.addEventListener('mousedown', (e) => {
+      if (e.button === 1 && e.target.classList.contains('box')) { // Middle click
+        e.preventDefault();
+        const index = parseInt(e.target.dataset.index);
+        openModal(index);
+      }
+    });
+
+    // Click handling based on Edit mode state
     grid.addEventListener('click', (e) => {
       if (e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
         
-        if (e.detail === 1) {
-          clickTimer = setTimeout(() => {
-            openModal(index);
-          }, 200); 
+        if (editModeActive) {
+          // Edit = ON: Single click toggles filled state (makes it black)
+          weekData[index].filled = !weekData[index].filled;
+          renderBoxState(index);
+          updateCounts();
+        } else {
+          // Edit = OFF: Click toggles sticky tooltip box with red outline
+          if (lockedTooltipIndex === index) {
+            clearStickySelection();
+            tooltip.style.display = 'none';
+            hoverDisplay.textContent = `70 Years (3,640 Weeks)`;
+          } else {
+            clearStickySelection();
+            lockedTooltipIndex = index;
+            boxElements[index].classList.add('selected-sticky');
+            showTooltip(index, e.clientX, e.clientY);
+            
+            const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
+            const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
+            const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const yearNum = Math.floor(index / 52);
+            const weekNum = (index % 52) + 1;
+            hoverDisplay.textContent = `Year ${yearNum}, Week ${weekNum} (${startStr} – ${endStr})`;
+          }
         }
       }
     });
 
+    // Double click handling: Only active when Edit = ON to edit event via double click too
     grid.addEventListener('dblclick', (e) => {
-      if (e.target.classList.contains('box')) {
-        clearTimeout(clickTimer);
-        
+      if (editModeActive && e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
-        weekData[index].filled = !weekData[index].filled;
-        renderBoxState(index);
-        updateCounts();
-        
-        tooltip.style.opacity = '0';
+        openModal(index);
       }
     });
 
@@ -424,10 +521,16 @@
       currentEditIndex = index;
       const data = weekData[index];
       
-      modalDateDisplay.textContent = getWeekDateRange(index);
+      const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
+      const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
+      const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const yearNum = Math.floor(index / 52);
+      const weekNum = (index % 52) + 1;
+
+      modalDateDisplay.textContent = `Year ${yearNum}, Week ${weekNum} (${startStr} – ${endStr})`;
       eventText.value = data.note || '';
       
-      tooltip.style.opacity = '0';
       noteModal.classList.add('active');
       setTimeout(() => eventText.focus(), 50);
     }
@@ -440,7 +543,14 @@
     function saveNote() {
       if (currentEditIndex > -1) {
         weekData[currentEditIndex].note = eventText.value;
+        if (eventText.value.trim() !== '') {
+          weekData[currentEditIndex].filled = true; // Auto fill black if event added
+        }
         renderBoxState(currentEditIndex);
+        updateCounts();
+        if (lockedTooltipIndex === currentEditIndex) {
+          tooltip.innerHTML = getWeekInfoContent(currentEditIndex);
+        }
       }
       closeModal();
     }
@@ -465,6 +575,7 @@
     function clearAll() {
       weekData.forEach((data, i) => {
         data.filled = false;
+        data.note = '';
         renderBoxState(i);
       });
       updateCounts();
