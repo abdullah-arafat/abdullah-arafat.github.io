@@ -53,10 +53,29 @@
       letter-spacing: 0.2px;
     }
 
+    /* Floating tooltip for week info on hover/click */
+    .tooltip {
+      position: fixed;
+      background: #fff;
+      color: #000;
+      border: 1px solid #000;
+      padding: 8px 12px;
+      font-size: 8pt;
+      border-radius: 4px;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 260px;
+      line-height: 1.3;
+    }
+
     .controls {
-      margin-bottom: 12px;
+      margin-top: 14px;
+      margin-bottom: 14px;
       display: flex;
       gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
     .btn {
@@ -75,10 +94,15 @@
       color: #fff;
     }
 
+    .btn.active-mode {
+      background: #000;
+      color: #fff;
+    }
+
     .grid-container {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
       width: 100%;
       max-width: 680px;
     }
@@ -102,7 +126,7 @@
     .year-row {
       display: flex;
       align-items: center;
-      gap: 3px;
+      gap: 2px;
     }
 
     .year-label {
@@ -117,7 +141,7 @@
     .weeks-row {
       display: flex;
       flex: 1;
-      gap: 3px;
+      gap: 2px;
     }
 
     .box {
@@ -140,6 +164,13 @@
       border-color: #000;
     }
 
+    /* Red outline for active selected sticky tooltip box */
+    .box.selected-sticky {
+      outline: 2px solid #ff0000 !important;
+      z-index: 20;
+    }
+
+    /* Dark gray dot or marker inside box when it has an event note */
     .box.has-note::after {
       content: '';
       position: absolute;
@@ -149,7 +180,7 @@
       width: 40%;
       height: 40%;
       border-radius: 50%;
-      background-color: #fff;
+      background-color: #555;
       z-index: 5;
     }
     
@@ -164,8 +195,9 @@
       margin-top: 14px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
+      width: 100%;
     }
 
     .info-bar {
@@ -183,7 +215,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 100;
+      z-index: 2000;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
@@ -215,7 +247,7 @@
         background-color: #fff;
         padding: 0;
       }
-      .no-print, .controls {
+      .no-print, .controls, .tooltip {
         display: none !important;
       }
       .box:hover {
@@ -231,10 +263,7 @@
     <div id="hoverDisplay" class="hover-display">70 Years (3,640 Weeks)</div>
   </div>
 
-  <div class="controls no-print">
-    <button onclick="selectTillToday()" class="btn">Select Till Today</button>
-    <button onclick="clearAll()" class="btn">Clear All</button>
-  </div>
+  <div id="tooltip" class="tooltip"></div>
 
   <div class="grid-container" id="grid">
     <div class="top-header-row">
@@ -251,8 +280,15 @@
 
   <div class="footer">
     <p>Selected: <strong id="filledCount">0</strong> weeks &nbsp;|&nbsp; Remaining: <strong id="remainingCount">3,640</strong> weeks</p>
+    
+    <div class="controls no-print">
+      <button id="editModeBtn" onclick="toggleEditMode()" class="btn">Edit: OFF</button>
+      <button onclick="selectTillToday()" class="btn">Select Till Today</button>
+      <button onclick="clearAll()" class="btn">Clear All</button>
+    </div>
+
     <div class="info-bar no-print">
-      Hover: View Info &nbsp;&middot;&nbsp; 1 Click: Toggle Fill &nbsp;&middot;&nbsp; 2 Clicks: Edit Event
+      Edit: OFF &rarr; Hover/Click: View Info &middot; Edit: ON &rarr; Click: Toggle Fill, Middle Click: Edit Event
     </div>
   </div>
 
@@ -290,12 +326,15 @@
     const filledCountEl = document.getElementById('filledCount');
     const remainingCountEl = document.getElementById('remainingCount');
     const hoverDisplay = document.getElementById('hoverDisplay');
+    const tooltip = document.getElementById('tooltip');
+    const editModeBtn = document.getElementById('editModeBtn');
     
     const noteModal = document.getElementById('noteModal');
     const modalDateDisplay = document.getElementById('modalDateDisplay');
     const eventText = document.getElementById('eventText');
     let currentEditIndex = -1;
-    let clickTimer = null;
+    let editModeActive = false;
+    let lockedTooltipIndex = null; // for clicked sticky tooltip when selected
 
     const boxElements = [];
 
@@ -332,21 +371,23 @@
       }
     }
 
-    function getWeekInfoText(index) {
+    function getWeekInfoContent(index) {
       const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
       const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
       
       const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       
-      const yearStr = Math.floor(index / 52);
-      const weekStr = (index % 52) + 1;
+      const yearNum = Math.floor(index / 52);
+      const weekNum = (index % 52) + 1;
       
-      let text = `Year ${yearStr}, Week ${weekStr} (${startStr} – ${endStr})`;
-      if (weekData[index].note) {
-        text += ` — "${weekData[index].note}"`;
-      }
-      return text;
+      let noteContent = weekData[index].note && weekData[index].note.trim() !== '' 
+        ? `<strong>Event:</strong> ${weekData[index].note}` 
+        : `<em>No significant event in this week</em>`;
+
+      return `<strong>Year ${yearNum}, Week ${weekNum}</strong><br>` +
+             `<span style="font-size:7.5pt; color:#444;">${startStr} – ${endStr}</span><br>` +
+             `<div style="margin-top:4px; border-top:1px solid #eee; padding-top:4px;">${noteContent}</div>`;
     }
 
     function updateCounts() {
@@ -366,39 +407,111 @@
       else box.classList.remove('has-note');
     }
 
+    function clearStickySelection() {
+      if (lockedTooltipIndex !== null && boxElements[lockedTooltipIndex]) {
+        boxElements[lockedTooltipIndex].classList.remove('selected-sticky');
+      }
+      lockedTooltipIndex = null;
+    }
+
+    function toggleEditMode() {
+      editModeActive = !editModeActive;
+      if (editModeActive) {
+        editModeBtn.textContent = "Edit: ON";
+        editModeBtn.classList.add('active-mode');
+      } else {
+        editModeBtn.textContent = "Edit: OFF";
+        editModeBtn.classList.remove('active-mode');
+      }
+      clearStickySelection();
+      tooltip.style.display = 'none';
+    }
+
+    function showTooltip(index, clientX, clientY) {
+      tooltip.innerHTML = getWeekInfoContent(index);
+      tooltip.style.display = 'block';
+      tooltip.style.left = Math.min(clientX + 12, window.innerWidth - 280) + 'px';
+      tooltip.style.top = Math.min(clientY + 12, window.innerHeight - 120) + 'px';
+    }
+
     grid.addEventListener('mouseover', (e) => {
-      if (e.target.classList.contains('box')) {
+      if (editModeActive) return; // Don't trigger hover info popup when edit is ON
+      if (lockedTooltipIndex === null && e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
-        hoverDisplay.textContent = getWeekInfoText(index);
+        showTooltip(index, e.clientX, e.clientY);
+        
+        const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
+        const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
+        const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const yearNum = Math.floor(index / 52);
+        const weekNum = (index % 52) + 1;
+        hoverDisplay.textContent = `Year ${yearNum}, Week ${weekNum} (${startStr} – ${endStr})`;
+      }
+    });
+
+    grid.addEventListener('mousemove', (e) => {
+      if (editModeActive) return;
+      if (lockedTooltipIndex === null && tooltip.style.display === 'block' && e.target.classList.contains('box')) {
+        tooltip.style.left = Math.min(e.clientX + 12, window.innerWidth - 280) + 'px';
+        tooltip.style.top = Math.min(e.clientY + 12, window.innerHeight - 120) + 'px';
       }
     });
 
     grid.addEventListener('mouseout', (e) => {
-      if (e.target.classList.contains('box')) {
-        hoverDisplay.textContent = "70 Years (3,640 Weeks)";
+      if (editModeActive) return;
+      if (lockedTooltipIndex === null && e.target.classList.contains('box')) {
+        tooltip.style.display = 'none';
+        hoverDisplay.textContent = `70 Years (3,640 Weeks)`;
       }
     });
 
+    // Middle click handling for editing event when Edit = ON
+    grid.addEventListener('mousedown', (e) => {
+      if (e.button === 1 && e.target.classList.contains('box')) { // Middle click
+        e.preventDefault();
+        const index = parseInt(e.target.dataset.index);
+        openModal(index);
+      }
+    });
+
+    // Click handling based on Edit mode state
     grid.addEventListener('click', (e) => {
       if (e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
         
-        if (clickTimer) clearTimeout(clickTimer);
-        clickTimer = setTimeout(() => {
+        if (editModeActive) {
+          // Edit = ON: Single click toggles filled state (makes it black)
           weekData[index].filled = !weekData[index].filled;
           renderBoxState(index);
           updateCounts();
-          clickTimer = null;
-        }, 250);
+        } else {
+          // Edit = OFF: Click toggles sticky tooltip box with red outline
+          if (lockedTooltipIndex === index) {
+            clearStickySelection();
+            tooltip.style.display = 'none';
+            hoverDisplay.textContent = `70 Years (3,640 Weeks)`;
+          } else {
+            clearStickySelection();
+            lockedTooltipIndex = index;
+            boxElements[index].classList.add('selected-sticky');
+            showTooltip(index, e.clientX, e.clientY);
+            
+            const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
+            const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
+            const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const yearNum = Math.floor(index / 52);
+            const weekNum = (index % 52) + 1;
+            hoverDisplay.textContent = `Year ${yearNum}, Week ${weekNum} (${startStr} – ${endStr})`;
+          }
+        }
       }
     });
 
+    // Double click handling: Only active when Edit = ON to edit event via double click too
     grid.addEventListener('dblclick', (e) => {
-      if (e.target.classList.contains('box')) {
-        if (clickTimer) {
-          clearTimeout(clickTimer);
-          clickTimer = null;
-        }
+      if (editModeActive && e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
         openModal(index);
       }
@@ -412,10 +525,10 @@
       const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
       const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const yearStr = Math.floor(index / 52);
-      const weekStr = (index % 52) + 1;
+      const yearNum = Math.floor(index / 52);
+      const weekNum = (index % 52) + 1;
 
-      modalDateDisplay.textContent = `Year ${yearStr}, Week ${weekStr} (${startStr} – ${endStr})`;
+      modalDateDisplay.textContent = `Year ${yearNum}, Week ${weekNum} (${startStr} – ${endStr})`;
       eventText.value = data.note || '';
       
       noteModal.classList.add('active');
@@ -430,7 +543,14 @@
     function saveNote() {
       if (currentEditIndex > -1) {
         weekData[currentEditIndex].note = eventText.value;
+        if (eventText.value.trim() !== '') {
+          weekData[currentEditIndex].filled = true; // Auto fill black if event added
+        }
         renderBoxState(currentEditIndex);
+        updateCounts();
+        if (lockedTooltipIndex === currentEditIndex) {
+          tooltip.innerHTML = getWeekInfoContent(currentEditIndex);
+        }
       }
       closeModal();
     }
@@ -455,6 +575,7 @@
     function clearAll() {
       weekData.forEach((data, i) => {
         data.filled = false;
+        data.note = '';
         renderBoxState(i);
       });
       updateCounts();
