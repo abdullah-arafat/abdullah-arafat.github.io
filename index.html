@@ -73,7 +73,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
    }
 
 8. ICONS/IMAGES/CV: 
-   Replace `profile_picture.png` and `cv.pdf` in your local folder to match the filenames, 
+   Replace `profile_picture.png` and `cv.pdf` in your `assets` folder to match the filenames, 
    or change the text in `imageUrl` and `cvUrl` to match your actual files.
 =============================================================================================
 -->
@@ -192,17 +192,44 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* Subtle scrollbar for sidebar (desktop only) */
+        @media (min-width: 768px) {
+            .sidebar-scroll {
+                max-height: calc(100vh - 4rem);
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: transparent transparent;
+                transition: scrollbar-color 0.3s ease;
+            }
+            .sidebar-scroll:hover {
+                scrollbar-color: #cbd5e1 transparent; /* Tailwind academic-300 */
+            }
+            .sidebar-scroll::-webkit-scrollbar {
+                width: 4px;
+            }
+            .sidebar-scroll::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .sidebar-scroll::-webkit-scrollbar-thumb {
+                background-color: transparent;
+                border-radius: 4px;
+            }
+            .sidebar-scroll:hover::-webkit-scrollbar-thumb {
+                background-color: #cbd5e1;
+            }
+        }
     </style>
 </head>
 <body class="text-academic-800 font-sans antialiased">
     
     <div class="gradient-top"></div>
 
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-12">
         <div class="flex flex-col md:flex-row gap-8 items-start">
             
-            <!-- Left Sidebar (Sticky) -->
-            <aside class="md:w-[320px] shrink-0 bg-white p-8 rounded-2xl shadow-sm border border-academic-100 md:sticky md:top-8 z-10">
+            <!-- Left Sidebar (Sticky Profile Card) -->
+            <aside class="md:w-[320px] shrink-0 bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-academic-100 md:sticky md:top-8 z-10 sidebar-scroll">
                 
                 <!-- Profile Image & Info -->
                 <div class="flex flex-col items-center mb-6 text-center">
@@ -242,7 +269,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 </div>
 
                 <!-- CV Download Button -->
-                <div class="flex justify-center mb-8 border-b border-academic-100 pb-6">
+                <div class="flex justify-center mb-2">
                     <a id="cv-link" href="#" target="_blank" class="flex items-center justify-center gap-2 w-full bg-academic-800 hover:bg-academic-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         View / Download CV
@@ -250,17 +277,17 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 </div>
 
                 <!-- Navigation Menu -->
-                <nav class="hidden md:block">
-                    <ul class="space-y-4 text-sm font-medium text-academic-600">
+                <nav class="mt-8 pt-6 border-t border-academic-100">
+                    <ul class="space-y-3.5 text-sm font-medium text-academic-600">
                         <li><a href="#about" class="nav-link hover:text-academic-900 block">About</a></li>
                         <li><a href="#education" class="nav-link hover:text-academic-900 block">Education</a></li>
                         <li><a href="#research-experience" class="nav-link hover:text-academic-900 block">Research & Teaching</a></li>
                         <li><a href="#industry-experience" class="nav-link hover:text-academic-900 block">Industry Experience</a></li>
                         <li><a href="#publications" class="nav-link hover:text-academic-900 block">Publications</a></li>
                         <li><a href="#awards" class="nav-link hover:text-academic-900 block">Awards & Honors</a></li>
-                        <li><a href="#extracurricular" class="nav-link hover:text-academic-900 block">Extracurricular Activities</a></li>
+                        <li><a href="#extracurricular" class="nav-link hover:text-academic-900 block">Extracurriculars</a></li>
                         <li><a href="#testimonials" class="nav-link hover:text-academic-900 block">Testimonials</a></li>
-                        <li><a href="#feedbacks" class="nav-link hover:text-academic-900 block">Student Feedback</a></li>
+                        <li><a href="#feedbacks" class="nav-link hover:text-academic-900 block">Feedback</a></li>
                     </ul>
                 </nav>
             </aside>
@@ -419,9 +446,9 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 name: "Abdullah Arafat",
                 role: "Computational Scientist",
                 institution: "The University of Utah",
-                imageUrl: "profile_picture.png", 
+                imageUrl: "assets/profile_picture.png", 
                 email: "abdullah.arafat@utah.edu",
-                cvUrl: "cv.pdf" 
+                cvUrl: "assets/cv.pdf" 
             },
             metrics: {
                 citations: 61,
