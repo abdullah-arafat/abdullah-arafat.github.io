@@ -1,5 +1,82 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
+<!-- 
+=============================================================================================
+HOW TO EDIT THIS PORTFOLIO
+=============================================================================================
+This file is designed to be easily updated without knowing complex HTML or CSS.
+Scroll down to the bottom of the file (around line 300) to find the `portfolioData` object.
+
+You only need to edit the text inside the quotes, brackets, or braces in the `portfolioData` object.
+
+1. PROFILE, METRICS & SOCIALS: 
+   Update your name, role, email, citations, and h-index in the `profile` and `metrics` sections.
+   Update or add social links in the `socialLinks` array.
+
+2. ABOUT TEXT: 
+   Edit `aboutText`. Use `\n` to create a new line. Start a line with a hyphen `-` or bullet `•` 
+   to create a clean bullet point.
+
+3. ADDING A NEW EDUCATION ENTRY:
+   Go to the `education` array. Copy an existing block { ... }, paste it, and edit:
+   {
+       degree: "Your Degree",
+       institution: "University Name",
+       location: "City, State",
+       locationUrl: "https://link-to-map-or-site.com",
+       period: "Year — Year",
+       description: "Details about your studies.\n- Achieved this.",
+       courses: ["Course 1", "Course 2"]
+   }
+
+4. ADDING A NEW EXPERIENCE (Research, Industry, or Extracurricular):
+   Go to the `experiences` object. Find the array you want (`researchTeaching`, `industry`, or `extracurricular`).
+   Copy an existing block wrapped in curly braces { ... }, paste it, and edit:
+   {
+       institution: "Company or University",
+       location: "City, State",
+       locationUrl: "https://link.com",
+       roles: [
+           {
+               title: "Your Title",
+               period: "Month Year — Month Year",
+               description: "Details about what you did.\n- Use a hyphen for bullet points.",
+               skills: ["Skill 1", "Skill 2"]
+           }
+       ]
+   }
+
+5. ADDING A NEW PUBLICATION:
+   Go to the `publications` object. Find the correct array (`journals`, `conferences`, or `books`).
+   Copy an existing publication block { ... }, paste it, and edit:
+   {
+       mla: `Your Name, et al. "Title of Paper." Journal Name, 2025.`,
+       url: "Link to the paper",
+       citations: 0,
+       preview: "Short abstract or summary of the paper."
+   }
+
+6. ADDING A NEW AWARD:
+   Go to the `awards` array. Copy an existing block, paste it, and edit:
+   {
+       title: "Award Name",
+       year: "2025",
+       issuer: "Organization Name"
+   }
+
+7. ADDING TESTIMONIALS & STUDENT FEEDBACK:
+   Go to the `testimonials` or `studentFeedbacks` arrays. Copy a block, paste it, and edit:
+   {
+       name: "Person's Name",
+       role: "Their Job Title OR Course Name",
+       feedback: "Their quote goes here."
+   }
+
+8. ICONS/IMAGES/CV: 
+   Replace `profile_picture.png` and `cv.pdf` in your local folder to match the filenames, 
+   or change the text in `imageUrl` and `cvUrl` to match your actual files.
+=============================================================================================
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -155,7 +232,7 @@
                     <div class="w-px h-8 bg-academic-200"></div>
                     <div>
                         <span class="block text-xl font-bold text-academic-900" id="metric-i10">0</span>
-                        <span class="text-[10px] uppercase tracking-wider text-academic-500 font-semibold">i10</span>
+                        <span class="text-[10px] uppercase tracking-wider text-academic-500 font-semibold">I-10 INDEX</span>
                     </div>
                 </div>
 
@@ -176,13 +253,14 @@
                 <nav class="hidden md:block">
                     <ul class="space-y-4 text-sm font-medium text-academic-600">
                         <li><a href="#about" class="nav-link hover:text-academic-900 block">About</a></li>
+                        <li><a href="#education" class="nav-link hover:text-academic-900 block">Education</a></li>
                         <li><a href="#research-experience" class="nav-link hover:text-academic-900 block">Research & Teaching</a></li>
                         <li><a href="#industry-experience" class="nav-link hover:text-academic-900 block">Industry Experience</a></li>
-                        <li><a href="#education" class="nav-link hover:text-academic-900 block">Education</a></li>
                         <li><a href="#publications" class="nav-link hover:text-academic-900 block">Publications</a></li>
                         <li><a href="#awards" class="nav-link hover:text-academic-900 block">Awards & Honors</a></li>
+                        <li><a href="#extracurricular" class="nav-link hover:text-academic-900 block">Extracurricular Activities</a></li>
                         <li><a href="#testimonials" class="nav-link hover:text-academic-900 block">Testimonials</a></li>
-                        <li><a href="#feedbacks" class="nav-link hover:text-academic-900 block">Student Feedbacks</a></li>
+                        <li><a href="#feedbacks" class="nav-link hover:text-academic-900 block">Student Feedback</a></li>
                     </ul>
                 </nav>
             </aside>
@@ -194,6 +272,17 @@
                     <h2 class="text-xl font-bold text-academic-900 mb-4">About</h2>
                     <div id="about-text" class="text-sm text-academic-700 leading-relaxed mb-6 text-justify"></div>
                     <div id="keywords-container" class="flex flex-wrap gap-2">
+                        <!-- Injected via JS -->
+                    </div>
+                </section>
+
+                <!-- Education -->
+                <section id="education" class="compact-section">
+                    <div class="flex items-center justify-between mb-4 border-b border-academic-100 pb-2">
+                        <h2 class="text-xl font-bold text-academic-900">Education</h2>
+                        <span class="text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover to expand</span>
+                    </div>
+                    <div id="education-container" class="space-y-4">
                         <!-- Injected via JS -->
                     </div>
                 </section>
@@ -216,17 +305,6 @@
                         <span class="text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover roles to expand</span>
                     </div>
                     <div id="experience-industry-container">
-                        <!-- Injected via JS -->
-                    </div>
-                </section>
-
-                <!-- Education -->
-                <section id="education" class="compact-section">
-                    <div class="flex items-center justify-between mb-4 border-b border-academic-100 pb-2">
-                        <h2 class="text-xl font-bold text-academic-900">Education</h2>
-                        <span class="text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover to expand</span>
-                    </div>
-                    <div id="education-container" class="space-y-4">
                         <!-- Injected via JS -->
                     </div>
                 </section>
@@ -262,6 +340,17 @@
                     </div>
                 </section>
 
+                <!-- Extracurricular Activities -->
+                <section id="extracurricular" class="compact-section">
+                    <div class="flex items-center justify-between mb-6 border-b border-academic-100 pb-2">
+                        <h2 class="text-xl font-bold text-academic-900">Extracurricular Activities</h2>
+                        <span class="text-xs text-academic-400 bg-academic-50 px-2 py-1 rounded hidden sm:block border border-academic-100">Hover roles to expand</span>
+                    </div>
+                    <div id="experience-extracurricular-container">
+                        <!-- Injected via JS -->
+                    </div>
+                </section>
+
                 <!-- Testimonials -->
                 <section id="testimonials" class="compact-section">
                     <div class="flex items-center justify-between mb-4 border-b border-academic-100 pb-4">
@@ -285,7 +374,7 @@
                 <!-- Student Feedbacks -->
                 <section id="feedbacks" class="compact-section">
                     <div class="flex items-center justify-between mb-4 border-b border-academic-100 pb-4">
-                        <h2 class="text-xl font-bold text-academic-900">Student Feedbacks</h2>
+                        <h2 class="text-xl font-bold text-academic-900">Student Feedback</h2>
                         <div class="flex gap-2">
                             <button id="btn-prev-fb" class="p-1 rounded-md bg-academic-50 hover:bg-academic-200 border border-academic-200 text-academic-600 transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -412,8 +501,48 @@
                             {
                                 title: "Operator",
                                 period: "Aug 2019 — Mar 2020",
-                                description: "Maintained machineries and assisted students with their academic projects.\n- Managed fabrication of 13 undergraduate thesis projects, 1000 key rings, and 10+ intricate designs.\n- Operated CNC milling machines, laser cutters, and 3D printers while ensuring optimal lab instrument functionality.",
+                                description: "Maintained machinery and assisted students with their academic projects.\n- Managed fabrication of 13 undergraduate thesis projects, 1000 key rings, and 10+ intricate designs.\n- Operated CNC milling machines, laser cutters, and 3D printers while ensuring optimal lab instrument functionality.",
                                 skills: ["CNC Milling", "Laser Cutting", "3D Printing", "Equipment Maintenance"]
+                            }
+                        ]
+                    }
+                ],
+
+                extracurricular: [
+                    {
+                        institution: "Spectrum (Professional Skill Development Club of KUET)",
+                        location: "Khulna, Bangladesh",
+                        locationUrl: "https://www.facebook.com/spectrum.kuet/",
+                        roles: [
+                            {
+                                title: "Chief Technology Officer",
+                                period: "2019 — 2022",
+                                description: "Led technological initiatives and managed multiple design projects.\n- Dramatically increased club popularity through impactful skill development programs.\n- Coordinated across teams to deliver successful workshops and events.",
+                                skills: ["Project Management", "Technical Leadership", "Team Building"]
+                            }
+                        ]
+                    },
+                    {
+                        institution: "KUET Career Club",
+                        location: "Khulna, Bangladesh",
+                        roles: [
+                            {
+                                title: "Executive Committee Member",
+                                period: "2019 — 2022",
+                                description: "Organized career development workshops, networking sessions, and seminars to help students bridge the gap between academia and industry.",
+                                skills: ["Event Organization", "Leadership", "Networking"]
+                            }
+                        ]
+                    },
+                    {
+                        institution: "CADers",
+                        location: "Khulna, Bangladesh",
+                        roles: [
+                            {
+                                title: "Executive Committee Member",
+                                period: "2019 — 2022",
+                                description: "Promoted computer-aided design (CAD) skills among students.\n- Facilitated workshops and inter-university design competitions.",
+                                skills: ["CAD/CAE", "Mentorship", "Training"]
                             }
                         ]
                     }
@@ -518,12 +647,12 @@
                 {
                     name: "Student",
                     course: "Mechanics of Materials",
-                    feedback: "Thanks Abdullah for being a great TA! While I could never quiet pronounce you name, you helped a lot in helping me understand the physical implication of the mechanics of materials. You always asked questions to make sure we understood what was going on. We did give some nonsense answers, but I'm glad you decided to push through our stupidity. Thanks again!"
+                    feedback: "Thanks Abdullah for being a great TA! While I could never quite pronounce your name, you helped a lot in helping me understand the physical implications of the mechanics of materials. You always asked questions to make sure we understood what was going on. We did give some nonsense answers, but I'm glad you decided to push through our stupidity. Thanks again!"
                 },
                 {
                     name: "Student",
                     course: "Mechanics of Materials",
-                    feedback: "He's a really fun TA, and I would highly recommend him to other students. He always tried to have students understand the mechanics going, which helped in the learning process. (even though we gave a lot of dumb answers)"
+                    feedback: "He's a really fun TA, and I would highly recommend him to other students. He always tried to have students understand the mechanics going on, which helped in the learning process. (even though we gave a lot of dumb answers)"
                 },
                 {
                     name: "Student",
@@ -538,7 +667,7 @@
                 {
                     name: "Student",
                     course: "Mechanics of Materials",
-                    feedback: "He is an awesome instructor. He understands what its like to be a student and teaches accordingly. Professors sometimes forget that."
+                    feedback: "He is an awesome instructor. He understands what it's like to be a student and teaches accordingly. Professors sometimes forget that."
                 },
                 {
                     name: "Student",
@@ -553,12 +682,12 @@
                 {
                     name: "Student",
                     course: "Mechanics of Materials",
-                    feedback: "Abdullah was an exceptional TA. He always made sure we understood the concepts and he helped us learn a lot"
+                    feedback: "Abdullah was an exceptional TA. He always made sure we understood the concepts and he helped us learn a lot."
                 },
                 {
                     name: "Student",
                     course: "Mechanics of Materials",
-                    feedback: "Great TA. Fair grader and very lenient"
+                    feedback: "Great TA. Fair grader and very lenient."
                 }
             ],
 
@@ -566,12 +695,12 @@
                 {
                     name: "Tanjid Mihad",
                     role: "ULIP GTM Intern, Industrial & Production Engineer",
-                    feedback: "I rarely come across real talents who stand out like Abdullah Arafat. I had the pleasure of working with him for more than 1 years at the Spectrum (Professional Skill Development Club of KUET). Arafat’s ability to handle multiple projects & designs was unlike any I’ve seen before and made a dramatic increase in the popularity level of our club. No matter how tense a meeting, Arafat made sure everyone left with a smile. As a coworker or a friend, Arafat earns my highest recommendation."
+                    feedback: "I rarely come across real talents who stand out like Abdullah Arafat. I had the pleasure of working with him for more than 1 year at the Spectrum (Professional Skill Development Club of KUET). Arafat’s ability to handle multiple projects & designs was unlike any I’ve seen before and made a dramatic increase in the popularity level of our club. No matter how tense a meeting, Arafat made sure everyone left with a smile. As a coworker or a friend, Arafat earns my highest recommendation."
                 },
                 {
                     name: "Sanjida Afrin Saima",
                     role: "TLB Scheduler - BAT Bangladesh",
-                    feedback: "He is one of the Talented, Hardworking and Creative person I know"
+                    feedback: "He is one of the Talented, Hardworking and Creative people I know."
                 }
             ]
         };
@@ -729,6 +858,7 @@
 
             renderExperienceGroup(portfolioData.experiences.researchTeaching, 'experience-research-container');
             renderExperienceGroup(portfolioData.experiences.industry, 'experience-industry-container');
+            renderExperienceGroup(portfolioData.experiences.extracurricular, 'experience-extracurricular-container');
 
             document.getElementById("education-container").innerHTML = portfolioData.education.map(edu => `
                 <div class="hover-trigger bg-academic-50 hover:bg-white p-4 rounded-xl border border-academic-100 transition-all shadow-sm cursor-pointer group">
