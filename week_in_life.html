@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Life in Weeks (70 Years)</title>
+  <style>
+    @page {
+      size: letter portrait;
+      margin: 0.3in;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #111;
+      background-color: #fcfcfc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 100vh;
+      padding: 0.3in;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 6px;
+      width: 100%;
+    }
+
+    .header h1 {
+      font-size: 18pt;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .header p {
+      font-size: 8.5pt;
+      color: #555;
+    }
+
+    .info-bar {
+      height: 22px;
+      margin-top: 4px;
+      font-size: 8.5pt;
+      font-weight: 600;
+      color: #222;
+      background-color: #f0f0f0;
+      padding: 3px 10px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .controls {
+      margin-bottom: 8px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 3px 8px;
+      font-size: 7.5pt;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #ddd;
+    }
+
+    .grid-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 100%;
+      max-width: 7.2in;
+    }
+
+    .week-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 6.5pt;
+      color: #777;
+      margin-left: 22px;
+      padding-right: 2px;
+    }
+
+    .year-row {
+      display: flex;
+      align-items: center;
+      gap: 2.2px;
+    }
+
+    .year-label {
+      width: 20px;
+      font-size: 6.5pt;
+      color: #777;
+      text-align: right;
+      padding-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .weeks-row {
+      display: flex;
+      flex: 1;
+      gap: 2px;
+    }
+
+    .box {
+      flex: 1;
+      aspect-ratio: 1;
+      border: 0.8px solid #bbb;
+      border-radius: 0.5px;
+      cursor: pointer;
+      transition: border-color 0.1s;
+    }
+
+    .box:hover {
+      border-color: #000;
+      outline: 1.5px solid #000;
+      z-index: 10;
+    }
+
+    .box.filled {
+      background-color: #111;
+      border-color: #111;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 8pt;
+      color: #666;
+      margin-top: 6px;
+    }
+
+    @media print {
+      body {
+        background-color: #fff;
+        padding: 0;
+      }
+      .controls {
+        display: none;
+      }
+      .box:hover {
+        outline: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>My Life in Weeks</h1>
+    <p>70 Years (3,640 Weeks) | Born: March 9, 1998</p>
+    <div class="info-bar" id="dateDisplay">Hover over any week box to see its date</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" onclick="selectTillToday()">Select Till Today</button>
+    <button class="btn" onclick="clearAll()">Clear All</button>
+  </div>
+
+  <div class="grid-container" id="grid">
+    <div class="week-labels">
+      <span>Week 1</span>
+      <span>10</span>
+      <span>20</span>
+      <span>30</span>
+      <span>40</span>
+      <span>52</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Selected: <strong id="filledCount">0</strong> weeks &nbsp;|&nbsp; Remaining: <strong id="remainingCount">3,640</strong> weeks</p>
+  </div>
+
+  <script>
+    const dob = new Date(1998, 2, 9); // March 9, 1998
+    const today = new Date();
+    const msPerWeek = 1000 * 60 * 60 * 24 * 7;
+    const weeksLivedTillToday = Math.floor((today - dob) / msPerWeek);
+
+    const grid = document.getElementById('grid');
+    const dateDisplay = document.getElementById('dateDisplay');
+    const filledCountEl = document.getElementById('filledCount');
+    const remainingCountEl = document.getElementById('remainingCount');
+
+    const totalYears = 70;
+    const boxes = [];
+
+    let weekCounter = 0;
+
+    for (let year = 0; year < totalYears; year++) {
+      const row = document.createElement('div');
+      row.className = 'year-row';
+
+      const label = document.createElement('div');
+      label.className = 'year-label';
+      label.textContent = (year % 5 === 0 || year === totalYears - 1) ? year : '';
+      row.appendChild(label);
+
+      const weeksRow = document.createElement('div');
+      weeksRow.className = 'weeks-row';
+
+      for (let week = 0; week < 52; week++) {
+        const box = document.createElement('div');
+        box.className = 'box';
+
+        const index = weekCounter;
+        const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
+        const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
+
+        if (index < weeksLivedTillToday) {
+          box.classList.add('filled');
+        }
+
+        // Hover effect to show dates
+        box.addEventListener('mouseenter', () => {
+          const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          dateDisplay.textContent = `Year ${year}, Week ${week + 1} (${startStr} – ${endStr})`;
+        });
+
+        // Toggle week state on click
+        box.addEventListener('click', () => {
+          box.classList.toggle('filled');
+          updateCounts();
+        });
+
+        weeksRow.appendChild(box);
+        boxes.push(box);
+        weekCounter++;
+      }
+
+      row.appendChild(weeksRow);
+      grid.appendChild(row);
+    }
+
+    function updateCounts() {
+      const filled = document.querySelectorAll('.box.filled').length;
+      filledCountEl.textContent = filled.toLocaleString();
+      remainingCountEl.textContent = (totalYears * 52 - filled).toLocaleString();
+    }
+
+    function selectTillToday() {
+      boxes.forEach((box, i) => {
+        if (i < weeksLivedTillToday) {
+          box.classList.add('filled');
+        } else {
+          box.classList.remove('filled');
+        }
+      });
+      updateCounts();
+    }
+
+    function clearAll() {
+      boxes.forEach(box => box.classList.remove('filled'));
+      updateCounts();
+    }
+
+    updateCounts();
+  </script>
+
+</body>
+</html>
