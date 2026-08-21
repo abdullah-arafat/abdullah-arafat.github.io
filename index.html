@@ -1,82 +1,5 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
-<!-- 
-=============================================================================================
-HOW TO EDIT THIS PORTFOLIO
-=============================================================================================
-This file is designed to be easily updated without knowing complex HTML or CSS.
-Scroll down to the bottom of the file (around line 400) to find the `portfolioData` object.
-
-You only need to edit the text inside the quotes, brackets, or braces in the `portfolioData` object.
-
-1. PROFILE, METRICS & SOCIALS: 
-   Update your name, role, email, citations, and h-index in the `profile` and `metrics` sections.
-   Update or add social links in the `socialLinks` array. (Keep the SVG icon strings intact).
-
-2. ABOUT TEXT: 
-   Edit `aboutText`. Use `\n` to create a new line. Start a line with a hyphen `-` or bullet `•` 
-   to create a clean bullet point.
-
-3. ADDING A NEW EDUCATION ENTRY:
-   Go to the `education` array. Copy an existing block { ... }, paste it at the top, and edit:
-   {
-       degree: "Your Degree",
-       institution: "University Name",
-       location: "City, State",
-       locationUrl: "https://link-to-map-or-site.com",
-       period: "Year — Year",
-       description: "Details about your studies.\n- Achieved this.",
-       courses: ["Course 1", "Course 2"]
-   }
-
-4. ADDING A NEW EXPERIENCE (Research, Industry, or Extracurricular):
-   Go to the `experiences` object. Find the array you want (`researchTeaching`, `industry`, or `extracurricular`).
-   Copy an existing block wrapped in curly braces { ... }, paste it, and edit:
-   {
-       institution: "Company or University",
-       location: "City, State",
-       locationUrl: "https://link.com",
-       roles: [
-           {
-               title: "Your Title",
-               period: "Month Year — Month Year",
-               description: "Details about what you did.\n- Use a hyphen for bullet points.",
-               skills: ["Skill 1", "Skill 2"]
-           }
-       ]
-   }
-
-5. ADDING A NEW PUBLICATION:
-   Go to the `publications` object. Find the correct array (`journals`, `conferences`, or `books`).
-   Copy an existing publication block { ... }, paste it, and edit:
-   {
-       mla: `Your Name, et al. "Title of Paper." Journal Name, 2025.`,
-       url: "Link to the paper",
-       citations: 0,
-       preview: "Short abstract or summary of the paper."
-   }
-
-6. ADDING A NEW AWARD:
-   Go to the `awards` array. Copy an existing block, paste it, and edit:
-   {
-       title: "Award Name",
-       year: "2025",
-       issuer: "Organization Name"
-   }
-
-7. ADDING TESTIMONIALS & STUDENT FEEDBACK:
-   Go to the `testimonials` or `studentFeedbacks` arrays. Copy a block, paste it, and edit:
-   {
-       name: "Person's Name",
-       role: "Their Job Title OR Course Name",
-       feedback: "Their quote goes here."
-   }
-
-8. ICONS/IMAGES/CV: 
-   Replace `profile_picture.jpg` in your `assets` folder to match the filename, 
-   or change the text in `imageUrl` to match your actual files.
-=============================================================================================
--->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -235,7 +158,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
 
     <!-- Mobile Header (Visible only on small screens) -->
     <div class="md:hidden sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-academic-100 px-5 py-3 flex items-center justify-between print:hidden shadow-sm">
-        <span class="font-bold text-academic-900 text-lg tracking-tight" id="mobile-header-name">Abdullah Arafat</span>
+        <span class="font-bold text-academic-900 text-lg tracking-tight" id="mobile-header-name">Loading...</span>
         <button id="mobile-menu-btn" class="p-2 -mr-2 text-academic-600 hover:text-academic-900 focus:outline-none transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
@@ -273,17 +196,17 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 <!-- Academic Metrics Sidebar Box -->
                 <div class="flex justify-between items-center bg-academic-50 p-4 rounded-xl border border-academic-100 mb-6 text-center shadow-inner">
                     <div>
-                        <span class="block text-xl font-bold text-academic-900" id="metric-citations">0</span>
+                        <span class="block text-xl font-bold text-academic-900" id="metric-citations">-</span>
                         <span class="text-[10px] uppercase tracking-wider text-academic-500 font-semibold">Citations</span>
                     </div>
                     <div class="w-px h-8 bg-academic-200"></div>
                     <div>
-                        <span class="block text-xl font-bold text-academic-900" id="metric-hindex">0</span>
+                        <span class="block text-xl font-bold text-academic-900" id="metric-hindex">-</span>
                         <span class="text-[10px] uppercase tracking-wider text-academic-500 font-semibold">h-index</span>
                     </div>
                     <div class="w-px h-8 bg-academic-200"></div>
                     <div>
-                        <span class="block text-xl font-bold text-academic-900" id="metric-i10">0</span>
+                        <span class="block text-xl font-bold text-academic-900" id="metric-i10">-</span>
                         <span class="text-[10px] uppercase tracking-wider text-academic-500 font-semibold">I-10 INDEX</span>
                     </div>
                 </div>
@@ -467,307 +390,6 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
     <script>
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
-        /**
-         * ==============================================================================
-         * PORTFOLIO DATA CONFIGURATION
-         * ==============================================================================
-         */
-        const portfolioData = {
-            profile: {
-                name: "Abdullah Arafat",
-                role: "Computational Scientist",
-                institution: "The University of Utah",
-                imageUrl: "assets/profile_picture.jpg", 
-                email: "abdullah.arafat@utah.edu"
-            },
-            metrics: {
-                citations: 61,
-                hIndex: 5,
-                i10Index: 2
-            },
-            socialLinks: [
-                { name: "Google Scholar", url: "https://scholar.google.com/citations?user=VkHMZc4AAAAJ&hl=en", icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>` },
-                { name: "GitHub", url: "https://github.com/abdullah-arafat", icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>` },
-                { name: "YouTube", url: "https://www.youtube.com/c/AbdullahArafat", icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>` },
-                { name: "LinkedIn", url: "https://www.linkedin.com/in/abdullah-arafat", icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>` }
-            ],
-            aboutText: "I am a computational chemist specializing in molecular dynamics, nanomaterials, and computational mechanics.\n\nMy work focuses on understanding the nano-mechanical behavior of materials, exploring structure-property relationships, and applying atomistic simulations to solve complex challenges.",
-            keywords: ["Molecular Dynamics", "Nanomaterials", "Computational Mechanics", "Mechanics of Materials"],
-            
-            education: [
-                {
-                    degree: "Ph.D. in Chemistry",
-                    institution: "The University of Utah",
-                    location: "Salt Lake City, UT",
-                    locationUrl: "https://maps.google.com/?q=The+University+of+Utah",
-                    period: "2024 — Now",
-                    description: "Specializing in the intersection of thermodynamics and nanoscale material properties.\n- Leading independent dissertation research on subsurface mechanics.\n- Presenting findings at annual departmental symposiums.",
-                    courses: ["Advanced Molecular Dynamics", "Quantum Chemistry", "Statistical Thermodynamics"]
-                },
-                {
-                    degree: "M.S. in Mechanical Engineering",
-                    institution: "The University of Utah",
-                    location: "Salt Lake City, UT",
-                    locationUrl: "https://maps.google.com/?q=The+University+of+Utah",
-                    period: "2022 — 2024",
-                    description: "Focused heavily on computational modeling and stress simulations for structural engineering.",
-                    courses: ["Continuum Mechanics", "Computational Materials Science", "Finite Element Analysis"]
-                },
-                {
-                    degree: "B.S. in Materials Science & Engineering",
-                    institution: "Khulna University of Engineering and Technology (KUET)",
-                    location: "Khulna, Bangladesh",
-                    locationUrl: "https://maps.google.com/?q=Khulna+University+of+Engineering+and+Technology",
-                    period: "2017 — 2022",
-                    description: "Graduated with honors. Completed a capstone project on the stability of 2D layered materials.",
-                    courses: ["Material Characterization", "Crystallography", "Solid State Physics", "Nanotechnology"]
-                }
-            ],
-
-            experiences: {
-                researchTeaching: [
-                    {
-                        institution: "The University of Utah",
-                        location: "Salt Lake City, UT",
-                        locationUrl: "https://maps.google.com/?q=The+University+of+Utah",
-                        roles: [
-                            {
-                                title: "Research Assistant (Chem & Mech Eng.)",
-                                period: "Aug 2022 — Now",
-                                description: "Conducted extensive research exploring nanoconfinement and structure-property relationships in subsurface environments.\n- Developed computational models for complex material simulations.\n- Performed molecular dynamics simulations to analyze atomic behavior.\n- Authored comprehensive technical papers based on simulation outcomes.",
-                                skills: ["Molecular Dynamics", "Atomistic Simulations", "Data Analysis", "LAMMPS"]
-                            },
-                            {
-                                title: "Course Teaching Assistant (Chemistry)",
-                                period: "Aug 2024 — May 2025",
-                                description: "Taught undergraduate courses on Thermodynamics and Physical Chemistry.\n- Led laboratory sessions and managed lab safety protocols.\n- Graded assignments and provided extensive mentorship during office hours.",
-                                skills: ["Thermodynamics", "Physical Chemistry", "Mentorship"]
-                            },
-                            {
-                                title: "Laboratory Teaching Assistant (Mech Eng.)",
-                                period: "Aug 2022 — May 2025",
-                                description: "Lab Teaching Assistant for ME EN 3315 (Mechanics of Materials).\n- Assisted Professors: Dr. Michael Czabaj, Dr. Bozo Vazic, Dr. Ken Monson, Dr. Owen Kingstedt.\n- Guided students through complex mechanical testing protocols.",
-                                skills: ["Mechanics of Materials", "Mentorship"]
-                            }
-                        ]
-                    },
-                    {
-                        institution: "Khulna University of Engineering and Technology",
-                        location: "Khulna, Bangladesh",
-                        locationUrl: "https://maps.google.com/?q=Khulna+University+of+Engineering+and+Technology",
-                        roles: [
-                            {
-                                title: "Undergraduate Researcher",
-                                period: "2020 — 2022",
-                                description: "Investigated atomistic reaction mechanisms of CVD-grown 2D materials.\n- Analyzed the effects of substrate structures on hexagonal boron nitride.\n- Contributed to publications regarding mechanical stability and material properties.",
-                                skills: ["CVD Growth Modeling", "2D Materials", "Mechanical Stability Analysis"]
-                            }
-                        ]
-                    }
-                ],
-
-                industry: [
-                    {
-                        institution: "Emprotec Limited",
-                        location: "Khulna, Bangladesh",
-                        locationUrl: "https://www.facebook.com/emprotec.ltd",
-                        roles: [
-                            {
-                                title: "Design Engineer",
-                                period: "Nov 2018 — Aug 2022",
-                                description: "Designed LPG Spherical storage tanks, Cylindrical storage tanks, Ball valves and Actuated valves.\n- Designed P&ID of LPG network, Fire fighting network, and Industrial air network.\n- Executed 3D Pipe Routing of different LPG Plants using AutoCAD Plant 3D and SOLIDWORKS Pipe Routing.\n- Designed Land Layouts of different LPG Plants using AutoCAD and created sample P&IDs using Microsoft Visio.",
-                                skills: ["SOLIDWORKS", "AutoCAD Plant 3D", "Microsoft Visio", "Pipe Routing", "P&ID"]
-                            }
-                        ]
-                    },
-                    {
-                        institution: "FabLab KUET",
-                        location: "Khulna, Bangladesh",
-                        locationUrl: "https://www2.kuet.ac.bd/fablab",
-                        roles: [
-                            {
-                                title: "Operator",
-                                period: "Aug 2019 — Mar 2020",
-                                description: "Maintained machinery and assisted students with their academic projects.\n- Managed fabrication of 13 undergraduate thesis projects, 1000 key rings, and 10+ intricate designs.\n- Operated CNC milling machines, laser cutters, and 3D printers while ensuring optimal lab instrument functionality.",
-                                skills: ["CNC Milling", "Laser Cutting", "3D Printing", "Equipment Maintenance"]
-                            }
-                        ]
-                    }
-                ],
-
-                extracurricular: [
-                    {
-                        institution: "Spectrum (Professional Skill Development Club of KUET)",
-                        location: "Khulna, Bangladesh",
-                        locationUrl: "https://www.facebook.com/spectrum.kuet/",
-                        roles: [
-                            {
-                                title: "Chief Technology Officer",
-                                period: "2019 — 2022",
-                                description: "Led technological initiatives and managed multiple design projects.\n- Dramatically increased club popularity through impactful skill development programs.\n- Coordinated across teams to deliver successful workshops and events.",
-                                skills: ["Project Management", "Technical Leadership", "Team Building"]
-                            }
-                        ]
-                    },
-                    {
-                        institution: "KUET Career Club",
-                        location: "Khulna, Bangladesh",
-                        roles: [
-                            {
-                                title: "Executive Committee Member",
-                                period: "2019 — 2022",
-                                description: "Organized career development workshops, networking sessions, and seminars to help students bridge the gap between academia and industry.",
-                                skills: ["Event Organization", "Leadership", "Networking"]
-                            }
-                        ]
-                    },
-                    {
-                        institution: "CADers",
-                        location: "Khulna, Bangladesh",
-                        roles: [
-                            {
-                                title: "Executive Committee Member",
-                                period: "2019 — 2022",
-                                description: "Promoted computer-aided design (CAD) skills among students.\n- Facilitated workshops and inter-university design competitions.",
-                                skills: ["CAD/CAE", "Mentorship", "Training"]
-                            }
-                        ]
-                    }
-                ]
-            },
-            
-            publications: {
-                journals: [
-                    {
-                        mla: `Arafat, Abdullah, et al. "Atomistic reaction mechanism of CVD grown MoS2 through MoO3 and H2S precursors." Scientific Reports, vol. 12, no. 1, 2022, p. 16085.`,
-                        url: "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VkHMZc4AAAAJ&citation_for_view=VkHMZc4AAAAJ:u-x6o8ySG0sC",
-                        citations: 23,
-                        preview: "This paper details a theoretical model for the chemical vapor deposition of MoS2, exploring intermediary transition states and calculating activation energies for the reaction pathways using atomistic simulations."
-                    },
-                    {
-                        mla: `Komol, M.M.R., A.K. Podder, Abdullah Arafat, and T. Nabeed. "Remote sensing global ranged door lock security system via mobile communication." International Journal of Wireless and Microwave Technologies, vol. 9, no. 5, 2019, pp. 25-37.`,
-                        url: "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VkHMZc4AAAAJ&citation_for_view=VkHMZc4AAAAJ:u5yebUGdGl8C",
-                        citations: 15,
-                        preview: "A novel approach to global ranged security utilizing mobile communication modules integrated with electromechanical systems for real-time authentication and access control."
-                    },
-                    {
-                        mla: `Ak, İ., H. Adin, Abdullah Arafat, and M. Okumuş. "Mechanical properties of Cu-Ni alloys: Comparison of experimental and MD simulation approaches." Physica B: Condensed Matter, vol. 700, 2025, p. 416928.`,
-                        url: "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VkHMZc4AAAAJ&citation_for_view=VkHMZc4AAAAJ:zYLM7Y9cAGgC",
-                        citations: 9,
-                        preview: "Investigates the tensile strength and elasticity of Cu-Ni alloys, drawing direct correlations between laboratory experimental data and simulated molecular dynamics predictions to validate computational models."
-                    },
-                    {
-                        mla: `Sarkar, M.M.H., M.S. Islam, Abdullah Arafat, A.S.M.J. Islam, and N. Ferdous. "Effects of the substrate structure on the CVD growth of two-dimensional hexagonal boron nitride." The Journal of Physical Chemistry C, vol. 126, no. 14, 2022, pp. 6373-6384.`,
-                        url: "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VkHMZc4AAAAJ&citation_for_view=VkHMZc4AAAAJ:d1gIgvwDpCEC",
-                        citations: 7,
-                        preview: "Focuses on the epitaxial growth mechanics of h-BN, demonstrating how differing substrate lattice structures influence the orientation, defect rate, and quality of the resulting 2D material."
-                    },
-                    {
-                        mla: `Sajal, W.R., et al., including Abdullah Arafat. "Molecular dynamics study of mechanical stability of Ti4C3 MXene subjected to chirality, temperature, strain rate, and point-vacancy for Lithium-ion batteries." Heliyon, vol. 10, no. 19, 2024.`,
-                        url: "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VkHMZc4AAAAJ&citation_for_view=VkHMZc4AAAAJ:qjMakFHDy7sC",
-                        citations: 6,
-                        preview: "A comprehensive analysis of how extreme conditions and structural defects impact the durability of MXene materials, specifically aiming to improve longevity in Lithium-ion battery applications."
-                    }
-                ],
-                conferences: [
-                    {
-                        mla: `Md. Jarir Hossain, Md. Mahbubur Rahman, Fahim Islam Anik, MD Ikramul Hasib, Abdullah Arafat. ”Numerical Investigation on Fatigue Life Estimation of Aluminum Structure for Uniaxial Cyclic Loading by Finite Element Modeling.” International Conference on Mechanical Engineering and Renewable Energy 2019 (ICMERE2019)`,
-                        url: "https://www.researchgate.net/publication/344554263_Numerical_Investigation_on_Fatigue_Life_Estimation_of_Aluminum_Structure_for_Uniaxial_Cyclic_Loading_by_Finite_Element_Modeling",
-                        citations: 0,
-                        preview: "Presented a finite element modeling approach to estimate fatigue life under uniaxial cyclic loading for aluminum structures."
-                    }
-                ],
-                books: [
-                    {
-                        mla: `Mubin, Shafat, Jichen Li, and Steven Plimpton. Extending and Modifying LAMMPS Writing Your Own Source Code: A pragmatic guide to extending LAMMPS as per custom simulation requirements. Packt Publishing Ltd, 2021: Page (304-311)`,
-                        url: "https://www.packtpub.com/product/extending-and-modifying-lammps-writing-your-own-source-code/9781800562264",
-                        citations: 0,
-                        preview: "Contributed to Appendix A: Building LAMMPS with CMake."
-                    }
-                ]
-            },
-
-            awards: [
-                {
-                    title: "Certified Solidworks Professional (CSWP)",
-                    year: "2018",
-                    issuer: "Dassault Systèmes"
-                },
-                {
-                    title: "Dean List Award",
-                    year: "2018",
-                    issuer: "Khulna University of Engineering and Technology"
-                }
-            ],
-            
-            studentFeedbacks: [
-                {
-                    name: "Student",
-                    course: "Mechanics of Materials",
-                    feedback: "Thanks Abdullah for being a great TA! While I could never quite pronounce your name, you helped a lot in helping me understand the physical implications of the mechanics of materials. You always asked questions to make sure we understood what was going on. We did give some nonsense answers, but I'm glad you decided to push through our stupidity. Thanks again!"
-                },
-                {
-                    name: "Student",
-                    course: "Mechanics of Materials",
-                    feedback: "He's a really fun TA, and I would highly recommend him to other students. He always tried to have students understand the mechanics going on, which helped in the learning process. (even though we gave a lot of dumb answers)"
-                },
-                {
-                    name: "Student",
-                    course: "Mechanics of Materials",
-                    feedback: "He explained everything perfectly and told us exactly how he was going to grade so we could get an A."
-                },
-                {
-                    name: "Student",
-                    course: "Mechanics of Materials",
-                    feedback: "Abdullah was excited to run the experiments with us and worked very hard to help us gain a higher understanding of the material."
-                },
-                {
-                    name: "Student",
-                    course: "Mechanics of Materials",
-                    feedback: "He is an awesome instructor. He understands what it's like to be a student and teaches accordingly. Professors sometimes forget that."
-                },
-                {
-                    name: "Student",
-                    course: "Mechanics of Materials",
-                    feedback: "Abdullah was awesome. He explained things well, kept it real, and made the class fun."
-                },
-                {
-                    name: "Student",
-                    course: "Mechanics of Materials",
-                    feedback: "Abdullah was very helpful during the labs. He was willing to answer all of my questions and he pushed us to explore our understanding of the topics."
-                },
-                {
-                    name: "Student",
-                    course: "Mechanics of Materials",
-                    feedback: "Abdullah was an exceptional TA. He always made sure we understood the concepts and he helped us learn a lot."
-                },
-                {
-                    name: "Student",
-                    course: "Mechanics of Materials",
-                    feedback: "Great TA. Fair grader and very lenient."
-                }
-            ],
-
-            testimonials: [
-                {
-                    name: "Tanjid Mihad",
-                    role: "ULIP GTM Intern, Industrial & Production Engineer",
-                    feedback: "I rarely come across real talents who stand out like Abdullah Arafat. I had the pleasure of working with him for more than 1 year at the Spectrum (Professional Skill Development Club of KUET). Arafat’s ability to handle multiple projects & designs was unlike any I’ve seen before and made a dramatic increase in the popularity level of our club. No matter how tense a meeting, Arafat made sure everyone left with a smile. As a coworker or a friend, Arafat earns my highest recommendation."
-                },
-                {
-                    name: "Sanjida Afrin Saima",
-                    role: "TLB Scheduler - BAT Bangladesh",
-                    feedback: "He is one of the Talented, Hardworking and Creative people I know."
-                }
-            ]
-        };
-
-        /**
-         * ==============================================================================
-         * RENDER LOGIC & HELPER FUNCTIONS
-         * ==============================================================================
-         */
-        
         const formatText = (text) => {
             if (!text) return "";
             return text.split('\n').map(line => {
@@ -783,272 +405,292 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
 
         document.addEventListener("DOMContentLoaded", () => {
             
-            // Render Profile Info
-            document.getElementById("profile-name").textContent = portfolioData.profile.name;
-            document.getElementById("profile-role").textContent = portfolioData.profile.role;
-            document.getElementById("profile-institution").textContent = portfolioData.profile.institution;
-            document.getElementById("profile-image").src = portfolioData.profile.imageUrl;
+            // Fetch the data from the JSON file
+            fetch('data.json')
+                .then(response => {
+                    if (!response.ok) throw new Error("Could not load data.json");
+                    return response.json();
+                })
+                .then(portfolioData => {
+                    
+                    // Render Profile Info
+                    document.getElementById("profile-name").textContent = portfolioData.profile.name;
+                    document.getElementById("profile-role").textContent = portfolioData.profile.role;
+                    document.getElementById("profile-institution").textContent = portfolioData.profile.institution;
+                    document.getElementById("profile-image").src = portfolioData.profile.imageUrl;
+                    document.getElementById("mobile-header-name").textContent = portfolioData.profile.name;
 
-            // Setup CV Download / Print functionality
-            document.getElementById("cv-link").addEventListener("click", (e) => {
-                e.preventDefault();
-                window.print();
-            });
+                    // Setup CV Download / Print functionality
+                    document.getElementById("cv-link").addEventListener("click", (e) => {
+                        e.preventDefault();
+                        window.print();
+                    });
 
-            // Inject Print Header
-            document.getElementById("print-header").innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div>
-                        <h1 style="font-size: 24pt; font-weight: bold; margin-bottom: 4px;">${portfolioData.profile.name}</h1>
-                        <p style="font-size: 12pt; font-weight: 600;">${portfolioData.profile.role} | ${portfolioData.profile.institution}</p>
-                        <div style="font-size: 10pt; margin-top: 8px;">
-                            ${portfolioData.profile.email} <br/>
-                            ${portfolioData.socialLinks.map(l => l.url).join(' | ')}
-                        </div>
-                    </div>
-                    <div style="text-align: right; font-size: 10pt;">
-                        <p><strong>Citations:</strong> ${portfolioData.metrics.citations}</p>
-                        <p><strong>h-index:</strong> ${portfolioData.metrics.hIndex}</p>
-                        <p><strong>I-10 INDEX:</strong> ${portfolioData.metrics.i10Index}</p>
-                    </div>
-                </div>
-            `;
-
-            // Render Metrics
-            document.getElementById("metric-citations").textContent = portfolioData.metrics.citations;
-            document.getElementById("metric-hindex").textContent = portfolioData.metrics.hIndex;
-            document.getElementById("metric-i10").textContent = portfolioData.metrics.i10Index;
-            
-            document.getElementById("header-citations").textContent = portfolioData.metrics.citations;
-            document.getElementById("header-hindex").textContent = portfolioData.metrics.hIndex;
-
-            // Render Email & Socials
-            const socialsHTML = `
-                <a href="mailto:${portfolioData.profile.email}" class="text-academic-500 hover:text-academic-900 transition-colors" title="Email">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                </a>
-            ` + portfolioData.socialLinks.map(link => `
-                <a href="${link.url}" target="_blank" class="text-academic-500 hover:text-academic-900 transition-colors" title="${link.name}">
-                    ${link.icon}
-                </a>
-            `).join('');
-            document.getElementById("social-links-container").innerHTML = socialsHTML;
-
-            // Render About 
-            document.getElementById("about-text").innerHTML = formatText(portfolioData.aboutText);
-            document.getElementById("keywords-container").innerHTML = portfolioData.keywords.map(kw => 
-                `<span class="px-3 py-1 bg-academic-50 border border-academic-200 text-academic-700 text-xs rounded-md font-medium">${kw}</span>`
-            ).join('');
-
-            const renderExperienceGroup = (experienceDataArray, containerId) => {
-                const container = document.getElementById(containerId);
-                
-                if (!experienceDataArray || experienceDataArray.length === 0) {
-                    if(container) container.closest('section').style.display = 'none';
-                    return;
-                }
-
-                container.innerHTML = experienceDataArray.map(group => {
-                    const latestRole = group.roles[0];
-                    const hasPromotions = group.roles.length > 1;
-
-                    return `
-                    <div class="hover-trigger relative pl-6 py-2 -ml-2 rounded-lg cursor-pointer hover:bg-academic-50 transition-colors group mb-2 border-l-2 border-transparent">
-                        <span class="absolute w-2.5 h-2.5 bg-academic-300 group-hover:bg-academic-500 transition-colors rounded-full left-[-5.5px] top-4 ring-4 ring-white"></span>
-                        
-                        <div class="flex flex-col mb-1">
-                            <div class="flex justify-between items-start mb-0.5">
-                                <h3 class="text-sm font-bold text-academic-900 group-hover:text-blue-700 transition-colors pr-2">${latestRole.title}</h3>
-                                <span class="text-[10px] font-medium text-academic-500 whitespace-nowrap mt-0.5">${latestRole.period}</span>
+                    // Inject Print Header
+                    document.getElementById("print-header").innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <h1 style="font-size: 24pt; font-weight: bold; margin-bottom: 4px;">${portfolioData.profile.name}</h1>
+                                <p style="font-size: 12pt; font-weight: 600;">${portfolioData.profile.role} | ${portfolioData.profile.institution}</p>
+                                <div style="font-size: 10pt; margin-top: 8px;">
+                                    ${portfolioData.profile.email} <br/>
+                                    ${portfolioData.socialLinks.map(l => l.url).join(' | ')}
+                                </div>
                             </div>
-                            <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
-                                ${group.locationUrl 
-                                    ? `<a href="${group.locationUrl}" target="_blank" class="text-xs font-semibold text-academic-600 hover:text-blue-600 hover:underline transition-colors">${group.institution}</a>`
-                                    : `<span class="text-xs font-semibold text-academic-600">${group.institution}</span>`
-                                }
-                                ${group.location ? `
-                                    <span class="text-academic-300 text-[10px] cv-hide-print">•</span>
-                                    <span class="text-[10px] text-academic-500 flex items-center gap-0.5">
-                                        <svg class="w-3 h-3 text-academic-400 cv-hide-print" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        ${group.location}
-                                    </span>
-                                ` : ''}
+                            <div style="text-align: right; font-size: 10pt;">
+                                <p><strong>Citations:</strong> ${portfolioData.metrics.citations}</p>
+                                <p><strong>h-index:</strong> ${portfolioData.metrics.hIndex}</p>
+                                <p><strong>I-10 INDEX:</strong> ${portfolioData.metrics.i10Index}</p>
                             </div>
                         </div>
-                        
-                        <div class="expand-wrapper mt-0">
-                            <div class="expand-inner">
-                                <div class="pt-2 pb-1">
-                                    <div class="cv-hide-print text-xs text-academic-600 leading-relaxed pl-1 mt-1">
-                                        ${formatText(latestRole.description)}
-                                    </div>
-                                    ${latestRole.skills && latestRole.skills.length > 0 ? `
-                                    <div class="cv-hide-print mt-2 pl-1 ${hasPromotions ? 'mb-4' : ''}">
-                                        <div class="flex flex-wrap gap-1.5">
-                                            ${latestRole.skills.map(skill => `<span class="px-2 py-0.5 bg-white border border-academic-200 text-academic-600 text-[10px] rounded shadow-sm">${skill}</span>`).join('')}
-                                        </div>
-                                    </div>
-                                    ` : (hasPromotions ? '<div class="mb-4 cv-hide-print"></div>' : '')}
+                    `;
 
-                                    ${hasPromotions ? `
-                                        <div class="relative pl-4 mt-3 border-t border-academic-100 pt-4">
-                                            <div class="absolute left-[5px] top-6 bottom-2 w-px bg-academic-200 cv-hide-print"></div>
-                                            ${group.roles.slice(1).map(role => `
-                                                <div class="relative pl-5 pb-4 last:pb-0">
-                                                    <span class="absolute w-2 h-2 bg-academic-300 rounded-full left-[-7.5px] top-[4px] ring-2 ring-white group-hover:bg-academic-400 transition-colors cv-hide-print"></span>
-                                                    <div class="flex flex-col mb-1.5">
-                                                        <div class="flex justify-between items-baseline">
-                                                            <h4 class="text-sm font-semibold text-academic-800">${role.title}</h4>
-                                                            <span class="text-[10px] font-medium text-academic-500 whitespace-nowrap ml-2">${role.period}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="cv-hide-print text-xs text-academic-600 leading-relaxed pl-0.5">
-                                                        ${formatText(role.description)}
-                                                    </div>
-                                                    ${role.skills && role.skills.length > 0 ? `
-                                                    <div class="cv-hide-print mt-2 pl-0.5">
-                                                        <div class="flex flex-wrap gap-1.5">
-                                                            ${role.skills.map(skill => `<span class="px-2 py-0.5 bg-white border border-academic-200 text-academic-600 text-[10px] rounded shadow-sm">${skill}</span>`).join('')}
-                                                        </div>
-                                                    </div>
-                                                    ` : ''}
+                    // Render Metrics
+                    document.getElementById("metric-citations").textContent = portfolioData.metrics.citations;
+                    document.getElementById("metric-hindex").textContent = portfolioData.metrics.hIndex;
+                    document.getElementById("metric-i10").textContent = portfolioData.metrics.i10Index;
+                    
+                    document.getElementById("header-citations").textContent = portfolioData.metrics.citations;
+                    document.getElementById("header-hindex").textContent = portfolioData.metrics.hIndex;
+
+                    // Render Email & Socials
+                    const socialsHTML = `
+                        <a href="mailto:${portfolioData.profile.email}" class="text-academic-500 hover:text-academic-900 transition-colors" title="Email">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </a>
+                    ` + portfolioData.socialLinks.map(link => `
+                        <a href="${link.url}" target="_blank" class="text-academic-500 hover:text-academic-900 transition-colors" title="${link.name}">
+                            ${link.icon}
+                        </a>
+                    `).join('');
+                    document.getElementById("social-links-container").innerHTML = socialsHTML;
+
+                    // Render About 
+                    document.getElementById("about-text").innerHTML = formatText(portfolioData.aboutText);
+                    document.getElementById("keywords-container").innerHTML = portfolioData.keywords.map(kw => 
+                        `<span class="px-3 py-1 bg-academic-50 border border-academic-200 text-academic-700 text-xs rounded-md font-medium">${kw}</span>`
+                    ).join('');
+
+                    const renderExperienceGroup = (experienceDataArray, containerId) => {
+                        const container = document.getElementById(containerId);
+                        
+                        if (!experienceDataArray || experienceDataArray.length === 0) {
+                            if(container) container.closest('section').style.display = 'none';
+                            return;
+                        }
+
+                        container.innerHTML = experienceDataArray.map(group => {
+                            const latestRole = group.roles[0];
+                            const hasPromotions = group.roles.length > 1;
+
+                            return `
+                            <div class="hover-trigger relative pl-6 py-2 -ml-2 rounded-lg cursor-pointer hover:bg-academic-50 transition-colors group mb-2 border-l-2 border-transparent">
+                                <span class="absolute w-2.5 h-2.5 bg-academic-300 group-hover:bg-academic-500 transition-colors rounded-full left-[-5.5px] top-4 ring-4 ring-white"></span>
+                                
+                                <div class="flex flex-col mb-1">
+                                    <div class="flex justify-between items-start mb-0.5">
+                                        <h3 class="text-sm font-bold text-academic-900 group-hover:text-blue-700 transition-colors pr-2">${latestRole.title}</h3>
+                                        <span class="text-[10px] font-medium text-academic-500 whitespace-nowrap mt-0.5">${latestRole.period}</span>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                        ${group.locationUrl 
+                                            ? `<a href="${group.locationUrl}" target="_blank" class="text-xs font-semibold text-academic-600 hover:text-blue-600 hover:underline transition-colors">${group.institution}</a>`
+                                            : `<span class="text-xs font-semibold text-academic-600">${group.institution}</span>`
+                                        }
+                                        ${group.location ? `
+                                            <span class="text-academic-300 text-[10px] cv-hide-print">•</span>
+                                            <span class="text-[10px] text-academic-500 flex items-center gap-0.5">
+                                                <svg class="w-3 h-3 text-academic-400 cv-hide-print" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                ${group.location}
+                                            </span>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                                
+                                <div class="expand-wrapper mt-0">
+                                    <div class="expand-inner">
+                                        <div class="pt-2 pb-1">
+                                            <div class="cv-hide-print text-xs text-academic-600 leading-relaxed pl-1 mt-1">
+                                                ${formatText(latestRole.description)}
+                                            </div>
+                                            ${latestRole.skills && latestRole.skills.length > 0 ? `
+                                            <div class="cv-hide-print mt-2 pl-1 ${hasPromotions ? 'mb-4' : ''}">
+                                                <div class="flex flex-wrap gap-1.5">
+                                                    ${latestRole.skills.map(skill => `<span class="px-2 py-0.5 bg-white border border-academic-200 text-academic-600 text-[10px] rounded shadow-sm">${skill}</span>`).join('')}
                                                 </div>
-                                            `).join('')}
+                                            </div>
+                                            ` : (hasPromotions ? '<div class="mb-4 cv-hide-print"></div>' : '')}
+
+                                            ${hasPromotions ? `
+                                                <div class="relative pl-4 mt-3 border-t border-academic-100 pt-4">
+                                                    <div class="absolute left-[5px] top-6 bottom-2 w-px bg-academic-200 cv-hide-print"></div>
+                                                    ${group.roles.slice(1).map(role => `
+                                                        <div class="relative pl-5 pb-4 last:pb-0">
+                                                            <span class="absolute w-2 h-2 bg-academic-300 rounded-full left-[-7.5px] top-[4px] ring-2 ring-white group-hover:bg-academic-400 transition-colors cv-hide-print"></span>
+                                                            <div class="flex flex-col mb-1.5">
+                                                                <div class="flex justify-between items-baseline">
+                                                                    <h4 class="text-sm font-semibold text-academic-800">${role.title}</h4>
+                                                                    <span class="text-[10px] font-medium text-academic-500 whitespace-nowrap ml-2">${role.period}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="cv-hide-print text-xs text-academic-600 leading-relaxed pl-0.5">
+                                                                ${formatText(role.description)}
+                                                            </div>
+                                                            ${role.skills && role.skills.length > 0 ? `
+                                                            <div class="cv-hide-print mt-2 pl-0.5">
+                                                                <div class="flex flex-wrap gap-1.5">
+                                                                    ${role.skills.map(skill => `<span class="px-2 py-0.5 bg-white border border-academic-200 text-academic-600 text-[10px] rounded shadow-sm">${skill}</span>`).join('')}
+                                                                </div>
+                                                            </div>
+                                                            ` : ''}
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                            ` : ''}
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                        }).join('');
+                    };
+
+                    renderExperienceGroup(portfolioData.experiences.researchTeaching, 'experience-research-container');
+                    renderExperienceGroup(portfolioData.experiences.industry, 'experience-industry-container');
+                    renderExperienceGroup(portfolioData.experiences.extracurricular, 'experience-extracurricular-container');
+
+                    document.getElementById("education-container").innerHTML = portfolioData.education.map(edu => `
+                        <div class="hover-trigger bg-academic-50 hover:bg-white p-4 rounded-xl border border-academic-100 transition-all shadow-sm cursor-pointer group">
+                            <div class="flex flex-col mb-1">
+                                <div class="flex justify-between items-start mb-0.5">
+                                    <h3 class="text-sm font-bold text-academic-900 group-hover:text-blue-700 transition-colors pr-2">${edu.degree}</h3>
+                                    <span class="text-[10px] font-medium text-academic-500 whitespace-nowrap mt-0.5">${edu.period}</span>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                    ${edu.locationUrl 
+                                        ? `<a href="${edu.locationUrl}" target="_blank" class="text-xs font-semibold text-academic-600 hover:text-blue-600 hover:underline transition-colors">${edu.institution}</a>`
+                                        : `<span class="text-xs font-semibold text-academic-600">${edu.institution}</span>`
+                                    }
+                                    ${edu.location ? `
+                                        <span class="text-academic-300 text-[10px] cv-hide-print">•</span>
+                                        <span class="text-[10px] text-academic-500 flex items-center gap-0.5">
+                                            <svg class="w-3 h-3 text-academic-400 cv-hide-print" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            ${edu.location}
+                                        </span>
                                     ` : ''}
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    `;
-                }).join('');
-            };
-
-            renderExperienceGroup(portfolioData.experiences.researchTeaching, 'experience-research-container');
-            renderExperienceGroup(portfolioData.experiences.industry, 'experience-industry-container');
-            renderExperienceGroup(portfolioData.experiences.extracurricular, 'experience-extracurricular-container');
-
-            document.getElementById("education-container").innerHTML = portfolioData.education.map(edu => `
-                <div class="hover-trigger bg-academic-50 hover:bg-white p-4 rounded-xl border border-academic-100 transition-all shadow-sm cursor-pointer group">
-                    <div class="flex flex-col mb-1">
-                        <div class="flex justify-between items-start mb-0.5">
-                            <h3 class="text-sm font-bold text-academic-900 group-hover:text-blue-700 transition-colors pr-2">${edu.degree}</h3>
-                            <span class="text-[10px] font-medium text-academic-500 whitespace-nowrap mt-0.5">${edu.period}</span>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
-                            ${edu.locationUrl 
-                                ? `<a href="${edu.locationUrl}" target="_blank" class="text-xs font-semibold text-academic-600 hover:text-blue-600 hover:underline transition-colors">${edu.institution}</a>`
-                                : `<span class="text-xs font-semibold text-academic-600">${edu.institution}</span>`
-                            }
-                            ${edu.location ? `
-                                <span class="text-academic-300 text-[10px] cv-hide-print">•</span>
-                                <span class="text-[10px] text-academic-500 flex items-center gap-0.5">
-                                    <svg class="w-3 h-3 text-academic-400 cv-hide-print" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                    ${edu.location}
-                                </span>
-                            ` : ''}
-                        </div>
-                    </div>
-                    <div class="expand-wrapper mt-0">
-                        <div class="expand-inner">
-                            <div class="cv-hide-print pt-3 mt-2 border-t border-academic-100 space-y-3">
-                                ${edu.description ? `
-                                    <div class="text-xs text-academic-600 leading-relaxed pl-1">
-                                        ${formatText(edu.description)}
+                            <div class="expand-wrapper mt-0">
+                                <div class="expand-inner">
+                                    <div class="cv-hide-print pt-3 mt-2 border-t border-academic-100 space-y-3">
+                                        ${edu.description ? `
+                                            <div class="text-xs text-academic-600 leading-relaxed pl-1">
+                                                ${formatText(edu.description)}
+                                            </div>
+                                        ` : ''}
+                                        ${edu.courses && edu.courses.length > 0 ? `
+                                            <div class="pl-1">
+                                                <span class="text-[10px] uppercase font-bold text-academic-400 block mb-1.5 mt-2">Key Coursework:</span>
+                                                <div class="flex flex-wrap gap-1.5">
+                                                    ${edu.courses.map(course => `<span class="px-2 py-0.5 bg-white border border-academic-200 text-academic-600 text-[10px] rounded shadow-sm">${course}</span>`).join('')}
+                                                </div>
+                                            </div>
+                                        ` : ''}
                                     </div>
-                                ` : ''}
-                                ${edu.courses && edu.courses.length > 0 ? `
-                                    <div class="pl-1">
-                                        <span class="text-[10px] uppercase font-bold text-academic-400 block mb-1.5 mt-2">Key Coursework:</span>
-                                        <div class="flex flex-wrap gap-1.5">
-                                            ${edu.courses.map(course => `<span class="px-2 py-0.5 bg-white border border-academic-200 text-academic-600 text-[10px] rounded shadow-sm">${course}</span>`).join('')}
-                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    const renderPubList = (pubs) => pubs.map(pub => {
+                        let formattedMla = pub.mla.replace(/"([^"]*)"/, `"<a href="${pub.url}" target="_blank" class="font-medium text-academic-900 hover:text-blue-600 transition-colors">$1</a>"`);
+                        let citationBadge = pub.citations > 0 
+                            ? `<span class="inline-flex items-center gap-1 text-[11px] text-academic-600 font-medium ml-2 bg-academic-100 px-2 py-0.5 rounded border border-academic-200 whitespace-nowrap"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg> ${pub.citations} Citations</span>` 
+                            : '';
+
+                        return `
+                            <div class="pub-item relative p-3 -mx-3 rounded-lg hover:bg-academic-50 cursor-pointer transition-colors border-l-2 border-transparent hover:border-academic-400 group">
+                                <p class="text-sm text-academic-700 leading-relaxed text-justify relative z-10">
+                                    ${formattedMla} ${citationBadge}
+                                </p>
+                                <div class="pub-preview cv-hide-print absolute top-full left-0 mt-2 w-full sm:w-[105%] bg-white border border-academic-200 rounded-lg shadow-xl opacity-0 invisible z-50 p-4 pointer-events-none">
+                                    <div class="flex items-center gap-2 mb-2 pb-2 border-b border-academic-100">
+                                        <svg class="w-4 h-4 text-academic-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                        <span class="text-xs font-bold text-academic-700 uppercase tracking-wide">Research Abstract</span>
                                     </div>
-                                ` : ''}
+                                    <div class="text-xs text-academic-600 leading-relaxed">${formatText(pub.preview)}</div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+                        `;
+                    }).join('');
 
-            const renderPubList = (pubs) => pubs.map(pub => {
-                let formattedMla = pub.mla.replace(/"([^"]*)"/, `"<a href="${pub.url}" target="_blank" class="font-medium text-academic-900 hover:text-blue-600 transition-colors">$1</a>"`);
-                let citationBadge = pub.citations > 0 
-                    ? `<span class="inline-flex items-center gap-1 text-[11px] text-academic-600 font-medium ml-2 bg-academic-100 px-2 py-0.5 rounded border border-academic-200 whitespace-nowrap"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg> ${pub.citations} Citations</span>` 
-                    : '';
+                    let pubsHTML = '';
+                    if (portfolioData.publications.books.length > 0) {
+                        pubsHTML += `<h3 class="text-sm font-bold text-academic-900 mt-2 mb-2 italic">Books & Chapters</h3> <div class="space-y-1 mb-6">${renderPubList(portfolioData.publications.books)}</div>`;
+                    }
+                    if (portfolioData.publications.journals.length > 0) {
+                        pubsHTML += `<h3 class="text-sm font-bold text-academic-900 mt-2 mb-2 italic">Journal Articles</h3> <div class="space-y-1 mb-6">${renderPubList(portfolioData.publications.journals)}</div>`;
+                    }
+                    if (portfolioData.publications.conferences.length > 0) {
+                        pubsHTML += `<h3 class="text-sm font-bold text-academic-900 mt-2 mb-2 italic">Conference Proceedings</h3> <div class="space-y-1 mb-6">${renderPubList(portfolioData.publications.conferences)}</div>`;
+                    }
+                    document.getElementById("publications-container").innerHTML = pubsHTML;
 
-                return `
-                    <div class="pub-item relative p-3 -mx-3 rounded-lg hover:bg-academic-50 cursor-pointer transition-colors border-l-2 border-transparent hover:border-academic-400 group">
-                        <p class="text-sm text-academic-700 leading-relaxed text-justify relative z-10">
-                            ${formattedMla} ${citationBadge}
-                        </p>
-                        <div class="pub-preview cv-hide-print absolute top-full left-0 mt-2 w-full sm:w-[105%] bg-white border border-academic-200 rounded-lg shadow-xl opacity-0 invisible z-50 p-4 pointer-events-none">
-                            <div class="flex items-center gap-2 mb-2 pb-2 border-b border-academic-100">
-                                <svg class="w-4 h-4 text-academic-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                <span class="text-xs font-bold text-academic-700 uppercase tracking-wide">Research Abstract</span>
-                            </div>
-                            <div class="text-xs text-academic-600 leading-relaxed">${formatText(pub.preview)}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            let pubsHTML = '';
-            if (portfolioData.publications.books.length > 0) {
-                pubsHTML += `<h3 class="text-sm font-bold text-academic-900 mt-2 mb-2 italic">Books & Chapters</h3> <div class="space-y-1 mb-6">${renderPubList(portfolioData.publications.books)}</div>`;
-            }
-            if (portfolioData.publications.journals.length > 0) {
-                pubsHTML += `<h3 class="text-sm font-bold text-academic-900 mt-2 mb-2 italic">Journal Articles</h3> <div class="space-y-1 mb-6">${renderPubList(portfolioData.publications.journals)}</div>`;
-            }
-            if (portfolioData.publications.conferences.length > 0) {
-                pubsHTML += `<h3 class="text-sm font-bold text-academic-900 mt-2 mb-2 italic">Conference Proceedings</h3> <div class="space-y-1 mb-6">${renderPubList(portfolioData.publications.conferences)}</div>`;
-            }
-            document.getElementById("publications-container").innerHTML = pubsHTML;
-
-            document.getElementById("awards-container").innerHTML = `<ul class="list-none space-y-2">` + portfolioData.awards.map(award => `
-                <li class="flex items-start gap-3">
-                    <span class="text-academic-400 mt-0.5">•</span>
-                    <div>
-                        <span class="text-sm font-bold text-academic-900">${award.title}</span>
-                        <span class="text-xs text-academic-600 ml-1 block sm:inline">(${award.issuer}, ${award.year})</span>
-                    </div>
-                </li>
-            `).join('') + `</ul>`;
-
-            document.getElementById("testimonials-container").innerHTML = portfolioData.testimonials.map(test => `
-                <div class="w-full flex-shrink-0 px-1">
-                    <div class="bg-white border border-academic-200 rounded-xl p-4 shadow-sm relative overflow-hidden h-full flex flex-col justify-between">
-                        <div class="text-sm text-academic-700 italic leading-relaxed mb-3">"${test.feedback.replace(/\n/g, '<br/>')}"</div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-academic-800 text-white flex items-center justify-center font-bold text-xs uppercase">
-                                ${test.name.charAt(0)}
-                            </div>
+                    document.getElementById("awards-container").innerHTML = `<ul class="list-none space-y-2">` + portfolioData.awards.map(award => `
+                        <li class="flex items-start gap-3">
+                            <span class="text-academic-400 mt-0.5">•</span>
                             <div>
-                                <p class="text-xs font-bold text-academic-900 italic">${test.name}</p>
-                                <span class="text-[10px] font-medium text-academic-500">${test.role}</span>
+                                <span class="text-sm font-bold text-academic-900">${award.title}</span>
+                                <span class="text-xs text-academic-600 ml-1 block sm:inline">(${award.issuer}, ${award.year})</span>
+                            </div>
+                        </li>
+                    `).join('') + `</ul>`;
+
+                    document.getElementById("testimonials-container").innerHTML = portfolioData.testimonials.map(test => `
+                        <div class="w-full flex-shrink-0 px-1">
+                            <div class="bg-white border border-academic-200 rounded-xl p-4 shadow-sm relative overflow-hidden h-full flex flex-col justify-between">
+                                <div class="text-sm text-academic-700 italic leading-relaxed mb-3">"${test.feedback.replace(/\n/g, '<br/>')}"</div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-academic-800 text-white flex items-center justify-center font-bold text-xs uppercase">
+                                        ${test.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-academic-900 italic">${test.name}</p>
+                                        <span class="text-[10px] font-medium text-academic-500">${test.role}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            `).join('');
+                    `).join('');
 
-            document.getElementById("feedbacks-container").innerHTML = portfolioData.studentFeedbacks.map(fb => `
-                <div class="w-full flex-shrink-0 px-1">
-                    <div class="bg-white border border-academic-200 rounded-xl p-4 shadow-sm relative overflow-hidden h-full flex flex-col justify-between">
-                        <div class="text-sm text-academic-700 italic leading-relaxed mb-3">"${fb.feedback.replace(/\n/g, '<br/>')}"</div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs uppercase">
-                                ${fb.name.charAt(0)}
-                            </div>
-                            <div>
-                                <p class="text-xs font-bold text-academic-900 italic">${fb.name}</p>
-                                <span class="text-[10px] font-medium text-academic-500">${fb.course}</span>
+                    document.getElementById("feedbacks-container").innerHTML = portfolioData.studentFeedbacks.map(fb => `
+                        <div class="w-full flex-shrink-0 px-1">
+                            <div class="bg-white border border-academic-200 rounded-xl p-4 shadow-sm relative overflow-hidden h-full flex flex-col justify-between">
+                                <div class="text-sm text-academic-700 italic leading-relaxed mb-3">"${fb.feedback.replace(/\n/g, '<br/>')}"</div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs uppercase">
+                                        ${fb.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-academic-900 italic">${fb.name}</p>
+                                        <span class="text-[10px] font-medium text-academic-500">${fb.course}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            `).join('');
+                    `).join('');
 
+                    // Initialize Sliders after data is loaded
+                    setupSlider('testimonials-container', 'btn-prev-test', 'btn-next-test');
+                    setupSlider('feedbacks-container', 'btn-prev-fb', 'btn-next-fb');
+
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById("about-text").innerHTML = `<p class="text-red-500 font-bold">Error loading portfolio data. Please check if data.json exists.</p>`;
+                });
+
+            // Slider Logic Helper
             function setupSlider(containerId, prevBtnId, nextBtnId) {
                 const container = document.getElementById(containerId);
                 const prevBtn = document.getElementById(prevBtnId);
@@ -1074,7 +716,7 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                     interval = setInterval(() => {
                         currentIndex = (currentIndex + 1) % itemCount;
                         updateSlider();
-                    }, 6000); // 6 seconds auto-slide
+                    }, 6000);
                 };
 
                 nextBtn.addEventListener('click', () => {
@@ -1092,34 +734,25 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 resetInterval();
             }
 
-            setupSlider('testimonials-container', 'btn-prev-test', 'btn-next-test');
-            setupSlider('feedbacks-container', 'btn-prev-fb', 'btn-next-fb');
-
             // --- Sidebar Toggle Logic for Mobile ---
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
             const closeMenuBtn = document.getElementById('close-menu-btn');
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             const navLinks = document.querySelectorAll('.nav-link');
-            
-            // Set mobile header name dynamically
-            document.getElementById("mobile-header-name").textContent = portfolioData.profile.name;
 
             function toggleSidebar() {
                 const isClosed = sidebar.classList.contains('-translate-x-full');
                 if (isClosed) {
-                    // Open sidebar
                     overlay.classList.remove('hidden');
-                    // Small delay to allow display:block to apply before fading in
                     setTimeout(() => overlay.classList.remove('opacity-0'), 10);
                     sidebar.classList.remove('-translate-x-full');
-                    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                    document.body.style.overflow = 'hidden'; 
                 } else {
-                    // Close sidebar
                     sidebar.classList.add('-translate-x-full');
                     overlay.classList.add('opacity-0');
-                    setTimeout(() => overlay.classList.add('hidden'), 300); // wait for transition
-                    document.body.style.overflow = ''; // Restore background scrolling
+                    setTimeout(() => overlay.classList.add('hidden'), 300);
+                    document.body.style.overflow = ''; 
                 }
             }
 
@@ -1129,7 +762,6 @@ You only need to edit the text inside the quotes, brackets, or braces in the `po
                 overlay.addEventListener('click', toggleSidebar);
             }
 
-            // Close sidebar when clicking a navigation link on mobile
             navLinks.forEach(link => {
                 link.addEventListener('click', () => {
                     if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
