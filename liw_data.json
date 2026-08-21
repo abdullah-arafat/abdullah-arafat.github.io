@@ -1,0 +1,22 @@
+{
+  "dob": "1998-03-09",
+  "totalYears": 70,
+  "events": [
+    {
+      "week": 0,
+      "event": "I was born!"
+    },
+    {
+      "week": 936,
+      "event": "Graduated High School."
+    },
+    {
+      "week": 1260,
+      "event": "Graduated from KUET with B.S. in Materials Science & Engineering."
+    },
+    {
+      "week": 1276,
+      "event": "Moved to Utah to begin Master's Degree."
+    }
+  ]
+}
