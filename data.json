@@ -1,0 +1,426 @@
+{
+  "profile": {
+    "name": "Abdullah Arafat",
+    "role": "Computational Chemist",
+    "institution": "The University of Utah",
+    "imageUrl": "assets/profile_picture.jpg",
+    "email": "abdullah.arafat@utah.edu"
+  },
+  "metrics": {
+    "citations": 67,
+    "hIndex": 5,
+    "i10Index": 3
+  },
+  "socialLinks": [
+    {
+      "name": "Google Scholar",
+      "url": "https://scholar.google.com/citations?user=VkHMZc4AAAAJ&hl=en",
+      "icon": "<svg class=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 14l9-5-9-5-9 5 9 5z\"></path><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z\"></path></svg>"
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com/abdullah-arafat",
+      "icon": "<svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path fill-rule=\"evenodd\" d=\"M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z\" clip-rule=\"evenodd\"></path></svg>"
+    },
+    {
+      "name": "YouTube",
+      "url": "https://www.youtube.com/c/AbdullahArafat",
+      "icon": "<svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z\"/></svg>"
+    },
+    {
+      "name": "LinkedIn",
+      "url": "https://www.linkedin.com/in/abdullah-arafat",
+      "icon": "<svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z\"/></svg>"
+    }
+  ],
+  "aboutText": "I am a computational chemist specializing in molecular dynamics, nanomaterials, crystallography, and solid mechanics. My work focuses on understanding the nano-mechanical behavior of materials, exploring structure-property relationships, and applying atomistic simulations to solve complex challenges.",
+  "keywords": [
+    "Molecular Dynamics",
+    "Nanomaterials",
+    "Crystallography",
+    "Mechanics of Materials"
+  ],
+  "education": [
+    {
+      "degree": "Ph.D. in Chemistry",
+      "institution": "The University of Utah",
+      "location": "Salt Lake City, UT",
+      "locationUrl": "https://maps.google.com/?q=The+University+of+Utah",
+      "period": "2024 — Now",
+      "description": "Thesis: \n- Investigating atomistic mechanisms of polymorphic transformations, amorphization, and crystallization using molecular dynamics simulations.\n- Examining how stress state, strain rate, crystallographic orientation, and nanoscale confinement govern transformation pathways.\n- Developing structural-analysis workflows using LAMMPS, OVITO, Python, ASE, DScribe, and machine-learning-based atomic descriptors.",
+      "courses": [
+        "Advanced Molecular Dynamics",
+        "Quantum Chemistry",
+        "Statistical Thermodynamics"
+      ]
+    },
+    {
+      "degree": "M.S. in Mechanical Engineering",
+      "institution": "The University of Utah",
+      "location": "Salt Lake City, UT",
+      "locationUrl": "https://maps.google.com/?q=The+University+of+Utah",
+      "period": "2022 — 2024",
+      "description": "Thesis: \n- Used molecular dynamics simulations to investigate H₂, H₂O, and CO₂ transport under nanoconfinement in underground hydrogen-storage systems. \n- Evaluated the effects of pore size and morphology on the elastic modulus and fracture behavior of porous amorphous SiO₂.",
+      "courses": [
+        "Continuum Mechanics",
+        "Computational Materials Science",
+        "Finite Element Analysis"
+      ]
+    },
+    {
+      "degree": "B.S. in Materials Science & Engineering",
+      "institution": "Khulna University of Engineering and Technology (KUET)",
+      "location": "Khulna, Bangladesh",
+      "locationUrl": "https://maps.google.com/?q=Khulna+University+of+Engineering+and+Technology",
+      "period": "2017 — 2022",
+      "description": "Thesis: \n- Applied reactive molecular dynamics simulations to elucidate the reaction mechanism and intermediate formation during CVD growth of 2D MoS₂ from MoO₃ and H₂S precursors. \n- Quantified temperature-dependent surface composition, oxygen evolution, and sulfur detachment, and compared growth pathways for H₂S- and S₂-based precursor systems.",
+      "courses": [
+        "Material Characterization",
+        "Crystallography",
+        "Solid State Physics",
+        "Nanotechnology"
+      ]
+    }
+  ],
+  "experiences": {
+    "researchTeaching": [
+      {
+        "institution": "The University of Utah",
+        "location": "Salt Lake City, UT",
+        "locationUrl": "https://maps.google.com/?q=The+University+of+Utah",
+        "roles": [
+          {
+            "title": "Research Assistant (Chemistry & Mechanical Engineering)",
+            "period": "Aug 2022 — Now",
+            "description": "Conducted extensive research exploring nanoconfinement and structure-property relationships in subsurface environments.\n- Developed computational models for complex material simulations.\n- Performed molecular dynamics simulations to analyze atomic behavior.\n- Authored comprehensive technical papers based on simulation outcomes.",
+            "skills": [
+              "Molecular Dynamics",
+              "Atomistic Simulations",
+              "Data Analysis",
+              "LAMMPS"
+            ]
+          },
+          {
+            "title": "Course Teaching Assistant (Chemistry)",
+            "period": "Aug 2024 — May 2025",
+            "description": "Taught undergraduate courses on Thermodynamics and Physical Chemistry.\n- Led laboratory sessions and managed lab safety protocols.\n- Graded assignments and provided extensive mentorship during office hours.",
+            "skills": [
+              "Thermodynamics",
+              "Physical Chemistry",
+              "Mentorship"
+            ]
+          },
+          {
+            "title": "Laboratory Teaching Assistant (Mechanical)",
+            "period": "Aug 2022 — May 2025",
+            "description": "Lab Teaching Assistant for ME EN 3315 (Mechanics of Materials).\n- Assisted Professors: Dr. Michael Czabaj, Dr. Bozo Vazic, Dr. Ken Monson, Dr. Owen Kingstedt.\n- Guided students through complex mechanical testing protocols.",
+            "skills": [
+              "Mechanics of Materials",
+              "Mentorship"
+            ]
+          }
+        ]
+      },
+      {
+        "institution": "Khulna University of Engineering and Technology",
+        "location": "Khulna, Bangladesh",
+        "locationUrl": "https://maps.google.com/?q=Khulna+University+of+Engineering+and+Technology",
+        "roles": [
+          {
+            "title": "Undergraduate Researcher",
+            "period": "2020 — 2022",
+            "description": "Investigated atomistic reaction mechanisms of CVD-grown 2D materials.\n- Analyzed the effects of substrate structures on hexagonal boron nitride.\n- Contributed to publications regarding mechanical stability and material properties.",
+            "skills": [
+              "CVD Growth Modeling",
+              "2D Materials",
+              "Mechanical Stability Analysis"
+            ]
+          }
+        ]
+      }
+    ],
+    "industry": [
+      {
+        "institution": "Emprotec Limited",
+        "location": "Khulna, Bangladesh",
+        "locationUrl": "https://www.facebook.com/emprotec.ltd",
+        "roles": [
+          {
+            "title": "Design Engineer",
+            "period": "Nov 2018 — Aug 2022",
+            "description": "Designed LPG Spherical storage tanks, Cylindrical storage tanks, Ball valves, and Actuated valves.\n- Designed P&ID of LPG network, Fire fighting network, and Industrial air network.\n- Executed 3D Pipe Routing of different LPG Plants using AutoCAD Plant 3D and SOLIDWORKS Pipe Routing.\n- Designed Land Layouts of different LPG Plants using AutoCAD and created sample P&IDs using Microsoft Visio.",
+            "skills": [
+              "SOLIDWORKS",
+              "AutoCAD Plant 3D",
+              "Microsoft Visio",
+              "Pipe Routing",
+              "P&ID"
+            ]
+          }
+        ]
+      },
+      {
+        "institution": "FabLab KUET",
+        "location": "Khulna, Bangladesh",
+        "locationUrl": "https://www2.kuet.ac.bd/fablab",
+        "roles": [
+          {
+            "title": "Operator",
+            "period": "Aug 2019 — Mar 2020",
+            "description": "Maintained machinery and assisted students with their academic projects.\n- Managed fabrication of 13 undergraduate thesis projects, 1000 key rings, and 10+ intricate designs.\n- Operated CNC milling machines, laser cutters, and 3D printers while ensuring optimal lab instrument functionality.",
+            "skills": [
+              "CNC Milling",
+              "Laser Cutting",
+              "3D Printing",
+              "Equipment Maintenance"
+            ]
+          }
+        ]
+      }
+    ],
+    "extracurricular": [
+      {
+        "institution": "Graduate Student Advisory Committee (GSAC)",
+        "location": "Utah, USA",
+        "locationUrl": "https://www.mech.utah.edu/directory/student-societies/gsac/",
+        "roles": [
+          {
+            "title": "Member",
+            "period": "2022 — 2024",
+            "description": "Represented graduate-student interests and contributed to initiatives supporting academic, professional, and social development.\n- Collaborated with students, faculty, and committee members to communicate student needs and concerns.\n- Assisted in organizing departmental events, workshops, and community-building activities.",
+            "skills": [
+              "Student Advocacy",
+              "Event Coordination",
+              "Committee Collaboration",
+              "Professional Communication"
+            ]
+          }
+        ]
+      },
+      {
+        "institution": "Spectrum (Professional Skill Development Club of KUET)",
+        "location": "Khulna, Bangladesh",
+        "locationUrl": "https://www.facebook.com/spectrum.kuet/",
+        "roles": [
+          {
+            "title": "Chief Technology Officer (CTO)",
+            "period": "2017 — 2022",
+            "description": "Led technological initiatives and managed multiple design projects.\n- Dramatically increased club popularity through impactful skill development programs.\n- Coordinated across teams to deliver successful workshops and events.",
+            "skills": [
+              "Project Management",
+              "Technical Leadership",
+              "Team Building"
+            ]
+          }
+        ]
+      },
+      {
+        "institution": "KUET Career Club",
+        "location": "Khulna, Bangladesh",
+        "locationUrl": "https://www.facebook.com/kuetcareerclub",
+        "roles": [
+          {
+            "title": "Head of Information Technology Department",
+            "period": "2019 — 2022",
+            "description": "Organized career development workshops, networking sessions, and seminars to help students bridge the gap between academia and industry.",
+            "skills": [
+              "Event Organization",
+              "Leadership",
+              "Networking"
+            ]
+          }
+        ]
+      },
+      {
+        "institution": "CADers",
+        "location": "Khulna, Bangladesh",
+        "locationUrl": "https://www.facebook.com/caders.kuet",
+        "roles": [
+          {
+            "title": "Head of Information Technology Department",
+            "period": "2019 — 2022",
+            "description": "Promoted computer-aided design (CAD) skills among students.\n- Facilitated workshops and inter-university design competitions.",
+            "skills": [
+              "CAD/CAE",
+              "Mentorship",
+              "Training"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "publications": {
+    "journals": [
+      {
+        "mla": "Ak, İ., H. Adin, Abdullah Arafat, and M. Okumuş. \"Mechanical properties of Cu-Ni alloys: Comparison of experimental and MD simulation approaches.\" Physica B: Condensed Matter, vol. 700, 2025, p. 416928.",
+        "url": "https://www.sciencedirect.com/science/article/abs/pii/S0921452625000456",
+        "citations": 10,
+        "preview": "The rapid advancement of technology allows devices to be designed at atomistic scales, creating a need for material characterisation at micro and nano levels. In this study, nanoindentation tests and MD simulations are compared to analyse the hardness, modulus of elasticity and surface deformation of CuNi alloys produced by casting. These methods are used to comprehensively investigate and compare the mechanical properties of alloys. The applicability of the simulation method to metal alloys is also evaluated. Nanoindentation tests revealed Em values between 101.89 GPa and 139.27 GPa, while MD simulations showed higher Em values ranging from 126.30 GPa to 186.34 GPa. Larger grain sizes in Cu-%10Ni alloy reduced the hardness to 2.40 GPa, while smaller grains in Cu-%20Ni alloy increased the hardness to 3.09 GPa. MD simulations allow real-time atomic-scale deformation observations, supporting empirical results and in agreement with the literature, and their applicability in metal alloys has been observed."
+      },
+      {
+        "mla": "Sajal, Wahidur Rahman, Md Mehidi Hassan, Jahirul Islam, Tipu Sultan, Md Bokhtiar Hossen, and Abdullah Arafat. \"Molecular dynamics study of mechanical stability of Ti4C3 MXene subjected to chirality, temperature, strain rate, and point-vacancy for Lithium-ion batteries.\" Heliyon, vol. 10, no. 19, 2024.",
+        "url": "https://www.cell.com/heliyon/fulltext/S2405-8440(24)14885-2",
+        "citations": 7,
+        "preview": "Two-dimensional Ti4C3 MXene has recently emerged as a promising electrode for Lithium-ion batteries (LIBs) because of its outstanding ion-transport abilities and high Li-absorbability. This study employed molecular dynamics simulation to explore the mechanical stability of Ti4C3 MXene subjected to various temperatures, strain rates, and vacancy concentrations. A slightly superior tensile strength and elasticity modulus have been observed along zigzag directions, measuring 148.14 GPa and 29.17 GPa, respectively. On the other hand, armchair-oriented Ti4C3 MXene shows a considerably greater fracture strain of 0.259 due to its strain-hardening tendency at lower temperatures. Elevated temperature decreases both fracture strength and fracture strain, which is opposite to the effect of strain rate. Armchair loading has been revealed to be more sensitive to strain rate than its counter direction. Unlike temperature and strain rate, point vacancy significantly deteriorates the elastic modulus of Ti4C3 MXene. Carbon vacancies are more probable than titanium vacancies, which have less formation energy. The atomistic deformation profile supports the predicted values of fracture strain from stress-strain behavior. This in-depth study offers a detailed understanding of the mechanical behavior of Ti4C3 MXene under diverse circumstances, which will aid further experimental study and be beneficial for adopting Ti4C3 as anode materials in LIBs."
+      },
+      {
+        "mla": "Arafat, Abdullah. \"Exploring Nanoconfinement and Structure-Property Relationships in Subsurface.\" The University of Utah ProQuest Dissertations & Theses,  2024.",
+        "url": "https://www.proquest.com/openview/9a3add722e60af689487990cd7bca4bd/1?pq-origsite=gscholar&cbl=18750&diss=y",
+        "citations": 0,
+        "preview": "The future of global energy supply significantly depends on advancements in subsurface or geological engineering, as the subsurface can serve as a reservoir for natural gas and hydrogen storage, carbon capture, and other applications. Thermal, hydrological, mechanical, and chemical (THMC) processes occur across multiple scales in the subsurface, and understanding these coupled processes is essential for optimizing the design and operation of subsurface systems. This study uses molecular dynamics (MD) simulations to investigate the transport properties of gas particles and the mechanical behavior of porous subsurface materials. The first objective examines the transport behavior of H₂, H₂O, and CO₂ in confined spaces within an underground hydrogen storage (UHS) system, focusing on how nanoscale confinement and interactions among gas particles affect diffusivity and density profiles. The second objective investigates how irregular pore morphology affects the mechanical properties of amorphous SiO₂, a common component of rock formations, by comparing its influence on elastic modulus and fracture behavior with that of regular pores. The first study shows that larger pores enhance gas diffusivity in UHS systems, nanoconfinement effects are particularly significant for gases such as H₂, and the presence of H₂ can influence the diffusivity of other gases. The second study demonstrates that both porosity and pore shape significantly affect the elastic modulus, while the critical energy release rate is relatively insensitive to porosity but is influenced by irregular pore morphology. Overall, this research provides valuable insights into the behavior of gas particles and porous materials in subsurface storage, supporting the development of more efficient and secure energy-storage and management solutions."
+      },
+      {
+        "mla": "Arafat, Abdullah, Md Sherajul Islam, Naim Ferdous, ASM Jannatul Islam, Md Mosarof Hossain Sarkar, Catherine Stampfl, and Jeongwon Park. \"Atomistic reaction mechanism of CVD grown MoS2 through MoO3 and H2S precursors.\" Scientific Reports, vol. 12, no. 1, 2022, p. 16085.",
+        "url": "https://www.nature.com/articles/s41598-022-20531-x",
+        "citations": 25,
+        "preview": "Chemical vapor deposition (CVD) through sulfidation of MoO3 is one of the most important synthesis techniques to obtain large-scale and high-quality two-dimensional (2D) MoS2. Recently, H2S precursor is being used in the CVD technique to synthesize 2D MoS2. Although several studies have been carried out to examine the mechanism of MoS2 growth in the presence of sulfur and MoO3 precursors, the growth of MoS2 in the presence of H2S precursor has largely remained unknown. In this study, we present a Reactive molecular dynamics (RMD) simulation to investigate the reaction mechanism of MoS2 from MoO3 and H2S precursors. The intermediate molecules formation, the reason behind those formations, and the surface compositions of MoOxSyHz during the initial steps of CVD have all been quantified. Surprisingly, a sudden separation of sulfur atoms from the surface was observed in the H2S precursor system due to the substantial oxygen evolution after 1660 K. The sulfur detachments and oxygen evolution from the surface were found to have a linear relationship. In addition, the intermediate molecules and surface bonds of MoS2 synthesized by MoO3 and H2S precursors were compared to those of a system using S2 and MoO3 precursors. The most stable subsidiary formation from the H2S precursor was found to be H2O, whereas in case of S2 precursor it was SO. These results provide a valuable insight in the formation of large-scale and high-quality 2D MoS2 by the CVD technique."
+      },
+      {
+        "mla": "Hossain Sarkar, Md Mosarof, Md Sherajul Islam, Abdullah Arafat, ASM Jannatul Islam, Naim Ferdous, Md Tawabur Rahman, Minhaz Uddin Sohag, Md Al Imran Fahim, Catherine Stampfl, and Jeongwon Park. \"Effects of the substrate structure on the CVD growth of two-dimensional hexagonal boron nitride.\" The Journal of Physical Chemistry C, vol. 126, no. 14, 2022, pp. 6373-6384.",
+        "url": "https://pubs.acs.org/doi/abs/10.1021/acs.jpcc.2c01707",
+        "citations": 8,
+        "preview": "Due to its outstanding stability, flat surface, and wide band gap, two-dimensional hexagonal boron nitride (h-BN) has appeared as a vital element in a range of applications, including a perfect substrate for graphene devices, tunneling barriers, and deep-ultraviolet emitters. However, large-scale growth of high-grade h-BN using chemical vapor deposition (CVD) still remains challenging due to its dependence on a variety of parameters such as substrate structures, temperature, and precursor deposition rates. Here, we explore the atomic scale elementary nucleation and growth process of monolayer h-BN on normal, vacancy-disordered, and rough (terrace and step structure) Ni(111) surfaces using reactive force field molecular dynamics simulations. The impact of the precursor deposition rate and temperature on different Ni(111) substrates was also investigated. At 1500 K, a low precursor deposition rate favors large single-domain h-BN development on normal and vacancy-disordered Ni(111) substrates, whereas a higher deposition rate yields a single domain on a rough substrate. It is also explored that the initial growth rate of h-BN is higher on the rough substrate and lower on the vacancy-disordered substrate for single-domain h-BN growth. The formation of continuous h-BN islands is greater on a normal Ni substrate than the other two substrates. Although a small vacancy concentration (1.25%) in the Ni(111) substrate shows a minor effect on the growth of the h-BN layer, the rough surface shows a considerable effect on the h-BN growth. These findings pave the way for scalable high-quality CVD growth of h-BN, taking this promising material one step closer to practical applications."
+      },
+      {
+        "mla": "Komol, Md Mostafizur Rahman, Md Karimul Joarder, Abdullah Arafat, and Amit Kumer Podder. \"Fingerprint and password controlled garage access system with belt pulley and power screw driven mechanism.\" International Journal of Advanced Mechatronic Systems, vol. 8, no. 1, 2020, pp. 36-45.",
+        "url": "https://www.inderscienceonline.com/doi/abs/10.1504/IJAMECHS.2020.109908",
+        "citations": 1,
+        "preview": "Garage automation and security have been a favoured concern with technological advancement. In this paper, developed garage access security and automation system are proposed with the affiliated control of the biometric fingerprint recognition and password verification system. Here, fingerprint recognition is restricted to the registered vehicle owners of the garage, while everyone is permitted to access through a password verification system. The affiliation of the dual-sensing system is intended to maintain robust security and to retain the record of any driver's access without the vehicle owners. Moreover, the system is enriched with a subtle design of the access door and its operation mechanism. Power screw-driven door operation is utilised to convert the rotating motion of the motor to linear motion and slide the door open or close. The requisite motor torque, revolution per minute, and power requirement for door control by the screw operation are also calculated and verified."
+      },
+      {
+        "mla": "Komol, Md Mostafizur Rahman, Amit Kumer Podder, Abdullah Arafat, and Tanzim Nabeed.\"Remote sensing global ranged door lock security system via mobile communication.\" International Journal of Wireless and Microwave Technologies, vol. 9, no. 5, 2019, pp. 25-37.",
+        "url": "https://www.mecs-press.org/ijwmt/ijwmt-v9-n5/v9n5-3.html",
+        "citations": 16,
+        "preview": "In this paper, a door locking system with some remarkable features is proposed which makes the locking or unlocking of a door more reliable to the user than the conventional system. Robust security access with accurate detection system is provided here. It’s a global ranged operation process that can be operated by simple mobile phone through short message service (SMS) transferring operation from any corner of the world where mobile network is available. A smooth and durable locking mechanism is provided and the inscrutable door moving control device is used for the efficient operation of controlling the door. This developed system provides a notification to the user if any person is intended to pass the door. The system also has the ability to provide information about the current condition of the door by sending simple text messages. Also, the user will be able to operate the system with more than one subscriber identity module (SIM) card. Most advantageously, this device is proposed with lowest cost estimation benefit.  Finally, the performance of the designed system is analyzed by performing some real-time operation of it and found satisfactory performance."
+      }
+    ],
+    "conferences": [
+      {
+        "mla": "Md. Jarir Hossain, Md. Mahbubur Rahman, Fahim Islam Anik, MD Ikramul Hasib, Abdullah Arafat. \"Numerical Investigation on Fatigue Life Estimation of Aluminum Structure for Uniaxial Cyclic Loading by Finite Element Modeling.\" International Conference on Mechanical Engineering and Renewable Energy 2019 (ICMERE2019)",
+        "url": "https://www.researchgate.net/publication/344554263_Numerical_Investigation_on_Fatigue_Life_Estimation_of_Aluminum_Structure_for_Uniaxial_Cyclic_Loading_by_Finite_Element_Modeling",
+        "citations": 0,
+        "preview": "Fatigue analysis emphasizes on the cyclic behavior of a material and this often leads to crack initiation and propagation. In this research, the stress life method is being used to calculate the minimum fatigue life of different structure in Aluminum 6061 T6 material by Finite Element Modeling, also von mises stress is calculated. Furthermore, a bike crank arm design is used to validate the simulation process of fatigue calculation for uniaxial loading. Where the stress distribution throughout the body of a bike crank arm indicates the scopes of improvement in the design. By applying the theory for minimizing stress, few case studies are done based on different design modifications. In conclusion, one of the case studies, the result is found that minimum fatigue life increases 10.89 times than the one which is being used for validation and the same design is currently used in the industry."
+      }
+    ],
+    "books": [
+      {
+        "mla": "Mubin, Shafat, Jichen Li, and Steven Plimpton. \"Extending and Modifying LAMMPS Writing Your Own Source Code: A pragmatic guide to extending LAMMPS as per custom simulation requirements.\" Packt Publishing Ltd, 2021: Page (304-311)",
+        "url": "https://www.packtpub.com/product/extending-and-modifying-lammps-writing-your-own-source-code/9781800562264",
+        "citations": 0,
+        "preview": "LAMMPS is one of the most widely used tools for running simulations for research in molecular dynamics. While the tool itself is fairly easy to use, more often than not you’ll need to customize it to meet your specific simulation requirements. Extending and Modifying LAMMPS bridges this learning gap and helps you achieve this by writing custom code to add new features to LAMMPS source code. Written by ardent supporters of LAMMPS, this practical guide will enable you to extend the capabilities of LAMMPS with the help of step-by-step explanations of essential concepts, practical examples, and self-assessment questions. This LAMMPS book provides a hands-on approach to implementing associated methodologies that will get you up and running and productive in no time. You’ll begin with a short introduction to the internal mechanisms of LAMMPS, and gradually transition to an overview of the source code along with a tutorial on modifying it. As you advance, you’ll understand the structure, syntax, and organization of LAMMPS source code, and be able to write your own source code extensions to LAMMPS that implement features beyond the ones available in standard downloadable versions. By the end of this book, you’ll have learned how to add your own extensions and modifications to the LAMMPS source code that can implement features that suit your simulation requirements."
+      }
+    ]
+  },
+  "awards": [
+    {
+      "title": "Test",
+      "year": "Aug 2020, Bangladesh",
+      "issuer": "ASME CUET Student Chapter"
+    },
+    {
+      "title": "ASME CUET Extrusion CAD Contest - 2nd/100",
+      "year": "Aug 2020, Bangladesh",
+      "issuer": "ASME CUET Student Chapter"
+    },
+    {
+      "title": "Certified Solidworks Professional (CSWP)",
+      "year": "Jun 2019, Online worldwide exam",
+      "issuer": "Dassault Systèmes"
+    },
+    {
+      "title": "Certified SOLIDWORKS Associate (CSWA)",
+      "year": "Jan 2019, Online worldwide exam",
+      "issuer": "Dassault Systèmes"
+    },
+    {
+      "title": "Dean List Award",
+      "year": "Jan 2019, Bangladesh",
+      "issuer": "Khulna University of Engineering and Technology"
+    },
+    {
+      "title": "IPE Fest 2018 CAD Competition - 2nd/75",
+      "year": "Dec 2018, Bangladesh",
+      "issuer": "Khulna University of Engineering and Technology"
+    },
+    {
+      "title": "Wash Innovation Challenge - Finalist",
+      "year": "Oct 2018, Bhutan",
+      "issuer": "UNICEF and BRAC"
+    },
+    {
+      "title": "Ignition 2018 CAD Competition - 1st/150",
+      "year": "Sept 2018, Bangladesh",
+      "issuer": "Khulna University of Engineering and Technology"
+    },
+    {
+      "title": "9th International Olympiad on Astronomy and Astrophysics (IOAA) - Finalist",
+      "year": "Jul 2015, Indonesia",
+      "issuer": "International Olympiad on Astronomy and Astrophysics (IOAA)"
+    }
+  ],
+  "studentFeedbacks": [
+    {
+      "name": "Student",
+      "course": "Mechanics of Materials",
+      "feedback": "Thanks Abdullah for being a great TA! While I could never quite pronounce your name, you helped a lot in helping me understand the physical implications of the mechanics of materials. You always asked questions to make sure we understood what was going on. We did give some nonsense answers, but I'm glad you decided to push through our stupidity. Thanks again!"
+    },
+    {
+      "name": "Student",
+      "course": "Mechanics of Materials",
+      "feedback": "He's a really fun TA, and I would highly recommend him to other students. He always tried to have students understand the mechanics going on, which helped in the learning process. (even though we gave a lot of dumb answers)"
+    },
+    {
+      "name": "Student",
+      "course": "Mechanics of Materials",
+      "feedback": "He explained everything perfectly and told us exactly how he was going to grade so we could get an A."
+    },
+    {
+      "name": "Student",
+      "course": "Mechanics of Materials",
+      "feedback": "Abdullah was excited to run the experiments with us and worked very hard to help us gain a higher understanding of the material."
+    },
+    {
+      "name": "Student",
+      "course": "Mechanics of Materials",
+      "feedback": "He is an awesome instructor. He understands what it's like to be a student and teaches accordingly. Professors sometimes forget that."
+    },
+    {
+      "name": "Student",
+      "course": "Mechanics of Materials",
+      "feedback": "Abdullah was awesome. He explained things well, kept it real, and made the class fun."
+    },
+    {
+      "name": "Student",
+      "course": "Mechanics of Materials",
+      "feedback": "Abdullah was very helpful during the labs. He was willing to answer all of my questions and he pushed us to explore our understanding of the topics."
+    },
+    {
+      "name": "Student",
+      "course": "Mechanics of Materials",
+      "feedback": "Abdullah was an exceptional TA. He always made sure we understood the concepts and he helped us learn a lot."
+    },
+    {
+      "name": "Student",
+      "course": "Mechanics of Materials",
+      "feedback": "Great TA. Fair grader and very lenient."
+    }
+  ],
+  "testimonials": [
+    {
+      "name": "Tanjid Mihad",
+      "role": "Management Trainee Officer - NRBC Bank",
+      "feedback": "I rarely come across real talents who stand out like Abdullah Arafat. I had the pleasure of working with him for more than 1 year at the Spectrum (Professional Skill Development Club of KUET). Arafat’s ability to handle multiple projects & designs was unlike any I’ve seen before and made a dramatic increase in the popularity level of our club. No matter how tense a meeting, Arafat made sure everyone left with a smile. As a coworker or a friend, Arafat earns my highest recommendation."
+    },
+    {
+      "name": "Syed Zubair Hussain",
+      "role": "Graduate Research Assistant - Cornell University",
+      "feedback": "I met Abdullah Arafat in my first year of undergrad. I have seen him taking parts in different competitions where he has consistently demonstrated his expertise in a number of technical areas. Abdullah has a strong understanding of the principles of engineering and has a deep knowledge of various CAD software, including SolidWorks. He has used this knowledge to develop highly detailed and accurate designs, which have been crucial in bringing numerous projects to completion. Additionally, Abdullah's expertise in molecular dynamics has enabled him to carry out complex simulations and analyze data with great precision. Abdullah has a unique combination of technical skills, dedication, and a strong work ethic that make him an excellent candidate for any role."
+    },
+    {
+      "name": "Sheikh Tamjidur Rahman",
+      "role": "Graduate Research Assistant - Wuhan Institute of Technology",
+      "feedback": "I have met very few people with vision. Many can have potential to do something but to be clear about things that you are going to do and get in return is something else. Arafat was a man with vision. He is a great team player, dedicated worker and a good mentor. He has a unique way of learning new things, which is the most distinguished characteristic. I hope he reaches the zenith of success. "
+    }
+  ]
+}
