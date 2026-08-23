@@ -124,6 +124,11 @@
       opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
     }
 
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    .mic-active { color: #ff4444 !important; border-color: #ff4444 !important; animation: pulse 1.5s infinite; }
+    .lang-select { background: #fff; border: 1px solid #ccc; padding: 6px; font-size: 8pt; font-weight: 600; cursor: pointer; border-radius: 4px; outline: none; }
+    .lang-select:focus { border-color: #000; }
+
     @media (max-width: 768px) {
       .app-container.viewing-entry .sidebar { display: none; }
       .app-container:not(.viewing-entry) .editor-pane { display: none; }
@@ -170,6 +175,15 @@
         </div>
         <div class="editor-actions">
           <span id="syncingIndicator" style="font-size:8pt; color:#666; display:none;">Syncing...</span>
+          
+          <select id="dictationLang" class="lang-select" title="Dictation Language">
+            <option value="bn-BD">BN</option>
+            <option value="en-US">EN</option>
+          </select>
+          <button id="micBtn" class="btn" title="Start Dictation">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+          </button>
+
           <button id="deleteBtn" class="btn" style="border-color: #ff4444; color: #ff4444;" title="Delete Entry">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
           </button>
@@ -248,6 +262,67 @@
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
     const syncingIndicator = document.getElementById('syncingIndicator');
+    const micBtn = document.getElementById('micBtn');
+    const dictationLang = document.getElementById('dictationLang');
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isRecording = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isRecording = true;
+        micBtn.classList.add('mic-active');
+        showToast("Listening... (Speak now)");
+      };
+
+      recognition.onresult = (event) => {
+        const current = event.resultIndex;
+        const transcript = event.results[current][0].transcript;
+        
+        const currentVal = entryTextarea.value;
+        const needsSpace = currentVal.length > 0 && !currentVal.endsWith(' ') && !currentVal.endsWith('\n');
+        entryTextarea.value = currentVal + (needsSpace ? ' ' : '') + transcript;
+        
+        // Scroll to bottom as you speak
+        entryTextarea.scrollTop = entryTextarea.scrollHeight;
+      };
+
+      recognition.onerror = (event) => {
+        if(event.error !== 'no-speech') {
+          showToast("Microphone error: " + event.error);
+        }
+        stopDictation();
+      };
+
+      recognition.onend = () => stopDictation();
+    }
+
+    function stopDictation() {
+      isRecording = false;
+      micBtn.classList.remove('mic-active');
+      if (recognition) recognition.stop();
+    }
+
+    micBtn.addEventListener('click', () => {
+      if (!recognition) return showToast("Dictation not supported in this browser (Use Chrome).");
+      
+      if (isRecording) {
+        stopDictation();
+        showToast("Dictation paused.");
+      } else {
+        recognition.lang = dictationLang.value;
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error("Recognition already started.");
+        }
+      }
+    });
 
     function showToast(message) {
       toastEl.textContent = message;
@@ -416,6 +491,7 @@
     }
 
     function hideEditor() {
+      stopDictation(); // Ensure mic turns off when closing editor
       noSelectionPane.style.display = 'flex';
       editorPane.style.display = 'none';
       appContainer.classList.remove('viewing-entry');
