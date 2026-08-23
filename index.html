@@ -912,13 +912,13 @@
 
             let pubsHTML = '';
             if (portfolioData.publications.books.length > 0) {
-                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 uppercase tracking-wide">Books & Chapters</h3> <div class="space-y-2 mb-8 pub-list-wrapper">${renderPubList(portfolioData.publications.books)}</div>`;
+                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 lowercase tracking-wide">Books & Chapters</h3> <div class="space-y-2 mb-8 pub-list-wrapper">${renderPubList(portfolioData.publications.books)}</div>`;
             }
             if (portfolioData.publications.journals.length > 0) {
-                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 uppercase tracking-wide">Journal Articles</h3> <div class="space-y-2 mb-8 pub-list-wrapper">${renderPubList(portfolioData.publications.journals)}</div>`;
+                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 lowercase tracking-wide">Journal Articles</h3> <div class="space-y-2 mb-8 pub-list-wrapper">${renderPubList(portfolioData.publications.journals)}</div>`;
             }
             if (portfolioData.publications.conferences.length > 0) {
-                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 uppercase tracking-wide">Conference Proceedings</h3> <div class="space-y-2 mb-8 pub-list-wrapper">${renderPubList(portfolioData.publications.conferences)}</div>`;
+                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 lowercase tracking-wide">Conference Proceedings</h3> <div class="space-y-2 mb-8 pub-list-wrapper">${renderPubList(portfolioData.publications.conferences)}</div>`;
             }
             document.getElementById("publications-container").innerHTML = pubsHTML;
 
