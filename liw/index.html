@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Life in Weeks (70 Years)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #000; background-color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 24px 16px; }
+    .header { text-align: center; margin-bottom: 12px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .header h1 { font-size: 15pt; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; }
+    .hover-display { font-size: 8pt; font-weight: 400; color: #000; background: transparent; border: none; padding: 0; min-height: 18px; display: inline-flex; align-items: center; justify-content: center; letter-spacing: 0.2px; }
+    .tooltip { position: fixed; background: #fff; color: #000; border: 1px solid #000; padding: 8px 12px; font-size: 8pt; border-radius: 4px; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 260px; line-height: 1.3; pointer-events: none; }
+    
+    .grid-container { display: flex; flex-direction: column; gap: 2px; width: 100%; max-width: 680px; }
+    .top-header-row { display: flex; justify-content: space-between; align-items: center; margin-left: 20px; padding-right: 0px; }
+    .week-labels { display: flex; justify-content: space-between; font-size: 6pt; color: #000; flex: 1; }
+    .year-row { display: flex; align-items: center; gap: 2px; }
+    .year-label { width: 18px; font-size: 6pt; color: #000; text-align: right; padding-right: 4px; font-variant-numeric: tabular-nums; }
+    .weeks-row { display: flex; flex: 1; gap: 2px; }
+    .box { flex: 1; aspect-ratio: 1; border: 0.6px solid #000; border-radius: 0.5px; cursor: pointer; position: relative; }
+    .box:hover { border-color: #000; outline: 1.5px solid #000; z-index: 10; }
+    .box.filled { background-color: #000; border-color: #000; }
+    .box.has-note::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40%; height: 40%; border-radius: 50%; background-color: #555; z-index: 5; }
+    .box.filled.has-note::after { background-color: #fff; }
+    
+    .footer { text-align: center; font-size: 8pt; color: #000; margin-top: 14px; display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; }
+    .info-bar { font-size: 7pt; color: #000; background-color: transparent; padding: 4px 12px; display: inline-block; }
+    @media print { body { background-color: #fff; padding: 0; } .no-print, .controls, .tooltip, .sync-status { display: none !important; } .box:hover { outline: none; } }
+
+    .btn { background: #fff; border: 1px solid #000; padding: 8px 16px; font-size: 9pt; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 4px; }
+    .btn:hover { background: #000; color: #fff; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .sync-status { padding: 8px 16px; border: 1px solid #000; border-radius: 4px; font-size: 8pt; font-weight: 600; display: inline-flex; justify-content: space-between; align-items: center; background: #fff; cursor: pointer; gap: 12px; text-transform: uppercase; }
+    .sync-status:hover { background: #f9f9f9; }
+    .sync-indicator { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+    .dot.connected { background: #00cc00; }
+    .dot.error { background: #cc0000; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
+    .modal { background: #fff; width: 400px; max-width: 90%; padding: 24px; border: 2px solid #000; box-shadow: 4px 4px 0 #000; display: flex; flex-direction: column; gap: 16px; border-radius: 4px; }
+    .modal h2 { font-size: 14pt; text-transform: uppercase; margin-bottom: 4px; }
+    .modal label { font-size: 9pt; font-weight: 600; display: flex; flex-direction: column; gap: 4px; }
+    .modal input, .modal textarea { padding: 10px; border: 1px solid #ccc; font-family: inherit; font-size: 10pt; border-radius: 4px; }
+    .modal input:focus, .modal textarea:focus { border-color: #000; outline: none; }
+    .modal textarea { resize: vertical; min-height: 100px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 10px 24px; border-radius: 6px; font-size: 10pt; font-weight: 600; letter-spacing: 0.5px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>My Life in Weeks</h1>
+    <div id="hoverDisplay" class="hover-display">Loading data...</div>
+  </div>
+
+  <div id="tooltip" class="tooltip"></div>
+
+  <div class="grid-container" id="grid">
+    <div class="top-header-row">
+      <div class="week-labels">
+        <span>Week 1</span><span>10</span><span>20</span><span>30</span><span>40</span><span>52</span>
+      </div>
+    </div>
+    <!-- Grid injected via JS -->
+  </div>
+
+  <div class="footer">
+    <p>Selected: <strong id="filledCount">0</strong> weeks &nbsp;|&nbsp; Remaining: <strong id="remainingCount">0</strong> weeks</p>
+    
+    <div id="syncSettingsBtn" class="sync-status no-print">
+      <div class="sync-indicator">
+        <div id="statusDot" class="dot"></div>
+        <span id="statusText">Not Connected</span>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </div>
+
+    <div class="info-bar no-print">
+      Hover: View Info &middot; Click Box: Edit Event
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay">
+    <div class="modal">
+      <h2>GitHub Connection</h2>
+      <p style="font-size: 9pt; color: #555;">Sync your Life in Weeks directly to a private GitHub repository.</p>
+      
+      <label>
+        Your Date of Birth
+        <input type="date" id="dobInput" required>
+      </label>
+
+      <label>
+        Private Data Repository
+        <input type="text" id="ghRepoInput" placeholder="e.g., username/liw-data">
+      </label>
+      
+      <label>
+        Personal Access Token (Classic)
+        <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      </label>
+
+      <div class="modal-actions">
+        <button id="closeSettingsBtn" class="btn" style="border-color: transparent;">Cancel</button>
+        <button id="saveSettingsBtn" class="btn">Connect & Load</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event Editor Modal -->
+  <div id="editorModal" class="modal-overlay">
+    <div class="modal">
+      <div>
+        <h2 id="editorTitle">Year 0, Week 1</h2>
+        <div id="editorSubtitle" style="font-size: 8pt; color: #666; margin-top: 2px;">Date Range</div>
+      </div>
+      
+      <textarea id="eventInput" placeholder="Write a memory or milestone for this week... (এখানে লিখুন...)"></textarea>
+
+      <div class="modal-actions" style="justify-content: space-between;">
+        <button id="deleteEventBtn" class="btn" style="border-color: transparent; color: #ff4444; padding: 8px;">Clear</button>
+        <div style="display: flex; gap: 8px;">
+          <button id="closeEditorBtn" class="btn" style="border-color: transparent;">Cancel</button>
+          <button id="saveEventBtn" class="btn">Commit Event</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastEl" class="toast"></div>
+
+  <script>
+    let liwData = { dob: "", totalYears: 70, events: [] };
+    let dob, totalYears, totalWeeks;
+    let weekData = [];
+    const msPerWeek = 1000 * 60 * 60 * 24 * 7;
+    
+    // GitHub State
+    let ghToken = localStorage.getItem('liw_gh_token') || '';
+    let ghRepo = localStorage.getItem('liw_gh_repo') || '';
+    let localDob = localStorage.getItem('liw_dob') || '';
+    let fileSha = null;
+    const FILE_PATH = 'liw_data.json';
+
+    let currentEditingIndex = null;
+    let boxElements = [];
+
+    // DOM Elements
+    const grid = document.getElementById('grid');
+    const filledCountEl = document.getElementById('filledCount');
+    const remainingCountEl = document.getElementById('remainingCount');
+    const hoverDisplay = document.getElementById('hoverDisplay');
+    const tooltip = document.getElementById('tooltip');
+    const toastEl = document.getElementById('toastEl');
+
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    
+    // Modals
+    const settingsModal = document.getElementById('settingsModal');
+    const editorModal = document.getElementById('editorModal');
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.style.opacity = '1';
+      setTimeout(() => toastEl.style.opacity = '0', 3000);
+    }
+
+    function setStatus(state, msg) {
+      statusText.textContent = msg;
+      statusDot.className = 'dot';
+      if (state === 'connected') statusDot.classList.add('connected');
+      if (state === 'error') statusDot.classList.add('error');
+    }
+
+    function encodeUnicodeBase64(str) {
+      return btoa(String.fromCharCode.apply(null, new TextEncoder().encode(str)));
+    }
+    function decodeUnicodeBase64(b64) {
+      const binString = atob(b64);
+      const bytes = new Uint8Array(binString.length);
+      for (let i = 0; i < binString.length; i++) { bytes[i] = binString.charCodeAt(i); }
+      return new TextDecoder().decode(bytes);
+    }
+
+    async function fetchFromGitHub() {
+      if (!ghToken || !ghRepo) {
+        setStatus('error', 'Click to Setup Sync');
+        return;
+      }
+      
+      setStatus('connecting', 'Fetching data...');
+      
+      try {
+        const response = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${FILE_PATH}`, {
+          headers: {
+            'Authorization': `token ${ghToken}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (response.status === 404) {
+          // File doesn't exist yet - initialize empty structure
+          if (!localDob) {
+            setStatus('error', 'DOB Required');
+            settingsModal.style.display = 'flex';
+            return;
+          }
+          liwData = { dob: localDob, totalYears: 70, events: [] };
+          fileSha = null;
+          setStatus('connected', 'Repo Connected (Empty)');
+          initializeGridData();
+          return;
+        }
+
+        if (!response.ok) throw new Error('Failed to fetch from GitHub.');
+
+        const data = await response.json();
+        fileSha = data.sha;
+        
+        const decodedContent = decodeUnicodeBase64(data.content);
+        liwData = JSON.parse(decodedContent);
+        
+        setStatus('connected', 'Synced to GitHub');
+        initializeGridData();
+      } catch (error) {
+        console.error(error);
+        setStatus('error', 'Sync Failed');
+        showToast("Error connecting. Check your repo name and token.");
+      }
+    }
+
+    async function saveToGitHub() {
+      if (!ghToken || !ghRepo) {
+        settingsModal.style.display = 'flex';
+        return false;
+      }
+
+      setStatus('connecting', 'Committing...');
+      const jsonContent = JSON.stringify(liwData, null, 2);
+      const base64Content = encodeUnicodeBase64(jsonContent);
+
+      const body = {
+        message: `LIW Update: Week ${currentEditingIndex || 'General'}`,
+        content: base64Content
+      };
+      
+      if (fileSha) body.sha = fileSha;
+
+      try {
+        const response = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${FILE_PATH}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${ghToken}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.message || 'Failed to save to GitHub');
+        }
+
+        const data = await response.json();
+        fileSha = data.content.sha;
+        
+        setStatus('connected', 'Saved to GitHub');
+        return true;
+      } catch (error) {
+        console.error(error);
+        setStatus('error', 'Save Failed');
+        showToast("Failed to save: " + error.message);
+        return false;
+      }
+    }
+
+    function initializeGridData() {
+      const [y, m, d] = liwData.dob.split('-');
+      dob = new Date(y, m - 1, d);
+      
+      totalYears = liwData.totalYears || 70;
+      totalWeeks = totalYears * 52;
+      hoverDisplay.textContent = `${totalYears} Years (${totalWeeks.toLocaleString()} Weeks)`;
+      
+      const today = new Date();
+      const weeksLived = Math.floor((today - dob) / msPerWeek);
+
+      // Create a flat array map of all events for O(1) lookup
+      const eventMap = {};
+      liwData.events.forEach(e => { eventMap[e.week] = e.event; });
+
+      weekData = Array.from({ length: totalWeeks }, (_, i) => ({
+        filled: i < weeksLived,
+        note: eventMap[i] || ''
+      }));
+      
+      generateGrid();
+      updateCounts();
+    }
+
+    function generateGrid() {
+      grid.innerHTML = `
+        <div class="top-header-row">
+          <div class="week-labels">
+            <span>Week 1</span><span>10</span><span>20</span><span>30</span><span>40</span><span>52</span>
+          </div>
+        </div>
+      `;
+      boxElements = [];
+      let weekCounter = 0;
+
+      for (let year = 0; year < totalYears; year++) {
+        const row = document.createElement('div');
+        row.className = 'year-row';
+
+        const label = document.createElement('div');
+        label.className = 'year-label';
+        label.textContent = year;
+        row.appendChild(label);
+
+        const weeksRow = document.createElement('div');
+        weeksRow.className = 'weeks-row';
+
+        for (let week = 0; week < 52; week++) {
+          const box = document.createElement('div');
+          box.className = 'box';
+          box.dataset.index = weekCounter;
+          
+          if (weekData[weekCounter].filled) box.classList.add('filled');
+          if (weekData[weekCounter].note) box.classList.add('has-note');
+
+          weeksRow.appendChild(box);
+          boxElements.push(box);
+          weekCounter++;
+        }
+        row.appendChild(weeksRow);
+        grid.appendChild(row);
+      }
+    }
+
+    function updateCounts() {
+      const filled = weekData.filter(w => w.filled).length;
+      filledCountEl.textContent = filled.toLocaleString();
+      remainingCountEl.textContent = (totalWeeks - filled).toLocaleString();
+    }
+
+    function renderSingleBox(index) {
+      const box = boxElements[index];
+      const data = weekData[index];
+      if (data.filled) box.classList.add('filled'); else box.classList.remove('filled');
+      if (data.note.trim() !== '') box.classList.add('has-note'); else box.classList.remove('has-note');
+    }
+
+    function getWeekInfoContent(index) {
+      const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
+      const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
+      const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const yearNum = Math.floor(index / 52);
+      const weekNum = (index % 52) + 1;
+      
+      let noteContent = weekData[index].note && weekData[index].note.trim() !== '' 
+        ? `<strong>Event:</strong> ${weekData[index].note}` 
+        : `<em>Click to add an event</em>`;
+
+      return `<strong>Year ${yearNum}, Week ${weekNum}</strong><br>` +
+             `<span style="font-size:7.5pt; color:#444;">${startStr} – ${endStr}</span><br>` +
+             `<div style="margin-top:4px; border-top:1px solid #eee; padding-top:4px;">${noteContent}</div>`;
+    }
+
+    grid.addEventListener('mouseover', (e) => {
+      if (e.target.classList.contains('box')) {
+        const index = parseInt(e.target.dataset.index);
+        tooltip.innerHTML = getWeekInfoContent(index);
+        tooltip.style.display = 'block';
+        
+        const weekStart = new Date(dob.getTime() + index * msPerWeek);
+        const startStr = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        hoverDisplay.textContent = `Year ${Math.floor(index / 52)}, Week ${(index % 52) + 1} (${startStr})`;
+      }
+    });
+
+    grid.addEventListener('mousemove', (e) => {
+      if (tooltip.style.display === 'block' && e.target.classList.contains('box')) {
+        // Position tooltip near cursor, keeping it within window bounds
+        const x = Math.min(e.clientX + 12, window.innerWidth - 280);
+        const y = Math.min(e.clientY + 12, window.innerHeight - 120);
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = y + 'px';
+      }
+    });
+
+    grid.addEventListener('mouseout', (e) => {
+      if (e.target.classList.contains('box')) {
+        tooltip.style.display = 'none';
+        hoverDisplay.textContent = `${totalYears} Years (${totalWeeks.toLocaleString()} Weeks)`;
+      }
+    });
+
+    function openEditor(index) {
+      currentEditingIndex = index;
+      const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
+      const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
+      
+      document.getElementById('editorTitle').textContent = `Year ${Math.floor(index / 52)}, Week ${(index % 52) + 1}`;
+      document.getElementById('editorSubtitle').textContent = `${weekStartDate.toLocaleDateString()} – ${weekEndDate.toLocaleDateString()}`;
+      
+      const existingNote = weekData[index].note || '';
+      document.getElementById('eventInput').value = existingNote;
+      
+      tooltip.style.display = 'none'; // hide tooltip while editing
+      editorModal.style.display = 'flex';
+      document.getElementById('eventInput').focus();
+    }
+
+    grid.addEventListener('click', (e) => {
+      if (e.target.classList.contains('box')) {
+        const index = parseInt(e.target.dataset.index);
+        openEditor(index);
+      }
+    });
+
+    async function commitEvent() {
+      if (currentEditingIndex === null) return;
+      
+      const text = document.getElementById('eventInput').value.trim();
+      const index = currentEditingIndex;
+      const btn = document.getElementById('saveEventBtn');
+      
+      btn.textContent = 'Committing...';
+      btn.disabled = true;
+
+      // 1. Update internal state
+      liwData.events = liwData.events.filter(e => e.week !== index);
+      if (text) {
+        liwData.events.push({ week: index, event: text });
+      }
+      
+      // 2. Update visual grid instantly
+      weekData[index].note = text;
+      renderSingleBox(index);
+      
+      // 3. Sync to GitHub
+      const success = await saveToGitHub();
+      
+      btn.disabled = false;
+      btn.textContent = 'Commit Event';
+      
+      if (success) {
+        editorModal.style.display = 'none';
+        showToast("Event successfully saved!");
+      }
+    }
+
+    document.getElementById('saveEventBtn').addEventListener('click', commitEvent);
+    document.getElementById('deleteEventBtn').addEventListener('click', () => {
+      document.getElementById('eventInput').value = '';
+      commitEvent();
+    });
+    document.getElementById('closeEditorBtn').addEventListener('click', () => {
+      editorModal.style.display = 'none';
+    });
+
+    document.getElementById('syncSettingsBtn').addEventListener('click', () => {
+      document.getElementById('dobInput').value = localDob;
+      document.getElementById('ghRepoInput').value = ghRepo;
+      document.getElementById('ghTokenInput').value = ghToken;
+      settingsModal.style.display = 'flex';
+    });
+
+    document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+    });
+
+    document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+      localDob = document.getElementById('dobInput').value;
+      ghRepo = document.getElementById('ghRepoInput').value.trim();
+      ghToken = document.getElementById('ghTokenInput').value.trim();
+      
+      if (!localDob) return showToast("Date of Birth is required!");
+
+      localStorage.setItem('liw_dob', localDob);
+      localStorage.setItem('liw_gh_repo', ghRepo);
+      localStorage.setItem('liw_gh_token', ghToken);
+      
+      settingsModal.style.display = 'none';
+      fetchFromGitHub();
+    });
+
+    if (ghToken && ghRepo && localDob) {
+      fetchFromGitHub();
+    } else {
+      setStatus('error', 'Click to Setup Sync');
+      // Render an empty mock grid just to look nice until setup
+      liwData = { dob: "2000-01-01", totalYears: 70, events: [] };
+      initializeGridData(); 
+    }
+  </script>
+</body>
+</html>
