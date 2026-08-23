@@ -38,6 +38,7 @@
     .sync-indicator { display: flex; align-items: center; gap: 6px; }
     .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
     .dot.connected { background: #00cc00; }
+    .dot.public { background: #007bff; }
     .dot.error { background: #cc0000; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
@@ -76,40 +77,35 @@
     <div id="syncSettingsBtn" class="sync-status no-print">
       <div class="sync-indicator">
         <div id="statusDot" class="dot"></div>
-        <span id="statusText">Not Connected</span>
+        <span id="statusText">Connecting...</span>
       </div>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     </div>
 
     <div class="info-bar no-print">
-      Hover: View Info &middot; Click Box: Edit Event
+      Hover: View Info &middot; Click Box: Edit Event (Admin Only)
     </div>
   </div>
 
-  <!-- Settings Modal -->
+  <!-- Admin Settings Modal -->
   <div id="settingsModal" class="modal-overlay">
     <div class="modal">
-      <h2>GitHub Connection</h2>
-      <p style="font-size: 9pt; color: #555;">Sync your Life in Weeks directly to a private GitHub repository.</p>
+      <h2>Admin Login</h2>
+      <p style="font-size: 9pt; color: #555;">To add or edit events, please provide your GitHub Personal Access Token. Visitors cannot edit.</p>
       
       <label>
-        Your Date of Birth
-        <input type="date" id="dobInput" required>
-      </label>
-
-      <label>
-        Private Data Repository
-        <input type="text" id="ghRepoInput" placeholder="e.g., username/liw-data">
+        Data Repository
+        <input type="text" id="ghRepoInput" value="abdullah-arafat/liw-data">
       </label>
       
       <label>
-        Personal Access Token (Classic)
+        Personal Access Token (PAT)
         <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
       </label>
 
       <div class="modal-actions">
         <button id="closeSettingsBtn" class="btn" style="border-color: transparent;">Cancel</button>
-        <button id="saveSettingsBtn" class="btn">Connect & Load</button>
+        <button id="saveSettingsBtn" class="btn">Login & Load</button>
       </div>
     </div>
   </div>
@@ -142,12 +138,11 @@
     let weekData = [];
     const msPerWeek = 1000 * 60 * 60 * 24 * 7;
     
-    // GitHub State
+    // GitHub State defaults (Visitors see abdullah-arafat/liw-data without a token)
     let ghToken = localStorage.getItem('liw_gh_token') || '';
-    let ghRepo = localStorage.getItem('liw_gh_repo') || '';
-    let localDob = localStorage.getItem('liw_dob') || '';
+    let ghRepo = localStorage.getItem('liw_gh_repo') || 'abdullah-arafat/liw-data';
     let fileSha = null;
-    const FILE_PATH = 'liw_data.json';
+    const FILE_PATH = 'liw_data.json'; 
 
     let currentEditingIndex = null;
     let boxElements = [];
@@ -176,8 +171,9 @@
     function setStatus(state, msg) {
       statusText.textContent = msg;
       statusDot.className = 'dot';
-      if (state === 'connected') statusDot.classList.add('connected');
-      if (state === 'error') statusDot.classList.add('error');
+      if (state === 'admin') statusDot.classList.add('connected'); // Green
+      if (state === 'public') statusDot.classList.add('public');   // Blue
+      if (state === 'error') statusDot.classList.add('error');     // Red
     }
 
     function encodeUnicodeBase64(str) {
@@ -191,36 +187,24 @@
     }
 
     async function fetchFromGitHub() {
-      if (!ghToken || !ghRepo) {
-        setStatus('error', 'Click to Setup Sync');
-        return;
-      }
-      
       setStatus('connecting', 'Fetching data...');
+      
+      const headers = { 'Accept': 'application/vnd.github.v3+json' };
+      // Only attach token if the admin is logged in
+      if (ghToken) {
+        headers['Authorization'] = `token ${ghToken}`;
+      }
       
       try {
         const response = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${FILE_PATH}`, {
-          headers: {
-            'Authorization': `token ${ghToken}`,
-            'Accept': 'application/vnd.github.v3+json'
-          }
+          headers: headers
         });
 
-        if (response.status === 404) {
-          // File doesn't exist yet - initialize empty structure
-          if (!localDob) {
-            setStatus('error', 'DOB Required');
-            settingsModal.style.display = 'flex';
-            return;
-          }
-          liwData = { dob: localDob, totalYears: 70, events: [] };
-          fileSha = null;
-          setStatus('connected', 'Repo Connected (Empty)');
-          initializeGridData();
-          return;
+        if (!response.ok) {
+          if (response.status === 404) throw new Error("Data file not found. Ensure your repo is set to Public.");
+          if (response.status === 401) throw new Error("Unauthorized. Token invalid or repo is still Private.");
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        if (!response.ok) throw new Error('Failed to fetch from GitHub.');
 
         const data = await response.json();
         fileSha = data.sha;
@@ -228,16 +212,17 @@
         const decodedContent = decodeUnicodeBase64(data.content);
         liwData = JSON.parse(decodedContent);
         
-        setStatus('connected', 'Synced to GitHub');
+        setStatus(ghToken ? 'admin' : 'public', ghToken ? 'Admin Connected' : 'Public View');
         initializeGridData();
       } catch (error) {
         console.error(error);
-        setStatus('error', 'Sync Failed');
-        showToast("Error connecting. Check your repo name and token.");
+        setStatus('error', ghToken ? 'Sync Failed' : 'Data Unavailable');
+        showToast(error.message);
       }
     }
 
     async function saveToGitHub() {
+      // Final fallback to ensure non-admins cannot hit this code block
       if (!ghToken || !ghRepo) {
         settingsModal.style.display = 'flex';
         return false;
@@ -273,7 +258,7 @@
         const data = await response.json();
         fileSha = data.content.sha;
         
-        setStatus('connected', 'Saved to GitHub');
+        setStatus('admin', 'Admin Connected');
         return true;
       } catch (error) {
         console.error(error);
@@ -284,6 +269,11 @@
     }
 
     function initializeGridData() {
+      if (!liwData.dob) {
+        showToast("No Date of Birth found in JSON!");
+        return;
+      }
+
       const [y, m, d] = liwData.dob.split('-');
       dob = new Date(y, m - 1, d);
       
@@ -296,7 +286,9 @@
 
       // Create a flat array map of all events for O(1) lookup
       const eventMap = {};
-      liwData.events.forEach(e => { eventMap[e.week] = e.event; });
+      if (liwData.events) {
+        liwData.events.forEach(e => { eventMap[e.week] = e.event; });
+      }
 
       weekData = Array.from({ length: totalWeeks }, (_, i) => ({
         filled: i < weeksLived,
@@ -370,7 +362,7 @@
       
       let noteContent = weekData[index].note && weekData[index].note.trim() !== '' 
         ? `<strong>Event:</strong> ${weekData[index].note}` 
-        : `<em>Click to add an event</em>`;
+        : `<em>Admin: Click to add an event</em>`;
 
       return `<strong>Year ${yearNum}, Week ${weekNum}</strong><br>` +
              `<span style="font-size:7.5pt; color:#444;">${startStr} – ${endStr}</span><br>` +
@@ -391,7 +383,6 @@
 
     grid.addEventListener('mousemove', (e) => {
       if (tooltip.style.display === 'block' && e.target.classList.contains('box')) {
-        // Position tooltip near cursor, keeping it within window bounds
         const x = Math.min(e.clientX + 12, window.innerWidth - 280);
         const y = Math.min(e.clientY + 12, window.innerHeight - 120);
         tooltip.style.left = x + 'px';
@@ -417,7 +408,7 @@
       const existingNote = weekData[index].note || '';
       document.getElementById('eventInput').value = existingNote;
       
-      tooltip.style.display = 'none'; // hide tooltip while editing
+      tooltip.style.display = 'none'; 
       editorModal.style.display = 'flex';
       document.getElementById('eventInput').focus();
     }
@@ -425,6 +416,13 @@
     grid.addEventListener('click', (e) => {
       if (e.target.classList.contains('box')) {
         const index = parseInt(e.target.dataset.index);
+        
+        // INTERCEPT CLICK: If visitor doesn't have a token, ask for it.
+        if (!ghToken) {
+          settingsModal.style.display = 'flex';
+          return;
+        }
+
         openEditor(index);
       }
     });
@@ -471,7 +469,6 @@
     });
 
     document.getElementById('syncSettingsBtn').addEventListener('click', () => {
-      document.getElementById('dobInput').value = localDob;
       document.getElementById('ghRepoInput').value = ghRepo;
       document.getElementById('ghTokenInput').value = ghToken;
       settingsModal.style.display = 'flex';
@@ -482,13 +479,11 @@
     });
 
     document.getElementById('saveSettingsBtn').addEventListener('click', () => {
-      localDob = document.getElementById('dobInput').value;
       ghRepo = document.getElementById('ghRepoInput').value.trim();
       ghToken = document.getElementById('ghTokenInput').value.trim();
-      
-      if (!localDob) return showToast("Date of Birth is required!");
 
-      localStorage.setItem('liw_dob', localDob);
+      if (!ghToken) return showToast("A Personal Access Token is required to edit.");
+
       localStorage.setItem('liw_gh_repo', ghRepo);
       localStorage.setItem('liw_gh_token', ghToken);
       
@@ -496,14 +491,10 @@
       fetchFromGitHub();
     });
 
-    if (ghToken && ghRepo && localDob) {
-      fetchFromGitHub();
-    } else {
-      setStatus('error', 'Click to Setup Sync');
-      // Render an empty mock grid just to look nice until setup
-      liwData = { dob: "2000-01-01", totalYears: 70, events: [] };
-      initializeGridData(); 
-    }
+    // Auto-fetch on page load. 
+    // If no token exists, it performs an unauthenticated (public) read.
+    fetchFromGitHub();
+
   </script>
 </body>
 </html>
