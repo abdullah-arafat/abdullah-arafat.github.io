@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Life in Weeks (70 Years)</title>
+  <title>My Life in Weeks (90 Years)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #000; background-color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 24px 16px; }
@@ -56,7 +56,7 @@
     <p>Selected: <strong id="filledCount">0</strong> weeks &nbsp;|&nbsp; Remaining: <strong id="remainingCount">0</strong> weeks</p>
 
     <div class="info-bar no-print">
-      Hover/Click: View Info &middot; Automatically tracks weeks lived
+      Hover/Click: View Info
     </div>
   </div>
 
@@ -101,7 +101,7 @@
     // Edit this object to change your Date of Birth, Total Years, or Life Events.
     const embeddedData = {
       "dob": "1998-03-09",
-      "totalYears": 70,
+      "totalYears": 90,
       "events": [
         {
           "week": 0,
@@ -143,7 +143,7 @@
       const [y, m, d] = data.dob.split('-');
       dob = new Date(y, m - 1, d);
       
-      totalYears = data.totalYears || 70;
+      totalYears = data.totalYears || 90;
       totalWeeks = totalYears * 52;
       hoverDisplay.textContent = `${totalYears} Years (${totalWeeks.toLocaleString()} Weeks)`;
       
