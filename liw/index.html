@@ -103,9 +103,12 @@
         <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
       </label>
 
-      <div class="modal-actions">
-        <button id="closeSettingsBtn" class="btn" style="border-color: transparent;">Cancel</button>
-        <button id="saveSettingsBtn" class="btn">Login & Load</button>
+      <div class="modal-actions" style="justify-content: space-between;">
+        <button id="logoutAdminBtn" class="btn" style="border-color: transparent; color: #ff4444; padding: 8px; display: none;">Logout</button>
+        <div style="display: flex; gap: 8px;">
+          <button id="closeSettingsBtn" class="btn" style="border-color: transparent;">Cancel</button>
+          <button id="saveSettingsBtn" class="btn">Login & Load</button>
+        </div>
       </div>
     </div>
   </div>
@@ -469,9 +472,27 @@
     });
 
     document.getElementById('syncSettingsBtn').addEventListener('click', () => {
-      document.getElementById('ghRepoInput').value = ghRepo;
+      // Only populates if you have explicitly saved a different repo name, otherwise shows placeholder
+      document.getElementById('ghRepoInput').value = ghRepo; 
       document.getElementById('ghTokenInput').value = ghToken;
+      
+      // Show/hide logout button based on login state
+      document.getElementById('logoutAdminBtn').style.display = ghToken ? 'block' : 'none';
+      document.getElementById('saveSettingsBtn').textContent = ghToken ? 'Update Token' : 'Login & Load';
+      
       settingsModal.style.display = 'flex';
+    });
+
+    document.getElementById('logoutAdminBtn').addEventListener('click', () => {
+      ghToken = '';
+      localStorage.removeItem('liw_gh_token');
+      document.getElementById('ghTokenInput').value = '';
+      
+      settingsModal.style.display = 'none';
+      showToast("Logged out successfully.");
+      
+      // Re-fetch data to return to public read-only mode
+      fetchFromGitHub();
     });
 
     document.getElementById('closeSettingsBtn').addEventListener('click', () => {
