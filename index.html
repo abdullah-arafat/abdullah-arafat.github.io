@@ -18,6 +18,7 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
+                        // Strict grayscale palette
                         academic: {
                             50: '#f9fafb',
                             100: '#f3f4f6',
@@ -79,6 +80,7 @@
             height: 100%;
         }
 
+        /* Hover Expand Effects */
         .expand-wrapper {
             display: grid;
             grid-template-rows: 0fr;
@@ -93,6 +95,7 @@
             opacity: 1;
         }
 
+        /* Publication Preview Tooltip */
         .pub-item:hover .pub-preview {
             opacity: 1;
             visibility: visible;
@@ -111,60 +114,68 @@
             scrollbar-width: none;
         }
 
-        /* Admin / Edit Mode Styles */
-        .admin-only {
-            display: none !important;
-        }
-        body.admin-mode .admin-only {
-            display: inline-flex !important;
-        }
-
         /* Dynamic PDF / Print Styles */
         @media print {
-            @page { margin: 0.35in; }
+            @page { margin: 0.35in; } /* Even tighter margins for a compact CV */
             body { 
                 background: white !important; 
                 -webkit-print-color-adjust: exact; 
-                font-size: 8.5pt !important;
-                line-height: 1.2 !important;
+                font-size: 8.5pt !important; /* Smaller baseline font */
+                line-height: 1.2 !important; /* Tighter line height */
             }
             
+            /* Hide UI elements and unneeded sections */
             .gradient-top, aside, footer, #testimonials-grid-wrapper, #feedbacks { display: none !important; }
-            .cv-hide-print, .admin-only { display: none !important; }
+            .cv-hide-print { display: none !important; }
             
+            /* Reset main layout for print */
             main { border: none !important; box-shadow: none !important; padding: 0 !important; width: 100% !important; margin: 0 !important; max-width: 100% !important; }
+            
+            /* Keep links clickable and styled cleanly */
             a { text-decoration: none !important; color: black !important; }
             
+            /* Force expand hover wrappers for printing */
             .expand-wrapper { grid-template-rows: 1fr !important; opacity: 1 !important; }
             .expand-inner { overflow: visible !important; }
             
+            /* Flatten UI timeline to a normal list and dramatically reduce margins */
             .hover-trigger { border-left: none !important; padding-left: 0 !important; margin-left: 0 !important; margin-bottom: 0.25rem !important; padding-top: 0 !important; padding-bottom: 0 !important; }
             .hover-trigger span.absolute { display: none !important; }
             .border-t.border-academic-100 { border-top: none !important; padding-top: 0 !important; margin-top: 0 !important; }
             .pl-4, .pl-5 { padding-left: 0 !important; }
             .absolute.w-px { display: none !important; }
         
-            #education-container > div { background: transparent !important; border: none !important; padding: 0 !important; box-shadow: none !important; margin-bottom: 0.25rem !important;}
-            .pub-item { border: none !important; padding: 0 0 0.25rem 1.25rem !important; margin: 0 !important; position: relative; }
-            .pub-item::before { content: "•"; position: absolute; left: 0; top: 0; font-weight: bold; }
-            
-            * { color: black !important; }
-            
+        #education-container > div { background: transparent !important; border: none !important; padding: 0 !important; box-shadow: none !important; margin-bottom: 0.25rem !important;}
+        .pub-item { border: none !important; padding: 0 0 0.25rem 1.25rem !important; margin: 0 !important; position: relative; }
+        .pub-item::before { content: "•"; position: absolute; left: 0; top: 0; font-weight: bold; }
+        
+        * { color: black !important; }
+        
+        /* Compact Typography for Print */
             .compact-section { margin-bottom: 0.75rem !important; page-break-inside: auto; }
-            h2 { font-size: 11pt !important; border-bottom: 1px solid black; padding-bottom: 1px !important; margin-bottom: 4px !important; margin-top: 8px !important; }
+            h2 { 
+                font-size: 11pt !important; 
+                border-bottom: 1px solid black; 
+                padding-bottom: 1px !important; 
+                margin-bottom: 4px !important; 
+                margin-top: 8px !important; 
+            }
             h3 { font-size: 9.5pt !important; margin-bottom: 1px !important; }
             h4 { font-size: 8.5pt !important; }
             .text-sm { font-size: 8.5pt !important; }
             .text-xs { font-size: 7.5pt !important; }
             .text-\[11px\], .text-\[10px\] { font-size: 7pt !important; }
             
+            /* Specific overrides for print text rendering via Tailwind */
             .print\:text-\[7\.5pt\] { font-size: 7.5pt !important; }
+            .print\:text-\[8pt\] { font-size: 8pt !important; }
             .print\:leading-tight { line-height: 1.15 !important; }
             .print\:mb-0 { margin-bottom: 0 !important; }
             .print\:mt-0 { margin-top: 0 !important; }
             .print\:pt-0 { padding-top: 0 !important; }
             .print\:pb-0 { padding-bottom: 0 !important; }
             .print\:ml-4 { margin-left: 1rem !important; }
+            .print\:list-disc { list-style-type: disc !important; }
             .print\:border-none { border: none !important; }
         }
     </style>
@@ -174,7 +185,7 @@
     <div class="gradient-top print:hidden"></div>
 
     <div class="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 px-5 py-4 flex items-center justify-between print:hidden shadow-sm">
-        <span class="font-bold text-gray-900 text-lg tracking-tight" id="mobile-header-name">Loading...</span>
+        <span class="font-bold text-gray-900 text-lg tracking-tight" id="mobile-header-name">Abdullah Arafat</span>
         <button id="mobile-menu-btn" class="p-2 -mr-2 text-gray-600 hover:text-black focus:outline-none transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
@@ -185,6 +196,7 @@
     <div class="w-full max-w-[95%] xl:max-w-[90%] 2xl:max-w-[1600px] mx-auto px-0 sm:px-4 py-6 md:py-12">
         <div class="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-12 items-start relative">
             
+            <!-- Left Sidebar -->
             <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-[280px] md:w-[320px] lg:w-[360px] bg-white p-6 sm:p-8 border-r md:border border-gray-200 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out md:relative md:sticky md:top-8 md:rounded-2xl md:max-h-[calc(100vh-4rem)] overflow-y-auto hide-scrollbar print:hidden flex flex-col shrink-0">
                 
                 <button id="close-menu-btn" class="md:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-black transition-colors">
@@ -193,16 +205,12 @@
 
                 <div class="flex flex-col items-center mb-6 text-center">
                     <img id="profile-image" src="" alt="Profile Picture" class="w-36 h-36 rounded-full object-cover shadow-sm border-2 border-gray-200 mb-4 transition-transform hover:scale-105 bg-gray-50">
-                    <h1 class="text-2xl font-extrabold tracking-tight text-black mb-1 flex items-center justify-center gap-2">
-                        <span id="profile-name">Name</span>
-                        <button onclick="openEditor('profile')" class="admin-only cv-hide-print text-xs bg-gray-200 hover:bg-gray-300 text-black px-2 py-1 rounded font-bold shadow-sm transition-colors cursor-pointer z-50">Edit</button>
-                    </h1>
+                    <h1 class="text-2xl font-extrabold tracking-tight text-black mb-1" id="profile-name">Name</h1>
                     <p class="text-sm font-semibold text-gray-600 mb-1" id="profile-role">Role</p>
                     <p class="text-xs text-gray-500" id="profile-institution">Institution</p>
                 </div>
 
-                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 text-center shadow-inner relative group">
-                    <button onclick="openEditor('metrics')" class="admin-only absolute top-1 right-1 cv-hide-print text-[10px] bg-gray-200 hover:bg-gray-300 text-black px-1.5 py-0.5 rounded font-bold shadow-sm transition-colors cursor-pointer z-50">Edit</button>
+                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 text-center shadow-inner">
                     <div>
                         <span class="block text-xl font-bold text-black" id="metric-citations">-</span>
                         <span class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Citations</span>
@@ -219,7 +227,7 @@
                     </div>
                 </div>
 
-                <div id="social-links-container" class="flex justify-center gap-4 mb-6 flex-wrap relative group">
+                <div id="social-links-container" class="flex justify-center gap-4 mb-6 flex-wrap">
                     <!-- Injected via JS -->
                 </div>
 
@@ -248,132 +256,99 @@
                 
                 <div id="print-header" class="hidden print:block mb-8 pb-6 border-b-2 border-black"></div>
 
-                <div id="loading-spinner" class="text-center py-20 text-gray-500 font-medium">
-                    Loading portfolio data...
-                </div>
+                <section id="about" class="compact-section print:hidden">
+                    <h2 class="text-2xl font-extrabold text-black mb-4">About</h2>
+                    <div id="about-text" class="text-sm text-gray-700 leading-relaxed mb-6 text-justify"></div>
+                    <div id="keywords-container" class="flex flex-wrap gap-2"></div>
+                </section>
 
-                <div id="portfolio-content" class="hidden">
-                    <section id="about" class="compact-section print:hidden">
-                        <h2 class="text-2xl font-extrabold text-black mb-4 flex items-center gap-3">
-                            About
-                            <button onclick="openEditor('aboutText')" class="admin-only cv-hide-print text-[11px] uppercase tracking-wide bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-2 py-1 rounded font-bold shadow-sm transition-colors cursor-pointer">Edit Bio</button>
-                        </h2>
-                        <div id="about-text" class="text-sm text-gray-700 leading-relaxed mb-6 text-justify"></div>
-                        <div id="keywords-container" class="flex flex-wrap gap-2"></div>
-                    </section>
-
-                    <section id="education" class="compact-section">
-                        <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2">
-                            <h2 class="text-2xl font-extrabold text-black flex items-center gap-3">
-                                Education
-                                <button onclick="openEditor('education')" class="admin-only cv-hide-print text-[11px] uppercase tracking-wide bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-2 py-1 rounded font-bold shadow-sm transition-colors cursor-pointer">Add / Edit Degrees</button>
-                            </h2>
-                            <span class="cv-hide-print text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded hidden sm:block border border-gray-200">Hover to expand</span>
-                        </div>
-                        <div id="education-container" class="space-y-4"></div>
-                    </section>
-
-                    <section id="research-experience" class="compact-section">
-                        <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2">
-                            <h2 class="text-2xl font-extrabold text-black flex items-center gap-3">
-                                Research & Teaching Experience
-                                <button onclick="openEditor('experiences.researchTeaching')" class="admin-only cv-hide-print text-[11px] uppercase tracking-wide bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-2 py-1 rounded font-bold shadow-sm transition-colors cursor-pointer">Add / Edit Roles</button>
-                            </h2>
-                            <span class="cv-hide-print text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded hidden sm:block border border-gray-200">Hover to expand</span>
-                        </div>
-                        <div id="experience-research-container"></div>
-                    </section>
-
-                    <section id="industry-experience" class="compact-section">
-                        <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2">
-                            <h2 class="text-2xl font-extrabold text-black flex items-center gap-3">
-                                Industry Experience
-                                <button onclick="openEditor('experiences.industry')" class="admin-only cv-hide-print text-[11px] uppercase tracking-wide bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-2 py-1 rounded font-bold shadow-sm transition-colors cursor-pointer">Add / Edit Roles</button>
-                            </h2>
-                            <span class="cv-hide-print text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded hidden sm:block border border-gray-200">Hover to expand</span>
-                        </div>
-                        <div id="experience-industry-container"></div>
-                    </section>
-
-                    <section id="publications" class="compact-section">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b border-gray-200 pb-4 gap-2">
-                            <div class="flex flex-wrap items-center gap-3">
-                                <h2 class="text-2xl font-extrabold text-black mb-0 border-none pb-0 flex items-center gap-3">
-                                    Publications
-                                    <button onclick="openEditor('publications')" class="admin-only cv-hide-print text-[11px] uppercase tracking-wide bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-2 py-1 rounded font-bold shadow-sm transition-colors cursor-pointer">Add / Edit Pubs</button>
-                                </h2>
-                                <div class="flex gap-2 cv-hide-print">
-                                    <span class="inline-flex items-center gap-1 text-xs font-bold bg-gray-100 text-black px-2.5 py-1 rounded-md border border-gray-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                                        <span id="header-citations">0</span> Citations
-                                    </span>
-                                </div>
-                            </div>
-                            <span class="cv-hide-print text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded hidden sm:block border border-gray-200">Hover for preview</span>
-                        </div>
-                        <div id="publications-container"></div>
-                    </section>
-
-                    <section id="awards" class="compact-section">
-                        <h2 class="text-2xl font-extrabold text-black mb-4 border-b border-gray-200 pb-2 flex items-center gap-3">
-                            Awards & Honors
-                            <button onclick="openEditor('awards')" class="admin-only cv-hide-print text-[11px] uppercase tracking-wide bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-2 py-1 rounded font-bold shadow-sm transition-colors cursor-pointer">Add / Edit Awards</button>
-                        </h2>
-                        <div id="awards-container" class="space-y-3"></div>
-                    </section>
-
-                    <section id="extracurricular" class="compact-section">
-                        <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2">
-                            <h2 class="text-2xl font-extrabold text-black flex items-center gap-3">
-                                Extracurricular Activities
-                                <button onclick="openEditor('experiences.extracurricular')" class="admin-only cv-hide-print text-[11px] uppercase tracking-wide bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-2 py-1 rounded font-bold shadow-sm transition-colors cursor-pointer">Add / Edit</button>
-                            </h2>
-                            <span class="cv-hide-print text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded hidden sm:block border border-gray-200">Hover to expand</span>
-                        </div>
-                        <div id="experience-extracurricular-container"></div>
-                    </section>
-
-                    <div id="testimonials-grid-wrapper" class="grid grid-cols-1 lg:grid-cols-2 gap-8 print:hidden mb-12">
-                        <section id="testimonials" class="compact-section !mb-0">
-                            <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
-                                <h2 class="text-xl font-extrabold text-black mb-0 border-none pb-0 flex items-center gap-2">
-                                    Recommendations
-                                    <button onclick="openEditor('testimonials')" class="admin-only cv-hide-print text-[11px] uppercase tracking-wide bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-2 py-1 rounded font-bold shadow-sm transition-colors cursor-pointer">Edit</button>
-                                </h2>
-                                <div class="flex gap-2">
-                                    <button id="btn-prev-test" class="p-1.5 rounded-md bg-white hover:bg-gray-100 border border-gray-300 text-black transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                                    </button>
-                                    <button id="btn-next-test" class="p-1.5 rounded-md bg-white hover:bg-gray-100 border border-gray-300 text-black transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="overflow-hidden w-full relative">
-                                <div id="testimonials-container" class="flex transition-transform duration-500 ease-in-out"></div>
-                            </div>
-                        </section>
-
-                        <section id="feedbacks" class="compact-section !mb-0">
-                            <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
-                                <h2 class="text-xl font-extrabold text-black mb-0 border-none pb-0 flex items-center gap-2">
-                                    Student Feedbacks
-                                    <button onclick="openEditor('studentFeedbacks')" class="admin-only cv-hide-print text-[11px] uppercase tracking-wide bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-2 py-1 rounded font-bold shadow-sm transition-colors cursor-pointer">Edit</button>
-                                </h2>
-                                <div class="flex gap-2">
-                                    <button id="btn-prev-fb" class="p-1.5 rounded-md bg-white hover:bg-gray-100 border border-gray-300 text-black transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                                    </button>
-                                    <button id="btn-next-fb" class="p-1.5 rounded-md bg-white hover:bg-gray-100 border border-gray-300 text-black transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="overflow-hidden w-full relative">
-                                <div id="feedbacks-container" class="flex transition-transform duration-500 ease-in-out"></div>
-                            </div>
-                        </section>
+                <section id="education" class="compact-section">
+                    <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2">
+                        <h2 class="text-2xl font-extrabold text-black">Education</h2>
+                        <span class="cv-hide-print text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded hidden sm:block border border-gray-200">Hover to expand</span>
                     </div>
+                    <div id="education-container" class="space-y-4"></div>
+                </section>
+
+                <section id="research-experience" class="compact-section">
+                    <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2">
+                        <h2 class="text-2xl font-extrabold text-black">Research & Teaching Experience</h2>
+                        <span class="cv-hide-print text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded hidden sm:block border border-gray-200">Hover to expand</span>
+                    </div>
+                    <div id="experience-research-container"></div>
+                </section>
+
+                <section id="industry-experience" class="compact-section">
+                    <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2">
+                        <h2 class="text-2xl font-extrabold text-black">Industry Experience</h2>
+                        <span class="cv-hide-print text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded hidden sm:block border border-gray-200">Hover to expand</span>
+                    </div>
+                    <div id="experience-industry-container"></div>
+                </section>
+
+                <section id="publications" class="compact-section">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b border-gray-200 pb-4 gap-2">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <h2 class="text-2xl font-extrabold text-black mb-0 border-none pb-0">Publications</h2>
+                            <div class="flex gap-2 cv-hide-print">
+                                <span class="inline-flex items-center gap-1 text-xs font-bold bg-gray-100 text-black px-2.5 py-1 rounded-md border border-gray-200">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                                    <span id="header-citations">0</span> Citations
+                                </span>
+                            </div>
+                        </div>
+                        <span class="cv-hide-print text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded hidden sm:block border border-gray-200">Hover for preview</span>
+                    </div>
+                    <div id="publications-container"></div>
+                </section>
+
+                <section id="awards" class="compact-section">
+                    <h2 class="text-2xl font-extrabold text-black mb-4 border-b border-gray-200 pb-2">Awards & Honors</h2>
+                    <div id="awards-container" class="space-y-3"></div>
+                </section>
+
+                <section id="extracurricular" class="compact-section">
+                    <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2">
+                        <h2 class="text-2xl font-extrabold text-black">Extracurricular Activities</h2>
+                        <span class="cv-hide-print text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded hidden sm:block border border-gray-200">Hover to expand</span>
+                    </div>
+                    <div id="experience-extracurricular-container"></div>
+                </section>
+
+                <div id="testimonials-grid-wrapper" class="grid grid-cols-1 lg:grid-cols-2 gap-8 print:hidden mb-12">
+                    <section id="testimonials" class="compact-section !mb-0">
+                        <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
+                            <h2 class="text-xl font-extrabold text-black mb-0 border-none pb-0">Recommendations</h2>
+                            <div class="flex gap-2">
+                                <button id="btn-prev-test" class="p-1.5 rounded-md bg-white hover:bg-gray-100 border border-gray-300 text-black transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
+                                <button id="btn-next-test" class="p-1.5 rounded-md bg-white hover:bg-gray-100 border border-gray-300 text-black transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-hidden w-full relative">
+                            <div id="testimonials-container" class="flex transition-transform duration-500 ease-in-out"></div>
+                        </div>
+                    </section>
+
+                    <section id="feedbacks" class="compact-section !mb-0">
+                        <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
+                            <h2 class="text-xl font-extrabold text-black mb-0 border-none pb-0">Student Feedbacks</h2>
+                            <div class="flex gap-2">
+                                <button id="btn-prev-fb" class="p-1.5 rounded-md bg-white hover:bg-gray-100 border border-gray-300 text-black transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
+                                <button id="btn-next-fb" class="p-1.5 rounded-md bg-white hover:bg-gray-100 border border-gray-300 text-black transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-hidden w-full relative">
+                            <div id="feedbacks-container" class="flex transition-transform duration-500 ease-in-out"></div>
+                        </div>
+                    </section>
                 </div>
                 
                 <footer class="mt-12 pt-8 border-t border-gray-200 text-center print:hidden">
@@ -386,72 +361,375 @@
         </div>
     </div>
 
-    
-    <!-- Admin Floating Button -->
-    <button id="admin-settings-btn" class="fixed bottom-6 right-6 md:left-6 md:right-auto z-50 bg-black text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-transform hover:scale-110 print:hidden" title="Admin Settings">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-    </button>
-
-    <!-- Admin Settings Modal -->
-    <div id="admin-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border border-gray-200">
-            <h3 class="text-xl font-extrabold text-black mb-2">Admin Settings</h3>
-            <p class="text-sm text-gray-600 mb-6">Enter your GitHub credentials to enable inline editing. This stays securely on your device.</p>
-            
-            <div class="space-y-4 mb-6">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">GitHub PAT Token</label>
-                    <input type="password" id="gh-token" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-black focus:border-black outline-none transition-all" placeholder="ghp_xxxxxxxxxxxx">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">GitHub Username</label>
-                    <input type="text" id="gh-owner" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-black focus:border-black outline-none transition-all" placeholder="e.g. abdullah-arafat">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">Repository Name</label>
-                    <input type="text" id="gh-repo" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-black focus:border-black outline-none transition-all" placeholder="e.g. portfolio">
-                </div>
-            </div>
-
-            <div class="flex justify-between items-center">
-                <button id="logout-btn" class="text-sm font-bold text-red-600 hover:text-red-800 transition-colors hidden">Log Out / Clear</button>
-                <div class="flex gap-2 ml-auto">
-                    <button id="close-admin-btn" class="px-4 py-2 text-sm font-bold text-gray-600 hover:text-black transition-colors rounded-lg hover:bg-gray-100">Cancel</button>
-                    <button id="save-admin-btn" class="px-5 py-2 text-sm font-bold text-white bg-black hover:bg-gray-800 transition-colors rounded-lg shadow-sm">Save & Enable</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Data Editor Modal -->
-    <div id="editor-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-200">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-extrabold text-black" id="editor-title">Edit Section</h3>
-                <button onclick="closeEditor()" class="text-gray-400 hover:text-black transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 rounded-r-lg">
-                <p class="text-xs text-blue-800 font-medium">
-                    <strong>Tip:</strong> Edit the structured data below. To add a new item (like a new degree or publication), copy an existing `{ ... }` block, paste it below, and change the text. Make sure to keep the quotes `""` and commas `,` intact!
-                </p>
-            </div>
-
-            <textarea id="editor-textarea" class="flex-1 w-full border border-gray-300 rounded-lg p-4 font-mono text-sm bg-gray-50 focus:ring-2 focus:ring-black focus:border-black outline-none transition-all hide-scrollbar" spellcheck="false" style="min-height: 300px;"></textarea>
-
-            <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-                <button onclick="closeEditor()" class="px-5 py-2.5 text-sm font-bold text-gray-600 hover:text-black transition-colors rounded-lg hover:bg-gray-100">Cancel</button>
-                <button id="save-editor-btn" onclick="saveSectionData()" class="px-6 py-2.5 text-sm font-bold text-white bg-black hover:bg-gray-800 transition-colors rounded-lg shadow-sm flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    Save & Push to GitHub
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
+        /*
+        =============================================================================
+        EDITING GUIDE: HOW TO ADD OR UPDATE YOUR DATA
+        =============================================================================
+        All portfolio data is securely stored in the `portfolioData` object below. 
+        You can update your information by changing the text inside the quotes.
+
+        - PROFILE DATA (Line ~330): Edit name, role, email, and photo URL here.
+        - METRICS (Line ~338): Update citations, h-index, and i10-index numbers.
+        - ABOUT ME (Line ~347): Write your bio summary (Hidden on Print/CV).
+        - EDUCATION (Line ~350): Add new degrees using the same { ... } structure.
+        - EXPERIENCES (Line ~383): Split into 'researchTeaching', 'industry', and 'extracurricular'.
+        - PUBLICATIONS (Line ~502): Add to journals, books, or conferences arrays.
+        - AWARDS (Line ~555): List your honors.
+        - STUDENT FEEDBACK (Line ~567): Add quotes from your students.
+        - TESTIMONIALS (Line ~615): Add recommendations from professionals.
+
+        * IMPORTANT: Be careful not to accidentally delete brackets { } or commas , 
+          as they are required for the code to run properly.
+        =============================================================================
+        */
+
+        const portfolioData = {
+            "profile": {
+                "name": "Abdullah Arafat",
+                "role": "Computational Chemist",
+                "institution": "The University of Utah",
+                "imageUrl": "assets/profile_picture.jpg",
+                "email": "abdullah.arafat@utah.edu"
+            },
+            "metrics": {
+                "citations": 67,
+                "hIndex": 5,
+                "i10Index": 3
+            },
+            "socialLinks": [
+                { "name": "Google Scholar", "url": "https://scholar.google.com/citations?user=VkHMZc4AAAAJ&hl=en", "icon": "<svg class=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 14l9-5-9-5-9 5 9 5z\"></path><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z\"></path></svg>" },
+                { "name": "GitHub", "url": "https://github.com/abdullah-arafat", "icon": "<svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path fill-rule=\"evenodd\" d=\"M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z\" clip-rule=\"evenodd\"></path></svg>" },
+                { "name": "YouTube", "url": "https://www.youtube.com/c/AbdullahArafat", "icon": "<svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z\"/></svg>" },
+                { "name": "LinkedIn", "url": "https://www.linkedin.com/in/abdullah-arafat", "icon": "<svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z\"/></svg>" }
+            ],
+            "aboutText": "I am a computational chemist specializing in molecular dynamics, nanomaterials, crystallography, and solid mechanics. My work focuses on understanding the nano-mechanical behavior of materials, exploring structure-property relationships, and applying atomistic simulations to solve complex challenges.",
+            "keywords": ["Molecular Dynamics", "Nanomaterials", "Crystallography", "Mechanics of Materials"],
+            "education": [
+                {
+                    "degree": "Ph.D. in Chemistry",
+                    "institution": "The University of Utah",
+                    "location": "Salt Lake City, UT",
+                    "locationUrl": "https://maps.google.com/?q=The+University+of+Utah",
+                    "period": "2024 — Now",
+                    "description": "Thesis: \n- Investigating atomistic mechanisms of polymorphic transformations, amorphization, and crystallization using molecular dynamics simulations.\n- Examining how stress state, strain rate, crystallographic orientation, and nanoscale confinement govern transformation pathways.\n- Developing structural-analysis workflows using LAMMPS, OVITO, Python, ASE, DScribe, and machine-learning-based atomic descriptors.",
+                    "courses": ["Advanced Molecular Dynamics", "Quantum Chemistry", "Statistical Thermodynamics"]
+                },
+                {
+                    "degree": "M.S. in Mechanical Engineering",
+                    "institution": "The University of Utah",
+                    "location": "Salt Lake City, UT",
+                    "locationUrl": "https://maps.google.com/?q=The+University+of+Utah",
+                    "period": "2022 — 2024",
+                    "description": "Thesis: \n- Used molecular dynamics simulations to investigate H₂, H₂O, and CO₂ transport under nanoconfinement in underground hydrogen-storage systems. \n- Evaluated the effects of pore size and morphology on the elastic modulus and fracture behavior of porous amorphous SiO₂.",
+                    "courses": ["Continuum Mechanics", "Computational Materials Science", "Finite Element Analysis"]
+                },
+                {
+                    "degree": "B.S. in Materials Science & Engineering",
+                    "institution": "Khulna University of Engineering and Technology (KUET)",
+                    "location": "Khulna, Bangladesh",
+                    "locationUrl": "https://maps.google.com/?q=Khulna+University+of+Engineering+and+Technology",
+                    "period": "2017 — 2022",
+                    "description": "Thesis: \n- Applied reactive molecular dynamics simulations to elucidate the reaction mechanism and intermediate formation during CVD growth of 2D MoS₂ from MoO₃ and H₂S precursors. \n- Quantified temperature-dependent surface composition, oxygen evolution, and sulfur detachment, and compared growth pathways for H₂S- and S₂-based precursor systems.",
+                    "courses": ["Material Characterization", "Crystallography", "Solid State Physics", "Nanotechnology"]
+                }
+            ],
+            "experiences": {
+                "researchTeaching": [
+                    {
+                        "institution": "The University of Utah",
+                        "location": "Salt Lake City, UT",
+                        "locationUrl": "https://maps.google.com/?q=The+University+of+Utah",
+                        "roles": [
+                            {
+                                "title": "Research Assistant (Chemistry & Mechanical Engineering)",
+                                "period": "Aug 2022 — Now",
+                                "description": "Conducted extensive research exploring nanoconfinement and structure-property relationships in subsurface environments.\n- Developed computational models for complex material simulations.\n- Performed molecular dynamics simulations to analyze atomic behavior.\n- Authored comprehensive technical papers based on simulation outcomes.",
+                                "skills": ["Molecular Dynamics", "Atomistic Simulations", "Data Analysis", "LAMMPS"]
+                            },
+                            {
+                                "title": "Course Teaching Assistant (Chemistry)",
+                                "period": "Aug 2024 — May 2025",
+                                "description": "Taught undergraduate courses on Thermodynamics and Physical Chemistry.\n- Led laboratory sessions and managed lab safety protocols.\n- Graded assignments and provided extensive mentorship during office hours.",
+                                "skills": ["Thermodynamics", "Physical Chemistry", "Mentorship"]
+                            },
+                            {
+                                "title": "Laboratory Teaching Assistant (Mechanical)",
+                                "period": "Aug 2022 — May 2025",
+                                "description": "Lab Teaching Assistant for ME EN 3315 (Mechanics of Materials).\n- Assisted Professors: Dr. Michael Czabaj, Dr. Bozo Vazic, Dr. Ken Monson, Dr. Owen Kingstedt.\n- Guided students through complex mechanical testing protocols.",
+                                "skills": ["Mechanics of Materials", "Mentorship"]
+                            }
+                        ]
+                    },
+                    {
+                        "institution": "Khulna University of Engineering and Technology",
+                        "location": "Khulna, Bangladesh",
+                        "locationUrl": "https://maps.google.com/?q=Khulna+University+of+Engineering+and+Technology",
+                        "roles": [
+                            {
+                                "title": "Undergraduate Researcher",
+                                "period": "2020 — 2022",
+                                "description": "Investigated atomistic reaction mechanisms of CVD-grown 2D materials.\n- Analyzed the effects of substrate structures on hexagonal boron nitride.\n- Contributed to publications regarding mechanical stability and material properties.",
+                                "skills": ["CVD Growth Modeling", "2D Materials", "Mechanical Stability Analysis"]
+                            }
+                        ]
+                    }
+                ],
+                "industry": [
+                    {
+                        "institution": "Emprotec Limited",
+                        "location": "Khulna, Bangladesh",
+                        "locationUrl": "https://www.facebook.com/emprotec.ltd",
+                        "roles": [
+                            {
+                                "title": "Design Engineer",
+                                "period": "Nov 2018 — Aug 2022",
+                                "description": "Designed LPG Spherical storage tanks, Cylindrical storage tanks, Ball valves, and Actuated valves.\n- Designed P&ID of LPG network, Fire fighting network, and Industrial air network.\n- Executed 3D Pipe Routing of different LPG Plants using AutoCAD Plant 3D and SOLIDWORKS Pipe Routing.\n- Designed Land Layouts of different LPG Plants using AutoCAD and created sample P&IDs using Microsoft Visio.",
+                                "skills": ["SOLIDWORKS", "AutoCAD Plant 3D", "Microsoft Visio", "Pipe Routing", "P&ID"]
+                            }
+                        ]
+                    },
+                    {
+                        "institution": "FabLab KUET",
+                        "location": "Khulna, Bangladesh",
+                        "locationUrl": "https://www2.kuet.ac.bd/fablab",
+                        "roles": [
+                            {
+                                "title": "Operator",
+                                "period": "Aug 2019 — Mar 2020",
+                                "description": "Maintained machinery and assisted students with their academic projects.\n- Managed fabrication of 13 undergraduate thesis projects, 1000 key rings, and 10+ intricate designs.\n- Operated CNC milling machines, laser cutters, and 3D printers while ensuring optimal lab instrument functionality.",
+                                "skills": ["CNC Milling", "Laser Cutting", "3D Printing", "Equipment Maintenance"]
+                            }
+                        ]
+                    }
+                ],
+                "extracurricular": [
+                    {
+                        "institution": "Graduate Student Advisory Committee (GSAC)",
+                        "location": "Utah, USA",
+                        "locationUrl": "https://www.mech.utah.edu/directory/student-societies/gsac/",
+                        "roles": [
+                            {
+                                "title": "Member",
+                                "period": "2022 — 2024",
+                                "description": "Represented graduate-student interests and contributed to initiatives supporting academic, professional, and social development.\n- Collaborated with students, faculty, and committee members to communicate student needs and concerns.\n- Assisted in organizing departmental events, workshops, and community-building activities.",
+                                "skills": ["Student Advocacy", "Event Coordination", "Committee Collaboration", "Professional Communication"]
+                            }
+                        ]
+                    },
+                    {
+                        "institution": "Spectrum (Professional Skill Development Club of KUET)",
+                        "location": "Khulna, Bangladesh",
+                        "locationUrl": "https://www.facebook.com/spectrum.kuet/",
+                        "roles": [
+                            {
+                                "title": "Chief Technology Officer (CTO)",
+                                "period": "2017 — 2022",
+                                "description": "Led technological initiatives and managed multiple design projects.\n- Dramatically increased club popularity through impactful skill development programs.\n- Coordinated across teams to deliver successful workshops and events.",
+                                "skills": ["Project Management", "Technical Leadership", "Team Building"]
+                            }
+                        ]
+                    },
+                    {
+                        "institution": "KUET Career Club",
+                        "location": "Khulna, Bangladesh",
+                        "locationUrl": "https://www.facebook.com/kuetcareerclub",
+                        "roles": [
+                            {
+                                "title": "Head of Information Technology Department",
+                                "period": "2019 — 2022",
+                                "description": "Organized career development workshops, networking sessions, and seminars to help students bridge the gap between academia and industry.",
+                                "skills": ["Event Organization", "Leadership", "Networking"]
+                            }
+                        ]
+                    },
+                    {
+                        "institution": "CADers",
+                        "location": "Khulna, Bangladesh",
+                        "locationUrl": "https://www.facebook.com/caders.kuet",
+                        "roles": [
+                            {
+                                "title": "Head of Information Technology Department",
+                                "period": "2019 — 2022",
+                                "description": "Promoted computer-aided design (CAD) skills among students.\n- Facilitated workshops and inter-university design competitions.",
+                                "skills": ["CAD/CAE", "Mentorship", "Training"]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "publications": {
+                "journals": [
+                    {
+                        "mla": "Ak, İ., H. Adin, Abdullah Arafat, and M. Okumuş. \"Mechanical properties of Cu-Ni alloys: Comparison of experimental and MD simulation approaches.\" Physica B: Condensed Matter, vol. 700, 2025, p. 416928.",
+                        "url": "https://www.sciencedirect.com/science/article/abs/pii/S0921452625000456",
+                        "citations": 10,
+                        "preview": "The rapid advancement of technology allows devices to be designed at atomistic scales, creating a need for material characterisation at micro and nano levels. In this study, nanoindentation tests and MD simulations are compared to analyse the hardness, modulus of elasticity and surface deformation of CuNi alloys produced by casting. These methods are used to comprehensively investigate and compare the mechanical properties of alloys. The applicability of the simulation method to metal alloys is also evaluated. Nanoindentation tests revealed Em values between 101.89 GPa and 139.27 GPa, while MD simulations showed higher Em values ranging from 126.30 GPa to 186.34 GPa. Larger grain sizes in Cu-%10Ni alloy reduced the hardness to 2.40 GPa, while smaller grains in Cu-%20Ni alloy increased the hardness to 3.09 GPa. MD simulations allow real-time atomic-scale deformation observations, supporting empirical results and in agreement with the literature, and their applicability in metal alloys has been observed."
+                    },
+                    {
+                        "mla": "Sajal, Wahidur Rahman, Md Mehidi Hassan, Jahirul Islam, Tipu Sultan, Md Bokhtiar Hossen, and Abdullah Arafat. \"Molecular dynamics study of mechanical stability of Ti4C3 MXene subjected to chirality, temperature, strain rate, and point-vacancy for Lithium-ion batteries.\" Heliyon, vol. 10, no. 19, 2024.",
+                        "url": "https://www.cell.com/heliyon/fulltext/S2405-8440(24)14885-2",
+                        "citations": 7,
+                        "preview": "Two-dimensional Ti4C3 MXene has recently emerged as a promising electrode for Lithium-ion batteries (LIBs) because of its outstanding ion-transport abilities and high Li-absorbability. This study employed molecular dynamics simulation to explore the mechanical stability of Ti4C3 MXene subjected to various temperatures, strain rates, and vacancy concentrations. A slightly superior tensile strength and elasticity modulus have been observed along zigzag directions, measuring 148.14 GPa and 29.17 GPa, respectively. On the other hand, armchair-oriented Ti4C3 MXene shows a considerably greater fracture strain of 0.259 due to its strain-hardening tendency at lower temperatures. Elevated temperature decreases both fracture strength and fracture strain, which is opposite to the effect of strain rate. Armchair loading has been revealed to be more sensitive to strain rate than its counter direction. Unlike temperature and strain rate, point vacancy significantly deteriorates the elastic modulus of Ti4C3 MXene. Carbon vacancies are more probable than titanium vacancies, which have less formation energy. The atomistic deformation profile supports the predicted values of fracture strain from stress-strain behavior. This in-depth study offers a detailed understanding of the mechanical behavior of Ti4C3 MXene under diverse circumstances, which will aid further experimental study and be beneficial for adopting Ti4C3 as anode materials in LIBs."
+                    },
+                    {
+                        "mla": "Arafat, Abdullah. \"Exploring Nanoconfinement and Structure-Property Relationships in Subsurface.\" The University of Utah ProQuest Dissertations & Theses,  2024.",
+                        "url": "https://www.proquest.com/openview/9a3add722e60af689487990cd7bca4bd/1?pq-origsite=gscholar&cbl=18750&diss=y",
+                        "citations": 0,
+                        "preview": "The future of global energy supply significantly depends on advancements in subsurface or geological engineering, as the subsurface can serve as a reservoir for natural gas and hydrogen storage, carbon capture, and other applications. Thermal, hydrological, mechanical, and chemical (THMC) processes occur across multiple scales in the subsurface, and understanding these coupled processes is essential for optimizing the design and operation of subsurface systems. This study uses molecular dynamics (MD) simulations to investigate the transport properties of gas particles and the mechanical behavior of porous subsurface materials. The first objective examines the transport behavior of H₂, H₂O, and CO₂ in confined spaces within an underground hydrogen storage (UHS) system, focusing on how nanoscale confinement and interactions among gas particles affect diffusivity and density profiles. The second objective investigates how irregular pore morphology affects the mechanical properties of amorphous SiO₂, a common component of rock formations, by comparing its influence on elastic modulus and fracture behavior with that of regular pores. The first study shows that larger pores enhance gas diffusivity in UHS systems, nanoconfinement effects are particularly significant for gases such as H₂, and the presence of H₂ can influence the diffusivity of other gases. The second study demonstrates that both porosity and pore shape significantly affect the elastic modulus, while the critical energy release rate is relatively insensitive to porosity but is influenced by irregular pore morphology. Overall, this research provides valuable insights into the behavior of gas particles and porous materials in subsurface storage, supporting the development of more efficient and secure energy-storage and management solutions."
+                    },
+                    {
+                        "mla": "Arafat, Abdullah, Md Sherajul Islam, Naim Ferdous, ASM Jannatul Islam, Md Mosarof Hossain Sarkar, Catherine Stampfl, and Jeongwon Park. \"Atomistic reaction mechanism of CVD grown MoS2 through MoO3 and H2S precursors.\" Scientific Reports, vol. 12, no. 1, 2022, p. 16085.",
+                        "url": "https://www.nature.com/articles/s41598-022-20531-x",
+                        "citations": 25,
+                        "preview": "Chemical vapor deposition (CVD) through sulfidation of MoO3 is one of the most important synthesis techniques to obtain large-scale and high-quality two-dimensional (2D) MoS2. Recently, H2S precursor is being used in the CVD technique to synthesize 2D MoS2. Although several studies have been carried out to examine the mechanism of MoS2 growth in the presence of sulfur and MoO3 precursors, the growth of MoS2 in the presence of H2S precursor has largely remained unknown. In this study, we present a Reactive molecular dynamics (RMD) simulation to investigate the reaction mechanism of MoS2 from MoO3 and H2S precursors. The intermediate molecules formation, the reason behind those formations, and the surface compositions of MoOxSyHz during the initial steps of CVD have all been quantified. Surprisingly, a sudden separation of sulfur atoms from the surface was observed in the H2S precursor system due to the substantial oxygen evolution after 1660 K. The sulfur detachments and oxygen evolution from the surface were found to have a linear relationship. In addition, the intermediate molecules and surface bonds of MoS2 synthesized by MoO3 and H2S precursors were compared to those of a system using S2 and MoO3 precursors. The most stable subsidiary formation from the H2S precursor was found to be H2O, whereas in case of S2 precursor it was SO. These results provide a valuable insight in the formation of large-scale and high-quality 2D MoS2 by the CVD technique."
+                    },
+                    {
+                        "mla": "Hossain Sarkar, Md Mosarof, Md Sherajul Islam, Abdullah Arafat, ASM Jannatul Islam, Naim Ferdous, Md Tawabur Rahman, Minhaz Uddin Sohag, Md Al Imran Fahim, Catherine Stampfl, and Jeongwon Park. \"Effects of the substrate structure on the CVD growth of two-dimensional hexagonal boron nitride.\" The Journal of Physical Chemistry C, vol. 126, no. 14, 2022, pp. 6373-6384.",
+                        "url": "https://pubs.acs.org/doi/abs/10.1021/acs.jpcc.2c01707",
+                        "citations": 8,
+                        "preview": "Due to its outstanding stability, flat surface, and wide band gap, two-dimensional hexagonal boron nitride (h-BN) has appeared as a vital element in a range of applications, including a perfect substrate for graphene devices, tunneling barriers, and deep-ultraviolet emitters. However, large-scale growth of high-grade h-BN using chemical vapor deposition (CVD) still remains challenging due to its dependence on a variety of parameters such as substrate structures, temperature, and precursor deposition rates. Here, we explore the atomic scale elementary nucleation and growth process of monolayer h-BN on normal, vacancy-disordered, and rough (terrace and step structure) Ni(111) surfaces using reactive force field molecular dynamics simulations. The impact of the precursor deposition rate and temperature on different Ni(111) substrates was also investigated. At 1500 K, a low precursor deposition rate favors large single-domain h-BN development on normal and vacancy-disordered Ni(111) substrates, whereas a higher deposition rate yields a single domain on a rough substrate. It is also explored that the initial growth rate of h-BN is higher on the rough substrate and lower on the vacancy-disordered substrate for single-domain h-BN growth. The formation of continuous h-BN islands is greater on a normal Ni substrate than the other two substrates. Although a small vacancy concentration (1.25%) in the Ni(111) substrate shows a minor effect on the growth of the h-BN layer, the rough surface shows a considerable effect on the h-BN growth. These findings pave the way for scalable high-quality CVD growth of h-BN, taking this promising material one step closer to practical applications."
+                    },
+                    {
+                        "mla": "Komol, Md Mostafizur Rahman, Md Karimul Joarder, Abdullah Arafat, and Amit Kumer Podder. \"Fingerprint and password controlled garage access system with belt pulley and power screw driven mechanism.\" International Journal of Advanced Mechatronic Systems, vol. 8, no. 1, 2020, pp. 36-45.",
+                        "url": "https://www.inderscienceonline.com/doi/abs/10.1504/IJAMECHS.2020.109908",
+                        "citations": 1,
+                        "preview": "Garage automation and security have been a favoured concern with technological advancement. In this paper, developed garage access security and automation system are proposed with the affiliated control of the biometric fingerprint recognition and password verification system. Here, fingerprint recognition is restricted to the registered vehicle owners of the garage, while everyone is permitted to access through a password verification system. The affiliation of the dual-sensing system is intended to maintain robust security and to retain the record of any driver's access without the vehicle owners. Moreover, the system is enriched with a subtle design of the access door and its operation mechanism. Power screw-driven door operation is utilised to convert the rotating motion of the motor to linear motion and slide the door open or close. The requisite motor torque, revolution per minute, and power requirement for door control by the screw operation are also calculated and verified."
+                    },
+                    {
+                        "mla": "Komol, Md Mostafizur Rahman, Amit Kumer Podder, Abdullah Arafat, and Tanzim Nabeed.\"Remote sensing global ranged door lock security system via mobile communication.\" International Journal of Wireless and Microwave Technologies, vol. 9, no. 5, 2019, pp. 25-37.",
+                        "url": "https://www.mecs-press.org/ijwmt/ijwmt-v9-n5/v9n5-3.html",
+                        "citations": 16,
+                        "preview": "In this paper, a door locking system with some remarkable features is proposed which makes the locking or unlocking of a door more reliable to the user than the conventional system. Robust security access with accurate detection system is provided here. It’s a global ranged operation process that can be operated by simple mobile phone through short message service (SMS) transferring operation from any corner of the world where mobile network is available. A smooth and durable locking mechanism is provided and the inscrutable door moving control device is used for the efficient operation of controlling the door. This developed system provides a notification to the user if any person is intended to pass the door. The system also has the ability to provide information about the current condition of the door by sending simple text messages. Also, the user will be able to operate the system with more than one subscriber identity module (SIM) card. Most advantageously, this device is proposed with lowest cost estimation benefit.  Finally, the performance of the designed system is analyzed by performing some real-time operation of it and found satisfactory performance."
+                    },
+
+                ],
+                "conferences": [
+                    {
+                        "mla": "Md. Jarir Hossain, Md. Mahbubur Rahman, Fahim Islam Anik, MD Ikramul Hasib, Abdullah Arafat. \"Numerical Investigation on Fatigue Life Estimation of Aluminum Structure for Uniaxial Cyclic Loading by Finite Element Modeling.\" International Conference on Mechanical Engineering and Renewable Energy 2019 (ICMERE2019)",
+                        "url": "https://www.researchgate.net/publication/344554263_Numerical_Investigation_on_Fatigue_Life_Estimation_of_Aluminum_Structure_for_Uniaxial_Cyclic_Loading_by_Finite_Element_Modeling",
+                        "citations": 0,
+                        "preview": "Fatigue analysis emphasizes on the cyclic behavior of a material and this often leads to crack initiation and propagation. In this research, the stress life method is being used to calculate the minimum fatigue life of different structure in Aluminum 6061 T6 material by Finite Element Modeling, also von mises stress is calculated. Furthermore, a bike crank arm design is used to validate the simulation process of fatigue calculation for uniaxial loading. Where the stress distribution throughout the body of a bike crank arm indicates the scopes of improvement in the design. By applying the theory for minimizing stress, few case studies are done based on different design modifications. In conclusion, one of the case studies, the result is found that minimum fatigue life increases 10.89 times than the one which is being used for validation and the same design is currently used in the industry."
+                    }
+                ],
+                "books": [
+                    {
+                        "mla": "Mubin, Shafat, Jichen Li, and Steven Plimpton. \"Extending and Modifying LAMMPS Writing Your Own Source Code: A pragmatic guide to extending LAMMPS as per custom simulation requirements.\" Packt Publishing Ltd, 2021: Page (304-311)",
+                        "url": "https://www.packtpub.com/product/extending-and-modifying-lammps-writing-your-own-source-code/9781800562264",
+                        "citations": 0,
+                        "preview": "LAMMPS is one of the most widely used tools for running simulations for research in molecular dynamics. While the tool itself is fairly easy to use, more often than not you’ll need to customize it to meet your specific simulation requirements. Extending and Modifying LAMMPS bridges this learning gap and helps you achieve this by writing custom code to add new features to LAMMPS source code. Written by ardent supporters of LAMMPS, this practical guide will enable you to extend the capabilities of LAMMPS with the help of step-by-step explanations of essential concepts, practical examples, and self-assessment questions. This LAMMPS book provides a hands-on approach to implementing associated methodologies that will get you up and running and productive in no time. You’ll begin with a short introduction to the internal mechanisms of LAMMPS, and gradually transition to an overview of the source code along with a tutorial on modifying it. As you advance, you’ll understand the structure, syntax, and organization of LAMMPS source code, and be able to write your own source code extensions to LAMMPS that implement features beyond the ones available in standard downloadable versions. By the end of this book, you’ll have learned how to add your own extensions and modifications to the LAMMPS source code that can implement features that suit your simulation requirements."
+                    }
+                ]
+            },
+            "awards": [
+                {
+                    "title": "ASME CUET Extrusion CAD Contest - 2nd/100",
+                    "year": "Aug 2020, Bangladesh",
+                    "issuer": "ASME CUET Student Chapter"
+                },
+                {
+                    "title": "Certified Solidworks Professional (CSWP)",
+                    "year": "Jun 2019, Online worldwide exam",
+                    "issuer": "Dassault Systèmes"
+                },
+                {
+                    "title": "Certified SOLIDWORKS Associate (CSWA)",
+                    "year": "Jan 2019, Online worldwide exam",
+                    "issuer": "Dassault Systèmes"
+                },
+                {
+                    "title": "Dean List Award",
+                    "year": "Jan 2019, Bangladesh",
+                    "issuer": "Khulna University of Engineering and Technology"
+                },
+                {
+                    "title": "IPE Fest 2018 CAD Competition - 2nd/75",
+                    "year": "Dec 2018, Bangladesh",
+                    "issuer": "Khulna University of Engineering and Technology"
+                },
+                {
+                    "title": "Wash Innovation Challenge - Finalist",
+                    "year": "Oct 2018, Bhutan",
+                    "issuer": "UNICEF and BRAC"
+                },
+                {
+                    "title": "Ignition 2018 CAD Competition - 1st/150",
+                    "year": "Sept 2018, Bangladesh",
+                    "issuer": "Khulna University of Engineering and Technology"
+                },
+                {
+                    "title": "9th International Olympiad on Astronomy and Astrophysics (IOAA) - Finalist",
+                    "year": "Jul 2015, Indonesia",
+                    "issuer": "International Olympiad on Astronomy and Astrophysics (IOAA)"
+                },
+                
+            ],
+            "studentFeedbacks": [
+                {
+                    "name": "Student",
+                    "course": "Mechanics of Materials",
+                    "feedback": "Thanks Abdullah for being a great TA! While I could never quite pronounce your name, you helped a lot in helping me understand the physical implications of the mechanics of materials. You always asked questions to make sure we understood what was going on. We did give some nonsense answers, but I'm glad you decided to push through our stupidity. Thanks again!"
+                },
+                {
+                    "name": "Student",
+                    "course": "Mechanics of Materials",
+                    "feedback": "He's a really fun TA, and I would highly recommend him to other students. He always tried to have students understand the mechanics going on, which helped in the learning process. (even though we gave a lot of dumb answers)"
+                },
+                {
+                    "name": "Student",
+                    "course": "Mechanics of Materials",
+                    "feedback": "He explained everything perfectly and told us exactly how he was going to grade so we could get an A."
+                },
+                {
+                    "name": "Student",
+                    "course": "Mechanics of Materials",
+                    "feedback": "Abdullah was excited to run the experiments with us and worked very hard to help us gain a higher understanding of the material."
+                },
+                {
+                    "name": "Student",
+                    "course": "Mechanics of Materials",
+                    "feedback": "He is an awesome instructor. He understands what it's like to be a student and teaches accordingly. Professors sometimes forget that."
+                },
+                {
+                    "name": "Student",
+                    "course": "Mechanics of Materials",
+                    "feedback": "Abdullah was awesome. He explained things well, kept it real, and made the class fun."
+                },
+                {
+                    "name": "Student",
+                    "course": "Mechanics of Materials",
+                    "feedback": "Abdullah was very helpful during the labs. He was willing to answer all of my questions and he pushed us to explore our understanding of the topics."
+                },
+                {
+                    "name": "Student",
+                    "course": "Mechanics of Materials",
+                    "feedback": "Abdullah was an exceptional TA. He always made sure we understood the concepts and he helped us learn a lot."
+                },
+                {
+                    "name": "Student",
+                    "course": "Mechanics of Materials",
+                    "feedback": "Great TA. Fair grader and very lenient."
+                }
+            ],
+            "testimonials": [
+                {
+                    "name": "Tanjid Mihad",
+                    "role": "Management Trainee Officer - NRBC Bank",
+                    "feedback": "I rarely come across real talents who stand out like Abdullah Arafat. I had the pleasure of working with him for more than 1 year at the Spectrum (Professional Skill Development Club of KUET). Arafat’s ability to handle multiple projects & designs was unlike any I’ve seen before and made a dramatic increase in the popularity level of our club. No matter how tense a meeting, Arafat made sure everyone left with a smile. As a coworker or a friend, Arafat earns my highest recommendation."
+                },
+                {
+                    "name": "Syed Zubair Hussain",
+                    "role": "Graduate Research Assistant - Cornell University",
+                    "feedback": "I met Abdullah Arafat in my first year of undergrad. I have seen him taking parts in different competitions where he has consistently demonstrated his expertise in a number of technical areas. Abdullah has a strong understanding of the principles of engineering and has a deep knowledge of various CAD software, including SolidWorks. He has used this knowledge to develop highly detailed and accurate designs, which have been crucial in bringing numerous projects to completion. Additionally, Abdullah's expertise in molecular dynamics has enabled him to carry out complex simulations and analyze data with great precision. Abdullah has a unique combination of technical skills, dedication, and a strong work ethic that make him an excellent candidate for any role."
+                },
+                {
+                    "name": "Sheikh Tamjidur Rahman",
+                    "role": "Graduate Research Assistant - Wuhan Institute of Technology",
+                    "feedback": "I have met very few people with vision. Many can have potential to do something but to be clear about things that you are going to do and get in return is something else. Arafat was a man with vision. He is a great team player, dedicated worker and a good mentor. He has a unique way of learning new things, which is the most distinguished characteristic. I hope he reaches the zenith of success. "
+                }
+            ]
+        };
+
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
         const formatText = (text) => {
@@ -467,560 +745,28 @@
             }).join('');
         };
 
-        // Global variables to hold data state for editing
-        window.globalPortfolioData = null;
-        let currentEditPath = '';
-
-        // --- ADMIN & GITHUB SYNC LOGIC ---
-
-        function checkAdminMode() {
-            const token = localStorage.getItem('gh_token');
-            const owner = localStorage.getItem('gh_owner');
-            const repo = localStorage.getItem('gh_repo');
+        document.addEventListener("DOMContentLoaded", () => {
             
-            if (token && owner && repo) {
-                document.body.classList.add('admin-mode');
-                document.getElementById('logout-btn').classList.remove('hidden');
-            } else {
-                document.body.classList.remove('admin-mode');
-                document.getElementById('logout-btn').classList.add('hidden');
-            }
-        }
-
-        document.getElementById('admin-settings-btn').addEventListener('click', () => {
-            document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
-            document.getElementById('gh-owner').value = localStorage.getItem('gh_owner') || '';
-            document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';
-            document.getElementById('admin-modal').classList.remove('hidden');
-        });
-
-        document.getElementById('close-admin-btn').addEventListener('click', () => {
-            document.getElementById('admin-modal').classList.add('hidden');
-        });
-
-        document.getElementById('save-admin-btn').addEventListener('click', () => {
-            localStorage.setItem('gh_token', document.getElementById('gh-token').value.trim());
-            localStorage.setItem('gh_owner', document.getElementById('gh-owner').value.trim());
-            localStorage.setItem('gh_repo', document.getElementById('gh-repo').value.trim());
-            checkAdminMode();
-            document.getElementById('admin-modal').classList.add('hidden');
-            alert("Admin Mode Enabled! You can now edit sections inline.");
-        });
-
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            localStorage.removeItem('gh_token');
-            localStorage.removeItem('gh_owner');
-            localStorage.removeItem('gh_repo');
-            checkAdminMode();
-            document.getElementById('admin-modal').classList.add('hidden');
-            alert("Logged out of Admin Mode.");
-        });
-
-        // Helper to get nested object property via string path
-        function getPathValue(obj, path) {
-            return path.split('.').reduce((acc, part) => acc && acc[part], obj);
-        }
-
-        // Helper to set nested object property via string path
-        function setPathValue(obj, path, value) {
-            let parts = path.split('.');
-            let last = parts.pop();
-            let target = parts.reduce((acc, part) => acc[part], obj);
-            target[last] = value;
-        }
-
-        function openEditor(path) {
-            currentEditPath = path;
-            const dataToEdit = getPathValue(window.globalPortfolioData, path);
-            
-            document.getElementById('editor-title').textContent = `Editing: ${path.replace('.', ' -> ').toUpperCase()}`;
-            document.getElementById('editor-textarea').value = JSON.stringify(dataToEdit, null, 4);
-            document.getElementById('editor-modal').classList.remove('hidden');
-        }
-
-        function closeEditor() {
-            document.getElementById('editor-modal').classList.add('hidden');
-            currentEditPath = '';
-        }
-
-        async function saveSectionData() {
-            const btn = document.getElementById('save-editor-btn');
-            const textarea = document.getElementById('editor-textarea');
-            
-            let parsedData;
-            try {
-                parsedData = JSON.parse(textarea.value);
-            } catch (e) {
-                alert("Invalid format! Please check your commas and brackets.\nError: " + e.message);
-                return;
-            }
-
-            // Temporarily disable button
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = "Syncing with GitHub...";
-            btn.disabled = true;
-
-            try {
-                // 1. Update global state locally
-                setPathValue(window.globalPortfolioData, currentEditPath, parsedData);
-                
-                // 2. Push entire updated object to GitHub
-                await pushToGitHub(window.globalPortfolioData);
-                
-                // 3. Re-render UI with new data
-                renderPortfolio(window.globalPortfolioData);
-                closeEditor();
-                alert("Success! Your changes have been saved and pushed to GitHub.");
-
-            } catch (error) {
-                alert("Failed to save to GitHub: " + error.message);
-            } finally {
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
-            }
-        }
-
-        async function pushToGitHub(fullData) {
-            const token = localStorage.getItem('gh_token');
-            const owner = localStorage.getItem('gh_owner');
-            const repo = localStorage.getItem('gh_repo');
-            const path = 'data.json';
-
-            const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-
-            // Step 1: Get the file's current SHA (Required by GitHub to update a file)
-            const getRes = await fetch(url, {
-                headers: { Authorization: `token ${token}` }
-            });
-            
-            let sha = "";
-            if (getRes.ok) {
-                const fileData = await getRes.json();
-                sha = fileData.sha;
-            } else if (getRes.status !== 404) {
-                throw new Error("Could not connect to repository. Check your Token, Owner, and Repo Name in settings.");
-            }
-
-            // Step 2: Encode the new JSON to Base64 (safely handling unicode like ₂ or –)
-            const jsonString = JSON.stringify(fullData, null, 2);
-            const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
-
-            // Step 3: PUT the new file content
-            const putRes = await fetch(url, {
-                method: 'PUT',
-                headers: { 
-                    Authorization: `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `Update ${currentEditPath} via UI`,
-                    content: encodedContent,
-                    sha: sha || undefined
-                })
-            });
-
-            if (!putRes.ok) {
-                throw new Error("GitHub rejected the upload. Please verify your Personal Access Token has 'repo' permissions.");
-            }
-        }
-        // --- END ADMIN LOGIC ---
-
-        // FETCH DATA INITIALLY
-        document.addEventListener("DOMContentLoaded", async () => {
-            let fetchedData;
-
-            try {
-                if (window.location.protocol === 'blob:' || window.location.protocol === 'data:') {
-                    throw new Error("Relative fetching is blocked in this preview sandbox.");
-                }
-
-                const response = await fetch('data.json');
-                if (!response.ok) {
-                    throw new Error(`Failed to load data. Status: ${response.status}`);
-                }
-                fetchedData = await response.json();
-                
-            } catch (error) {
-                console.info("Notice:", error.message);
-                console.info("Using embedded fallback data for the preview.");
-                
-                // Fallback Data (Corrected JSON array structures)
-                fetchedData = {
-                    "profile": {
-                        "name": "Abdullah Arafat",
-                        "role": "Computational Chemist",
-                        "institution": "The University of Utah",
-                        "imageUrl": "assets/profile_picture.jpg",
-                        "email": "abdullah.arafat@utah.edu"
-                    },
-                    "metrics": {
-                        "citations": 67,
-                        "hIndex": 5,
-                        "i10Index": 3
-                    },
-                    "socialLinks": [
-                        { "name": "Google Scholar", "url": "https://scholar.google.com/citations?user=VkHMZc4AAAAJ&hl=en", "icon": "<svg class=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 14l9-5-9-5-9 5 9 5z\"></path><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z\"></path></svg>" },
-                        { "name": "GitHub", "url": "https://github.com/abdullah-arafat", "icon": "<svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path fill-rule=\"evenodd\" d=\"M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z\" clip-rule=\"evenodd\"></path></svg>" },
-                        { "name": "YouTube", "url": "https://www.youtube.com/c/AbdullahArafat", "icon": "<svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z\"/></svg>" },
-                        { "name": "LinkedIn", "url": "https://www.linkedin.com/in/abdullah-arafat", "icon": "<svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z\"/></svg>" }
-                    ],
-                    "aboutText": "I am a computational chemist specializing in molecular dynamics, nanomaterials, crystallography, and solid mechanics. My work focuses on understanding the nano-mechanical behavior of materials, exploring structure-property relationships, and applying atomistic simulations to solve complex challenges.",
-                    "keywords": ["Molecular Dynamics", "Nanomaterials", "Crystallography", "Mechanics of Materials"],
-                    "education": [
-                        {
-                            "degree": "Ph.D. in Chemistry",
-                            "institution": "The University of Utah",
-                            "location": "Salt Lake City, UT",
-                            "locationUrl": "https://maps.google.com/?q=The+University+of+Utah",
-                            "period": "2024 — Now",
-                            "description": "Thesis: \n- Investigating atomistic mechanisms of polymorphic transformations, amorphization, and crystallization using molecular dynamics simulations.\n- Examining how stress state, strain rate, crystallographic orientation, and nanoscale confinement govern transformation pathways.\n- Developing structural-analysis workflows using LAMMPS, OVITO, Python, ASE, DScribe, and machine-learning-based atomic descriptors.",
-                            "courses": ["Advanced Molecular Dynamics", "Quantum Chemistry", "Statistical Thermodynamics"]
-                        },
-                        {
-                            "degree": "M.S. in Mechanical Engineering",
-                            "institution": "The University of Utah",
-                            "location": "Salt Lake City, UT",
-                            "locationUrl": "https://maps.google.com/?q=The+University+of+Utah",
-                            "period": "2022 — 2024",
-                            "description": "Thesis: \n- Used molecular dynamics simulations to investigate H₂, H₂O, and CO₂ transport under nanoconfinement in underground hydrogen-storage systems. \n- Evaluated the effects of pore size and morphology on the elastic modulus and fracture behavior of porous amorphous SiO₂.",
-                            "courses": ["Continuum Mechanics", "Computational Materials Science", "Finite Element Analysis"]
-                        },
-                        {
-                            "degree": "B.S. in Materials Science & Engineering",
-                            "institution": "Khulna University of Engineering and Technology (KUET)",
-                            "location": "Khulna, Bangladesh",
-                            "locationUrl": "https://maps.google.com/?q=Khulna+University+of+Engineering+and+Technology",
-                            "period": "2017 — 2022",
-                            "description": "Thesis: \n- Applied reactive molecular dynamics simulations to elucidate the reaction mechanism and intermediate formation during CVD growth of 2D MoS₂ from MoO₃ and H₂S precursors. \n- Quantified temperature-dependent surface composition, oxygen evolution, and sulfur detachment, and compared growth pathways for H₂S- and S₂-based precursor systems.",
-                            "courses": ["Material Characterization", "Crystallography", "Solid State Physics", "Nanotechnology"]
-                        }
-                    ],
-                    "experiences": {
-                        "researchTeaching": [
-                            {
-                                "institution": "The University of Utah",
-                                "location": "Salt Lake City, UT",
-                                "locationUrl": "https://maps.google.com/?q=The+University+of+Utah",
-                                "roles": [
-                                    {
-                                        "title": "Research Assistant (Chemistry & Mechanical Engineering)",
-                                        "period": "Aug 2022 — Now",
-                                        "description": "Conducted extensive research exploring nanoconfinement and structure-property relationships in subsurface environments.\n- Developed computational models for complex material simulations.\n- Performed molecular dynamics simulations to analyze atomic behavior.\n- Authored comprehensive technical papers based on simulation outcomes.",
-                                        "skills": ["Molecular Dynamics", "Atomistic Simulations", "Data Analysis", "LAMMPS"]
-                                    },
-                                    {
-                                        "title": "Course Teaching Assistant (Chemistry)",
-                                        "period": "Aug 2024 — May 2025",
-                                        "description": "Taught undergraduate courses on Thermodynamics and Physical Chemistry.\n- Led laboratory sessions and managed lab safety protocols.\n- Graded assignments and provided extensive mentorship during office hours.",
-                                        "skills": ["Thermodynamics", "Physical Chemistry", "Mentorship"]
-                                    },
-                                    {
-                                        "title": "Laboratory Teaching Assistant (Mechanical)",
-                                        "period": "Aug 2022 — May 2025",
-                                        "description": "Lab Teaching Assistant for ME EN 3315 (Mechanics of Materials).\n- Assisted Professors: Dr. Michael Czabaj, Dr. Bozo Vazic, Dr. Ken Monson, Dr. Owen Kingstedt.\n- Guided students through complex mechanical testing protocols.",
-                                        "skills": ["Mechanics of Materials", "Mentorship"]
-                                    }
-                                ]
-                            },
-                            {
-                                "institution": "Khulna University of Engineering and Technology",
-                                "location": "Khulna, Bangladesh",
-                                "locationUrl": "https://maps.google.com/?q=Khulna+University+of+Engineering+and+Technology",
-                                "roles": [
-                                    {
-                                        "title": "Undergraduate Researcher",
-                                        "period": "2020 — 2022",
-                                        "description": "Investigated atomistic reaction mechanisms of CVD-grown 2D materials.\n- Analyzed the effects of substrate structures on hexagonal boron nitride.\n- Contributed to publications regarding mechanical stability and material properties.",
-                                        "skills": ["CVD Growth Modeling", "2D Materials", "Mechanical Stability Analysis"]
-                                    }
-                                ]
-                            }
-                        ],
-                        "industry": [
-                            {
-                                "institution": "Emprotec Limited",
-                                "location": "Khulna, Bangladesh",
-                                "locationUrl": "https://www.facebook.com/emprotec.ltd",
-                                "roles": [
-                                    {
-                                        "title": "Design Engineer",
-                                        "period": "Nov 2018 — Aug 2022",
-                                        "description": "Designed LPG Spherical storage tanks, Cylindrical storage tanks, Ball valves, and Actuated valves.\n- Designed P&ID of LPG network, Fire fighting network, and Industrial air network.\n- Executed 3D Pipe Routing of different LPG Plants using AutoCAD Plant 3D and SOLIDWORKS Pipe Routing.\n- Designed Land Layouts of different LPG Plants using AutoCAD and created sample P&IDs using Microsoft Visio.",
-                                        "skills": ["SOLIDWORKS", "AutoCAD Plant 3D", "Microsoft Visio", "Pipe Routing", "P&ID"]
-                                    }
-                                ]
-                            },
-                            {
-                                "institution": "FabLab KUET",
-                                "location": "Khulna, Bangladesh",
-                                "locationUrl": "https://www2.kuet.ac.bd/fablab",
-                                "roles": [
-                                    {
-                                        "title": "Operator",
-                                        "period": "Aug 2019 — Mar 2020",
-                                        "description": "Maintained machinery and assisted students with their academic projects.\n- Managed fabrication of 13 undergraduate thesis projects, 1000 key rings, and 10+ intricate designs.\n- Operated CNC milling machines, laser cutters, and 3D printers while ensuring optimal lab instrument functionality.",
-                                        "skills": ["CNC Milling", "Laser Cutting", "3D Printing", "Equipment Maintenance"]
-                                    }
-                                ]
-                            }
-                        ],
-                        "extracurricular": [
-                            {
-                                "institution": "Graduate Student Advisory Committee (GSAC)",
-                                "location": "Utah, USA",
-                                "locationUrl": "https://www.mech.utah.edu/directory/student-societies/gsac/",
-                                "roles": [
-                                    {
-                                        "title": "Member",
-                                        "period": "2022 — 2024",
-                                        "description": "Represented graduate-student interests and contributed to initiatives supporting academic, professional, and social development.\n- Collaborated with students, faculty, and committee members to communicate student needs and concerns.\n- Assisted in organizing departmental events, workshops, and community-building activities.",
-                                        "skills": ["Student Advocacy", "Event Coordination", "Committee Collaboration", "Professional Communication"]
-                                    }
-                                ]
-                            },
-                            {
-                                "institution": "Spectrum (Professional Skill Development Club of KUET)",
-                                "location": "Khulna, Bangladesh",
-                                "locationUrl": "https://www.facebook.com/spectrum.kuet/",
-                                "roles": [
-                                    {
-                                        "title": "Chief Technology Officer (CTO)",
-                                        "period": "2017 — 2022",
-                                        "description": "Led technological initiatives and managed multiple design projects.\n- Dramatically increased club popularity through impactful skill development programs.\n- Coordinated across teams to deliver successful workshops and events.",
-                                        "skills": ["Project Management", "Technical Leadership", "Team Building"]
-                                    }
-                                ]
-                            },
-                            {
-                                "institution": "KUET Career Club",
-                                "location": "Khulna, Bangladesh",
-                                "locationUrl": "https://www.facebook.com/kuetcareerclub",
-                                "roles": [
-                                    {
-                                        "title": "Head of Information Technology Department",
-                                        "period": "2019 — 2022",
-                                        "description": "Organized career development workshops, networking sessions, and seminars to help students bridge the gap between academia and industry.",
-                                        "skills": ["Event Organization", "Leadership", "Networking"]
-                                    }
-                                ]
-                            },
-                            {
-                                "institution": "CADers",
-                                "location": "Khulna, Bangladesh",
-                                "locationUrl": "https://www.facebook.com/caders.kuet",
-                                "roles": [
-                                    {
-                                        "title": "Head of Information Technology Department",
-                                        "period": "2019 — 2022",
-                                        "description": "Promoted computer-aided design (CAD) skills among students.\n- Facilitated workshops and inter-university design competitions.",
-                                        "skills": ["CAD/CAE", "Mentorship", "Training"]
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                    "publications": {
-                        "journals": [
-                            {
-                                "mla": "Ak, İ., H. Adin, Abdullah Arafat, and M. Okumuş. \"Mechanical properties of Cu-Ni alloys: Comparison of experimental and MD simulation approaches.\" Physica B: Condensed Matter, vol. 700, 2025, p. 416928.",
-                                "url": "https://www.sciencedirect.com/science/article/abs/pii/S0921452625000456",
-                                "citations": 10,
-                                "preview": "The rapid advancement of technology allows devices to be designed at atomistic scales, creating a need for material characterisation at micro and nano levels. In this study, nanoindentation tests and MD simulations are compared to analyse the hardness, modulus of elasticity and surface deformation of CuNi alloys produced by casting. These methods are used to comprehensively investigate and compare the mechanical properties of alloys. The applicability of the simulation method to metal alloys is also evaluated. Nanoindentation tests revealed Em values between 101.89 GPa and 139.27 GPa, while MD simulations showed higher Em values ranging from 126.30 GPa to 186.34 GPa. Larger grain sizes in Cu-%10Ni alloy reduced the hardness to 2.40 GPa, while smaller grains in Cu-%20Ni alloy increased the hardness to 3.09 GPa. MD simulations allow real-time atomic-scale deformation observations, supporting empirical results and in agreement with the literature, and their applicability in metal alloys has been observed."
-                            },
-                            {
-                                "mla": "Sajal, Wahidur Rahman, Md Mehidi Hassan, Jahirul Islam, Tipu Sultan, Md Bokhtiar Hossen, and Abdullah Arafat. \"Molecular dynamics study of mechanical stability of Ti4C3 MXene subjected to chirality, temperature, strain rate, and point-vacancy for Lithium-ion batteries.\" Heliyon, vol. 10, no. 19, 2024.",
-                                "url": "https://www.cell.com/heliyon/fulltext/S2405-8440(24)14885-2",
-                                "citations": 7,
-                                "preview": "Two-dimensional Ti4C3 MXene has recently emerged as a promising electrode for Lithium-ion batteries (LIBs) because of its outstanding ion-transport abilities and high Li-absorbability. This study employed molecular dynamics simulation to explore the mechanical stability of Ti4C3 MXene subjected to various temperatures, strain rates, and vacancy concentrations. A slightly superior tensile strength and elasticity modulus have been observed along zigzag directions, measuring 148.14 GPa and 29.17 GPa, respectively. On the other hand, armchair-oriented Ti4C3 MXene shows a considerably greater fracture strain of 0.259 due to its strain-hardening tendency at lower temperatures. Elevated temperature decreases both fracture strength and fracture strain, which is opposite to the effect of strain rate. Armchair loading has been revealed to be more sensitive to strain rate than its counter direction. Unlike temperature and strain rate, point vacancy significantly deteriorates the elastic modulus of Ti4C3 MXene. Carbon vacancies are more probable than titanium vacancies, which have less formation energy. The atomistic deformation profile supports the predicted values of fracture strain from stress-strain behavior. This in-depth study offers a detailed understanding of the mechanical behavior of Ti4C3 MXene under diverse circumstances, which will aid further experimental study and be beneficial for adopting Ti4C3 as anode materials in LIBs."
-                            },
-                            {
-                                "mla": "Arafat, Abdullah. \"Exploring Nanoconfinement and Structure-Property Relationships in Subsurface.\" The University of Utah ProQuest Dissertations & Theses,  2024.",
-                                "url": "https://www.proquest.com/openview/9a3add722e60af689487990cd7bca4bd/1?pq-origsite=gscholar&cbl=18750&diss=y",
-                                "citations": 0,
-                                "preview": "The future of global energy supply significantly depends on advancements in subsurface or geological engineering, as the subsurface can serve as a reservoir for natural gas and hydrogen storage, carbon capture, and other applications. Thermal, hydrological, mechanical, and chemical (THMC) processes occur across multiple scales in the subsurface, and understanding these coupled processes is essential for optimizing the design and operation of subsurface systems. This study uses molecular dynamics (MD) simulations to investigate the transport properties of gas particles and the mechanical behavior of porous subsurface materials. The first objective examines the transport behavior of H₂, H₂O, and CO₂ in confined spaces within an underground hydrogen storage (UHS) system, focusing on how nanoscale confinement and interactions among gas particles affect diffusivity and density profiles. The second objective investigates how irregular pore morphology affects the mechanical properties of amorphous SiO₂, a common component of rock formations, by comparing its influence on elastic modulus and fracture behavior with that of regular pores. The first study shows that larger pores enhance gas diffusivity in UHS systems, nanoconfinement effects are particularly significant for gases such as H₂, and the presence of H₂ can influence the diffusivity of other gases. The second study demonstrates that both porosity and pore shape significantly affect the elastic modulus, while the critical energy release rate is relatively insensitive to porosity but is influenced by irregular pore morphology. Overall, this research provides valuable insights into the behavior of gas particles and porous materials in subsurface storage, supporting the development of more efficient and secure energy-storage and management solutions."
-                            },
-                            {
-                                "mla": "Arafat, Abdullah, Md Sherajul Islam, Naim Ferdous, ASM Jannatul Islam, Md Mosarof Hossain Sarkar, Catherine Stampfl, and Jeongwon Park. \"Atomistic reaction mechanism of CVD grown MoS2 through MoO3 and H2S precursors.\" Scientific Reports, vol. 12, no. 1, 2022, p. 16085.",
-                                "url": "https://www.nature.com/articles/s41598-022-20531-x",
-                                "citations": 25,
-                                "preview": "Chemical vapor deposition (CVD) through sulfidation of MoO3 is one of the most important synthesis techniques to obtain large-scale and high-quality two-dimensional (2D) MoS2. Recently, H2S precursor is being used in the CVD technique to synthesize 2D MoS2. Although several studies have been carried out to examine the mechanism of MoS2 growth in the presence of sulfur and MoO3 precursors, the growth of MoS2 in the presence of H2S precursor has largely remained unknown. In this study, we present a Reactive molecular dynamics (RMD) simulation to investigate the reaction mechanism of MoS2 from MoO3 and H2S precursors. The intermediate molecules formation, the reason behind those formations, and the surface compositions of MoOxSyHz during the initial steps of CVD have all been quantified. Surprisingly, a sudden separation of sulfur atoms from the surface was observed in the H2S precursor system due to the substantial oxygen evolution after 1660 K. The sulfur detachments and oxygen evolution from the surface were found to have a linear relationship. In addition, the intermediate molecules and surface bonds of MoS2 synthesized by MoO3 and H2S precursors were compared to those of a system using S2 and MoO3 precursors. The most stable subsidiary formation from the H2S precursor was found to be H2O, whereas in case of S2 precursor it was SO. These results provide a valuable insight in the formation of large-scale and high-quality 2D MoS2 by the CVD technique."
-                            },
-                            {
-                                "mla": "Hossain Sarkar, Md Mosarof, Md Sherajul Islam, Abdullah Arafat, ASM Jannatul Islam, Naim Ferdous, Md Tawabur Rahman, Minhaz Uddin Sohag, Md Al Imran Fahim, Catherine Stampfl, and Jeongwon Park. \"Effects of the substrate structure on the CVD growth of two-dimensional hexagonal boron nitride.\" The Journal of Physical Chemistry C, vol. 126, no. 14, 2022, pp. 6373-6384.",
-                                "url": "https://pubs.acs.org/doi/abs/10.1021/acs.jpcc.2c01707",
-                                "citations": 8,
-                                "preview": "Due to its outstanding stability, flat surface, and wide band gap, two-dimensional hexagonal boron nitride (h-BN) has appeared as a vital element in a range of applications, including a perfect substrate for graphene devices, tunneling barriers, and deep-ultraviolet emitters. However, large-scale growth of high-grade h-BN using chemical vapor deposition (CVD) still remains challenging due to its dependence on a variety of parameters such as substrate structures, temperature, and precursor deposition rates. Here, we explore the atomic scale elementary nucleation and growth process of monolayer h-BN on normal, vacancy-disordered, and rough (terrace and step structure) Ni(111) surfaces using reactive force field molecular dynamics simulations. The impact of the precursor deposition rate and temperature on different Ni(111) substrates was also investigated. At 1500 K, a low precursor deposition rate favors large single-domain h-BN development on normal and vacancy-disordered Ni(111) substrates, whereas a higher deposition rate yields a single domain on a rough substrate. It is also explored that the initial growth rate of h-BN is higher on the rough substrate and lower on the vacancy-disordered substrate for single-domain h-BN growth. The formation of continuous h-BN islands is greater on a normal Ni substrate than the other two substrates. Although a small vacancy concentration (1.25%) in the Ni(111) substrate shows a minor effect on the growth of the h-BN layer, the rough surface shows a considerable effect on the h-BN growth. These findings pave the way for scalable high-quality CVD growth of h-BN, taking this promising material one step closer to practical applications."
-                            },
-                            {
-                                "mla": "Komol, Md Mostafizur Rahman, Md Karimul Joarder, Abdullah Arafat, and Amit Kumer Podder. \"Fingerprint and password controlled garage access system with belt pulley and power screw driven mechanism.\" International Journal of Advanced Mechatronic Systems, vol. 8, no. 1, 2020, pp. 36-45.",
-                                "url": "https://www.inderscienceonline.com/doi/abs/10.1504/IJAMECHS.2020.109908",
-                                "citations": 1,
-                                "preview": "Garage automation and security have been a favoured concern with technological advancement. In this paper, developed garage access security and automation system are proposed with the affiliated control of the biometric fingerprint recognition and password verification system. Here, fingerprint recognition is restricted to the registered vehicle owners of the garage, while everyone is permitted to access through a password verification system. The affiliation of the dual-sensing system is intended to maintain robust security and to retain the record of any driver's access without the vehicle owners. Moreover, the system is enriched with a subtle design of the access door and its operation mechanism. Power screw-driven door operation is utilised to convert the rotating motion of the motor to linear motion and slide the door open or close. The requisite motor torque, revolution per minute, and power requirement for door control by the screw operation are also calculated and verified."
-                            },
-                            {
-                                "mla": "Komol, Md Mostafizur Rahman, Amit Kumer Podder, Abdullah Arafat, and Tanzim Nabeed.\"Remote sensing global ranged door lock security system via mobile communication.\" International Journal of Wireless and Microwave Technologies, vol. 9, no. 5, 2019, pp. 25-37.",
-                                "url": "https://www.mecs-press.org/ijwmt/ijwmt-v9-n5/v9n5-3.html",
-                                "citations": 16,
-                                "preview": "In this paper, a door locking system with some remarkable features is proposed which makes the locking or unlocking of a door more reliable to the user than the conventional system. Robust security access with accurate detection system is provided here. It’s a global ranged operation process that can be operated by simple mobile phone through short message service (SMS) transferring operation from any corner of the world where mobile network is available. A smooth and durable locking mechanism is provided and the inscrutable door moving control device is used for the efficient operation of controlling the door. This developed system provides a notification to the user if any person is intended to pass the door. The system also has the ability to provide information about the current condition of the door by sending simple text messages. Also, the user will be able to operate the system with more than one subscriber identity module (SIM) card. Most advantageously, this device is proposed with lowest cost estimation benefit.  Finally, the performance of the designed system is analyzed by performing some real-time operation of it and found satisfactory performance."
-                            }
-                        ],
-                        "conferences": [
-                            {
-                                "mla": "Md. Jarir Hossain, Md. Mahbubur Rahman, Fahim Islam Anik, MD Ikramul Hasib, Abdullah Arafat. \"Numerical Investigation on Fatigue Life Estimation of Aluminum Structure for Uniaxial Cyclic Loading by Finite Element Modeling.\" International Conference on Mechanical Engineering and Renewable Energy 2019 (ICMERE2019)",
-                                "url": "https://www.researchgate.net/publication/344554263_Numerical_Investigation_on_Fatigue_Life_Estimation_of_Aluminum_Structure_for_Uniaxial_Cyclic_Loading_by_Finite_Element_Modeling",
-                                "citations": 0,
-                                "preview": "Fatigue analysis emphasizes on the cyclic behavior of a material and this often leads to crack initiation and propagation. In this research, the stress life method is being used to calculate the minimum fatigue life of different structure in Aluminum 6061 T6 material by Finite Element Modeling, also von mises stress is calculated. Furthermore, a bike crank arm design is used to validate the simulation process of fatigue calculation for uniaxial loading. Where the stress distribution throughout the body of a bike crank arm indicates the scopes of improvement in the design. By applying the theory for minimizing stress, few case studies are done based on different design modifications. In conclusion, one of the case studies, the result is found that minimum fatigue life increases 10.89 times than the one which is being used for validation and the same design is currently used in the industry."
-                            }
-                        ],
-                        "books": [
-                            {
-                                "mla": "Mubin, Shafat, Jichen Li, and Steven Plimpton. \"Extending and Modifying LAMMPS Writing Your Own Source Code: A pragmatic guide to extending LAMMPS as per custom simulation requirements.\" Packt Publishing Ltd, 2021: Page (304-311)",
-                                "url": "https://www.packtpub.com/product/extending-and-modifying-lammps-writing-your-own-source-code/9781800562264",
-                                "citations": 0,
-                                "preview": "LAMMPS is one of the most widely used tools for running simulations for research in molecular dynamics. While the tool itself is fairly easy to use, more often than not you’ll need to customize it to meet your specific simulation requirements. Extending and Modifying LAMMPS bridges this learning gap and helps you achieve this by writing custom code to add new features to LAMMPS source code. Written by ardent supporters of LAMMPS, this practical guide will enable you to extend the capabilities of LAMMPS with the help of step-by-step explanations of essential concepts, practical examples, and self-assessment questions. This LAMMPS book provides a hands-on approach to implementing associated methodologies that will get you up and running and productive in no time. You’ll begin with a short introduction to the internal mechanisms of LAMMPS, and gradually transition to an overview of the source code along with a tutorial on modifying it. As you advance, you’ll understand the structure, syntax, and organization of LAMMPS source code, and be able to write your own source code extensions to LAMMPS that implement features beyond the ones available in standard downloadable versions. By the end of this book, you’ll have learned how to add your own extensions and modifications to the LAMMPS source code that can implement features that suit your simulation requirements."
-                            }
-                        ]
-                    },
-                    "awards": [
-                        {
-                            "title": "ASME CUET Extrusion CAD Contest - 2nd/100",
-                            "year": "Aug 2020, Bangladesh",
-                            "issuer": "ASME CUET Student Chapter"
-                        },
-                        {
-                            "title": "Certified Solidworks Professional (CSWP)",
-                            "year": "Jun 2019, Online worldwide exam",
-                            "issuer": "Dassault Systèmes"
-                        },
-                        {
-                            "title": "Certified SOLIDWORKS Associate (CSWA)",
-                            "year": "Jan 2019, Online worldwide exam",
-                            "issuer": "Dassault Systèmes"
-                        },
-                        {
-                            "title": "Dean List Award",
-                            "year": "Jan 2019, Bangladesh",
-                            "issuer": "Khulna University of Engineering and Technology"
-                        },
-                        {
-                            "title": "IPE Fest 2018 CAD Competition - 2nd/75",
-                            "year": "Dec 2018, Bangladesh",
-                            "issuer": "Khulna University of Engineering and Technology"
-                        },
-                        {
-                            "title": "Wash Innovation Challenge - Finalist",
-                            "year": "Oct 2018, Bhutan",
-                            "issuer": "UNICEF and BRAC"
-                        },
-                        {
-                            "title": "Ignition 2018 CAD Competition - 1st/150",
-                            "year": "Sept 2018, Bangladesh",
-                            "issuer": "Khulna University of Engineering and Technology"
-                        },
-                        {
-                            "title": "9th International Olympiad on Astronomy and Astrophysics (IOAA) - Finalist",
-                            "year": "Jul 2015, Indonesia",
-                            "issuer": "International Olympiad on Astronomy and Astrophysics (IOAA)"
-                        }
-                    ],
-                    "studentFeedbacks": [
-                        {
-                            "name": "Student",
-                            "course": "Mechanics of Materials",
-                            "feedback": "Thanks Abdullah for being a great TA! While I could never quite pronounce your name, you helped a lot in helping me understand the physical implications of the mechanics of materials. You always asked questions to make sure we understood what was going on. We did give some nonsense answers, but I'm glad you decided to push through our stupidity. Thanks again!"
-                        },
-                        {
-                            "name": "Student",
-                            "course": "Mechanics of Materials",
-                            "feedback": "He's a really fun TA, and I would highly recommend him to other students. He always tried to have students understand the mechanics going on, which helped in the learning process. (even though we gave a lot of dumb answers)"
-                        },
-                        {
-                            "name": "Student",
-                            "course": "Mechanics of Materials",
-                            "feedback": "He explained everything perfectly and told us exactly how he was going to grade so we could get an A."
-                        },
-                        {
-                            "name": "Student",
-                            "course": "Mechanics of Materials",
-                            "feedback": "Abdullah was excited to run the experiments with us and worked very hard to help us gain a higher understanding of the material."
-                        },
-                        {
-                            "name": "Student",
-                            "course": "Mechanics of Materials",
-                            "feedback": "He is an awesome instructor. He understands what it's like to be a student and teaches accordingly. Professors sometimes forget that."
-                        },
-                        {
-                            "name": "Student",
-                            "course": "Mechanics of Materials",
-                            "feedback": "Abdullah was awesome. He explained things well, kept it real, and made the class fun."
-                        },
-                        {
-                            "name": "Student",
-                            "course": "Mechanics of Materials",
-                            "feedback": "Abdullah was very helpful during the labs. He was willing to answer all of my questions and he pushed us to explore our understanding of the topics."
-                        },
-                        {
-                            "name": "Student",
-                            "course": "Mechanics of Materials",
-                            "feedback": "Abdullah was an exceptional TA. He always made sure we understood the concepts and he helped us learn a lot."
-                        },
-                        {
-                            "name": "Student",
-                            "course": "Mechanics of Materials",
-                            "feedback": "Great TA. Fair grader and very lenient."
-                        }
-                    ],
-                    "testimonials": [
-                        {
-                            "name": "Tanjid Mihad",
-                            "role": "Management Trainee Officer - NRBC Bank",
-                            "feedback": "I rarely come across real talents who stand out like Abdullah Arafat. I had the pleasure of working with him for more than 1 year at the Spectrum (Professional Skill Development Club of KUET). Arafat’s ability to handle multiple projects & designs was unlike any I’ve seen before and made a dramatic increase in the popularity level of our club. No matter how tense a meeting, Arafat made sure everyone left with a smile. As a coworker or a friend, Arafat earns my highest recommendation."
-                        },
-                        {
-                            "name": "Syed Zubair Hussain",
-                            "role": "Graduate Research Assistant - Cornell University",
-                            "feedback": "I met Abdullah Arafat in my first year of undergrad. I have seen him taking parts in different competitions where he has consistently demonstrated his expertise in a number of technical areas. Abdullah has a strong understanding of the principles of engineering and has a deep knowledge of various CAD software, including SolidWorks. He has used this knowledge to develop highly detailed and accurate designs, which have been crucial in bringing numerous projects to completion. Additionally, Abdullah's expertise in molecular dynamics has enabled him to carry out complex simulations and analyze data with great precision. Abdullah has a unique combination of technical skills, dedication, and a strong work ethic that make him an excellent candidate for any role."
-                        },
-                        {
-                            "name": "Sheikh Tamjidur Rahman",
-                            "role": "Graduate Research Assistant - Wuhan Institute of Technology",
-                            "feedback": "I have met very few people with vision. Many can have potential to do something but to be clear about things that you are going to do and get in return is something else. Arafat was a man with vision. He is a great team player, dedicated worker and a good mentor. He has a unique way of learning new things, which is the most distinguished characteristic. I hope he reaches the zenith of success. "
-                        }
-                    ]
-                };
-            }
-
-            // Assign to global variable so Admin tools can modify it
-            window.globalPortfolioData = fetchedData;
-
-            // Check if admin is logged in to show edit buttons
-            checkAdminMode();
-            
-            // Hide spinner and show content
-            document.getElementById('loading-spinner').classList.add('hidden');
-            document.getElementById('portfolio-content').classList.remove('hidden');
-
-            renderPortfolio(window.globalPortfolioData);
-        });
-
-        function renderPortfolio(portfolioData) {
-            
+            // Render Profile Info
             document.getElementById("profile-name").textContent = portfolioData.profile.name;
             document.getElementById("profile-role").textContent = portfolioData.profile.role;
             document.getElementById("profile-institution").textContent = portfolioData.profile.institution;
             document.getElementById("profile-image").src = portfolioData.profile.imageUrl;
             
+            // Fallback for image
             document.getElementById("profile-image").onerror = function() {
                 this.src = "https://placehold.co/400x400/f3f4f6/111827?text=" + portfolioData.profile.name.charAt(0);
             };
 
             document.getElementById("mobile-header-name").textContent = portfolioData.profile.name;
 
+            // Setup CV Download / Print functionality
             document.getElementById("cv-link").addEventListener("click", (e) => {
                 e.preventDefault();
                 window.print();
             });
 
+            // Extract minimal social names for the CV (With embedded links)
             const socialNames = portfolioData.socialLinks.map(l => `<a href="${l.url}" target="_blank" style="color: black; text-decoration: none;">${l.name}</a>`).join(' &nbsp;|&nbsp; ');
 
             document.getElementById("print-header").innerHTML = `
@@ -1046,7 +792,7 @@
 
             const socialsHTML = `
                 <a href="mailto:${portfolioData.profile.email}" class="text-gray-500 hover:text-black transition-colors" title="Email">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                 </a>
             ` + portfolioData.socialLinks.map(link => `
                 <a href="${link.url}" target="_blank" class="text-gray-500 hover:text-black transition-colors" title="${link.name}">
@@ -1067,8 +813,6 @@
                     if(container) container.closest('section').style.display = 'none';
                     return;
                 }
-                
-                if(container) container.closest('section').style.display = 'block';
 
                 container.innerHTML = experienceDataArray.map(group => {
                     const latestRole = group.roles[0];
@@ -1310,6 +1054,7 @@
             setupSlider('testimonials-container', 'btn-prev-test', 'btn-next-test');
             setupSlider('feedbacks-container', 'btn-prev-fb', 'btn-next-fb');
 
+            // Sidebar Toggle Logic for Mobile
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
             const closeMenuBtn = document.getElementById('close-menu-btn');
             const sidebar = document.getElementById('sidebar');
@@ -1345,7 +1090,7 @@
                 });
             });
 
-        }
+        });
     </script>
 </body>
 </html>
