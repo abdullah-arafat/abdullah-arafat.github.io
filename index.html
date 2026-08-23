@@ -144,15 +144,14 @@
             .border-t.border-academic-100 { border-top: none !important; padding-top: 0 !important; margin-top: 0 !important; }
             .pl-4, .pl-5 { padding-left: 0 !important; }
             .absolute.w-px { display: none !important; }
-            
-            #education-container > div { background: transparent !important; border: none !important; padding: 0 !important; box-shadow: none !important; margin-bottom: 0.25rem !important;}
-            .pub-item { border: none !important; padding: 0 0 0.25rem 1.25rem !important; margin: 0 !important; position: relative; }
-            .pub-item::before { content: counter(pub-counter) ". "; position: absolute; left: 0; top: 0; font-weight: bold; }
-            .pub-list-wrapper { counter-reset: pub-counter; }
-            
-            * { color: black !important; }
-            
-            /* Compact Typography for Print */
+        
+        #education-container > div { background: transparent !important; border: none !important; padding: 0 !important; box-shadow: none !important; margin-bottom: 0.25rem !important;}
+        .pub-item { border: none !important; padding: 0 0 0.25rem 1.25rem !important; margin: 0 !important; position: relative; }
+        .pub-item::before { content: "•"; position: absolute; left: 0; top: 0; font-weight: bold; }
+        
+        * { color: black !important; }
+        
+        /* Compact Typography for Print */
             .compact-section { margin-bottom: 0.75rem !important; page-break-inside: auto; }
             h2 { 
                 font-size: 11pt !important; 
