@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Minimalist Diary (GitHub Sync)</title>
+  <title>My Minimalist Diary</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -189,14 +189,15 @@
 
   </div>
 
+  <!-- Settings Modal -->
   <div id="settingsModal" class="modal-overlay">
     <div class="modal">
       <h2>GitHub Connection</h2>
       <p style="font-size: 9pt; color: #555;">To sync directly to your repository, enter your GitHub credentials below. This is stored securely in your browser.</p>
       
       <label>
-        GitHub Repository
-        <input type="text" id="ghRepoInput" placeholder="e.g., username/my-diary-repo">
+        Private Data Repository
+        <input type="text" id="ghRepoInput" placeholder="e.g., abdullah-arafat/diary-data">
       </label>
       
       <label>
@@ -218,7 +219,7 @@
     let diaryData = {};
     let activeDate = null;
     let isEditingNew = false; 
-    let fileSha = null; // Required by GitHub API to update an existing file
+    let fileSha = null;
 
     // GitHub Settings from Local Storage (Browser Memory)
     let ghToken = localStorage.getItem('gh_token') || '';
@@ -311,7 +312,6 @@
         });
 
         if (response.status === 404) {
-          // File doesn't exist yet, that's okay
           diaryData = {};
           fileSha = null;
           setStatus('connected', 'Repo Connected (Empty)');
@@ -322,7 +322,7 @@
         if (!response.ok) throw new Error('Failed to fetch. Check Repo/Token.');
 
         const data = await response.json();
-        fileSha = data.sha; // Save SHA for future updates
+        fileSha = data.sha; 
         
         const decodedContent = decodeUnicodeBase64(data.content);
         diaryData = JSON.parse(decodedContent);
@@ -332,7 +332,7 @@
       } catch (error) {
         console.error(error);
         setStatus('error', 'Sync Failed');
-        showToast("Error connecting to GitHub.");
+        showToast("Error connecting to GitHub. Check your repo name and token.");
       }
     }
 
@@ -351,7 +351,6 @@
         content: base64Content
       };
       
-      // If we are updating an existing file, we MUST provide its current SHA
       if (fileSha) body.sha = fileSha;
 
       try {
@@ -371,7 +370,7 @@
         }
 
         const data = await response.json();
-        fileSha = data.content.sha; // Update SHA to the new version
+        fileSha = data.content.sha;
         
         syncingIndicator.style.display = 'none';
         setStatus('connected', 'Saved to GitHub');
@@ -459,7 +458,6 @@
       saveBtn.textContent = 'Committing...';
       saveBtn.disabled = true;
 
-      // Swap date logic
       if (activeDate && activeDate !== date && !isEditingNew) {
         delete diaryData[activeDate];
       }
@@ -525,7 +523,6 @@
       setStatus('error', 'Click to Setup Sync');
       renderList(); // Render empty
     }
-
   </script>
 </body>
 </html>
