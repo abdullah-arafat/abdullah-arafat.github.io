@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Life in Weeks (70 Years)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #000; background-color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 24px 16px; }
+    .header { text-align: center; margin-bottom: 12px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .header h1 { font-size: 15pt; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; }
+    .hover-display { font-size: 8pt; font-weight: 400; color: #000; background: transparent; border: none; padding: 0; min-height: 18px; display: inline-flex; align-items: center; justify-content: center; letter-spacing: 0.2px; }
+    .tooltip { position: fixed; background: #fff; color: #000; border: 1px solid #000; padding: 8px 12px; font-size: 8pt; border-radius: 4px; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 260px; line-height: 1.3; }
+    .controls { margin-top: 14px; margin-bottom: 14px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .btn { background: #fff; border: 1px solid #000; padding: 4px 10px; font-size: 7.5pt; border-radius: 4px; cursor: pointer; color: #000; font-weight: 500; transition: all 0.2s; }
+    .btn:hover { background: #000; color: #fff; }
+    
+    .grid-container { display: flex; flex-direction: column; gap: 2px; width: 100%; max-width: 680px; }
+    .top-header-row { display: flex; justify-content: space-between; align-items: center; margin-left: 20px; padding-right: 0px; }
+    .week-labels { display: flex; justify-content: space-between; font-size: 6pt; color: #000; flex: 1; }
+    .year-row { display: flex; align-items: center; gap: 2px; }
+    .year-label { width: 18px; font-size: 6pt; color: #000; text-align: right; padding-right: 4px; font-variant-numeric: tabular-nums; }
+    .weeks-row { display: flex; flex: 1; gap: 2px; }
+    .box { flex: 1; aspect-ratio: 1; border: 0.6px solid #000; border-radius: 0.5px; cursor: pointer; position: relative; }
+    .box:hover { border-color: #000; outline: 1.5px solid #000; z-index: 10; }
+    .box.filled { background-color: #000; border-color: #000; }
+    .box.selected-sticky { outline: 2px solid #ff0000 !important; z-index: 20; }
+    .box.has-note::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40%; height: 40%; border-radius: 50%; background-color: #555; z-index: 5; }
+    .box.filled.has-note::after { background-color: #fff; }
+    
+    .footer { text-align: center; font-size: 8pt; color: #000; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; align-items: center; width: 100%; }
+    .info-bar { font-size: 7pt; color: #000; background-color: transparent; padding: 4px 12px; display: inline-block; }
+    
+    @media print { body { background-color: #fff; padding: 0; } .no-print, .controls, .tooltip { display: none !important; } .box:hover { outline: none; } }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>My Life in Weeks</h1>
+    <div id="hoverDisplay" class="hover-display">Loading data...</div>
+  </div>
+
+  <div id="tooltip" class="tooltip"></div>
+
+  <div class="grid-container" id="grid">
+    <div class="top-header-row">
+      <div class="week-labels">
+        <span>Week 1</span><span>10</span><span>20</span><span>30</span><span>40</span><span>52</span>
+      </div>
+    </div>
+    <!-- Grid injected via JS -->
+  </div>
+
+  <div class="footer">
+    <p>Selected: <strong id="filledCount">0</strong> weeks &nbsp;|&nbsp; Remaining: <strong id="remainingCount">0</strong> weeks</p>
+
+    <div class="info-bar no-print">
+      Hover/Click: View Info &middot; Automatically tracks weeks lived
+    </div>
+  </div>
+
+  <!-- 
+  How to Edit or Add Events
+  Since the data is now embedded directly in this file, you can modify your life events by editing the embeddedData object located in the script section at the bottom of the HTML file.
+  
+  Locating the Data
+  Scroll down to the <script> block near the end of the file. Look for the variable named embeddedData.
+  
+  Format of an Event
+  Events are stored in an array called events. Each event is a small block of data specifying the week number (starting from 0) and the event text.
+  {
+    "week": 1276,
+    "event": "Moved to Utah to begin Master's Degree."
+  }
+  
+  Steps to Add a New Event
+  1. Find the week number you want to attach an event to (you can click on a box in the grid above, and it will tell you the Year and Week. Week number = (Year * 52) + (Week - 1)). Alternatively, count starting from 0 at the top left.
+  2. Add a new object inside the events array with the week number and your event description.
+  3. Important: Make sure every event object (except the last one in the list) ends with a comma ,
+  
+  Example Modification
+  To add an event for when you turn 30 (which is approximately week 1560):
+  "events": [
+    // ... previous events ...
+    {
+      "week": 1276,
+      "event": "Moved to Utah to begin Master's Degree."
+    },
+    {
+      "week": 1560,
+      "event": "Celebrated 30th Birthday!"
+    }
+  ]
+  
+  Save the file and refresh your browser to see the changes applied to the grid.
+  -->
+
+  <script>
+    // The data previously in liw_data.json is now embedded here.
+    // Edit this object to change your Date of Birth, Total Years, or Life Events.
+    const embeddedData = {
+      "dob": "1998-03-09",
+      "totalYears": 70,
+      "events": [
+        {
+          "week": 0,
+          "event": "I was born!"
+        },
+        {
+          "week": 936,
+          "event": "Graduated High School."
+        },
+        {
+          "week": 1260,
+          "event": "Graduated from KUET with B.S. in Materials Science & Engineering."
+        },
+        {
+          "week": 1276,
+          "event": "Moved to Utah to begin Master's Degree."
+        }
+      ]
+    };
+
+    let dob, totalYears, totalWeeks;
+    let weekData = [];
+    const msPerWeek = 1000 * 60 * 60 * 24 * 7;
+    
+    const grid = document.getElementById('grid');
+    const filledCountEl = document.getElementById('filledCount');
+    const remainingCountEl = document.getElementById('remainingCount');
+    const hoverDisplay = document.getElementById('hoverDisplay');
+    const tooltip = document.getElementById('tooltip');
+    
+    let lockedTooltipIndex = null;
+    let boxElements = [];
+
+    function loadData() {
+      // Using the embedded data instead of fetching
+      const data = embeddedData;
+      
+      // Parse DOB to avoid timezone shifts
+      const [y, m, d] = data.dob.split('-');
+      dob = new Date(y, m - 1, d);
+      
+      totalYears = data.totalYears || 70;
+      totalWeeks = totalYears * 52;
+      hoverDisplay.textContent = `${totalYears} Years (${totalWeeks.toLocaleString()} Weeks)`;
+      
+      const today = new Date();
+      const weeksLived = Math.floor((today - dob) / msPerWeek);
+
+      // Convert the events array from the JSON format into a lookup map
+      // for easier rendering during grid generation.
+      const eventsMap = {};
+      data.events.forEach(item => {
+          eventsMap[item.week] = item.event;
+      });
+
+      // Map sparse JSON arrays to flat 3640 week array
+      weekData = Array.from({ length: totalWeeks }, (_, i) => ({
+        filled: i < weeksLived,
+        note: eventsMap[i] || ''
+      }));
+      
+      generateGrid();
+      updateCounts();
+    }
+
+    function generateGrid() {
+      let weekCounter = 0;
+      for (let year = 0; year < totalYears; year++) {
+        const row = document.createElement('div');
+        row.className = 'year-row';
+
+        const label = document.createElement('div');
+        label.className = 'year-label';
+        label.textContent = year;
+        row.appendChild(label);
+
+        const weeksRow = document.createElement('div');
+        weeksRow.className = 'weeks-row';
+
+        for (let week = 0; week < 52; week++) {
+          const box = document.createElement('div');
+          box.className = 'box';
+          box.dataset.index = weekCounter;
+          
+          if (weekData[weekCounter].filled) box.classList.add('filled');
+          if (weekData[weekCounter].note) box.classList.add('has-note');
+
+          weeksRow.appendChild(box);
+          boxElements.push(box);
+          weekCounter++;
+        }
+        row.appendChild(weeksRow);
+        grid.appendChild(row);
+      }
+    }
+
+    function getWeekInfoContent(index) {
+      const weekStartDate = new Date(dob.getTime() + index * msPerWeek);
+      const weekEndDate = new Date(weekStartDate.getTime() + (6 * 24 * 60 * 60 * 1000));
+      const startStr = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const endStr = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const yearNum = Math.floor(index / 52);
+      const weekNum = (index % 52) + 1;
+      
+      let noteContent = weekData[index].note && weekData[index].note.trim() !== '' 
+        ? `<strong>Event:</strong> ${weekData[index].note}` 
+        : `<em>No significant event in this week</em>`;
+
+      // Added the absolute index so users easily know which week number to use in the JSON
+      return `<strong>Year ${yearNum}, Week ${weekNum}</strong> <span style="font-size:7pt; color:#666;">(Absolute Week: ${index})</span><br>` +
+             `<span style="font-size:7.5pt; color:#444;">${startStr} – ${endStr}</span><br>` +
+             `<div style="margin-top:4px; border-top:1px solid #eee; padding-top:4px;">${noteContent}</div>`;
+    }
+
+    function updateCounts() {
+      const filled = weekData.filter(w => w.filled).length;
+      filledCountEl.textContent = filled.toLocaleString();
+      remainingCountEl.textContent = (totalWeeks - filled).toLocaleString();
+    }
+
+    function renderBoxState(index) {
+      const box = boxElements[index];
+      const data = weekData[index];
+      if (data.filled) box.classList.add('filled'); else box.classList.remove('filled');
+      if (data.note.trim() !== '') box.classList.add('has-note'); else box.classList.remove('has-note');
+    }
+
+    function clearStickySelection() {
+      if (lockedTooltipIndex !== null && boxElements[lockedTooltipIndex]) {
+        boxElements[lockedTooltipIndex].classList.remove('selected-sticky');
+      }
+      lockedTooltipIndex = null;
+    }
+
+    function showTooltip(index, clientX, clientY) {
+      tooltip.innerHTML = getWeekInfoContent(index);
+      tooltip.style.display = 'block';
+      tooltip.style.left = Math.min(clientX + 12, window.innerWidth - 280) + 'px';
+      tooltip.style.top = Math.min(clientY + 12, window.innerHeight - 120) + 'px';
+    }
+
+    grid.addEventListener('mouseover', (e) => {
+      if (lockedTooltipIndex !== null) return;
+      if (e.target.classList.contains('box')) {
+        const index = parseInt(e.target.dataset.index);
+        showTooltip(index, e.clientX, e.clientY);
+        const weekStart = new Date(dob.getTime() + index * msPerWeek);
+        const startStr = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        hoverDisplay.textContent = `Year ${Math.floor(index / 52)}, Week ${(index % 52) + 1} (${startStr})`;
+      }
+    });
+
+    grid.addEventListener('mousemove', (e) => {
+      if (lockedTooltipIndex === null && tooltip.style.display === 'block' && e.target.classList.contains('box')) {
+        tooltip.style.left = Math.min(e.clientX + 12, window.innerWidth - 280) + 'px';
+        tooltip.style.top = Math.min(e.clientY + 12, window.innerHeight - 120) + 'px';
+      }
+    });
+
+    grid.addEventListener('mouseout', (e) => {
+      if (lockedTooltipIndex === null && e.target.classList.contains('box')) {
+        tooltip.style.display = 'none';
+        hoverDisplay.textContent = `${totalYears} Years (${totalWeeks.toLocaleString()} Weeks)`;
+      }
+    });
+
+    grid.addEventListener('click', (e) => {
+      if (e.target.classList.contains('box')) {
+        const index = parseInt(e.target.dataset.index);
+        if (lockedTooltipIndex === index) {
+          clearStickySelection(); tooltip.style.display = 'none';
+          hoverDisplay.textContent = `${totalYears} Years (${totalWeeks.toLocaleString()} Weeks)`;
+        } else {
+          clearStickySelection(); lockedTooltipIndex = index;
+          boxElements[index].classList.add('selected-sticky');
+          showTooltip(index, e.clientX, e.clientY);
+        }
+      }
+    });
+
+    // Start App
+    loadData();
+  </script>
+</body>
+</html>
