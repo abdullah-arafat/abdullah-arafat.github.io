@@ -146,7 +146,9 @@
             .absolute.w-px { display: none !important; }
             
             #education-container > div { background: transparent !important; border: none !important; padding: 0 !important; box-shadow: none !important; margin-bottom: 0.25rem !important;}
-            .pub-item { border: none !important; padding: 0 0 0.25rem 0 !important; margin: 0 !important; }
+            .pub-item { border: none !important; padding: 0 0 0.25rem 1.25rem !important; margin: 0 !important; position: relative; }
+            .pub-item::before { content: counter(pub-counter) ". "; position: absolute; left: 0; top: 0; font-weight: bold; }
+            .pub-list-wrapper { counter-reset: pub-counter; }
             
             * { color: black !important; }
             
@@ -792,23 +794,23 @@
                                     ` : (hasPromotions ? '<div class="mb-4 cv-hide-print"></div>' : '')}
 
                                     ${hasPromotions ? `
-                                        <div class="relative pl-4 mt-4 border-t border-gray-100 pt-4 print:border-none print:mt-1 print:pt-0 print:pl-4">
-                                            <div class="absolute left-[5px] top-6 bottom-2 w-px bg-gray-200 cv-hide-print"></div>
-                                            <ul class="print:list-disc print:ml-4">
+                                        <div class="relative pl-4 mt-4 border-t border-gray-100 pt-4 cv-hide-print">
+                                            <div class="absolute left-[5px] top-6 bottom-2 w-px bg-gray-200"></div>
+                                            <ul>
                                             ${group.roles.slice(1).map(role => `
-                                                <li class="relative pl-5 pb-5 last:pb-0 print:pl-0 print:pb-0 print:mb-0.5 block print:list-item">
-                                                    <span class="absolute w-2 h-2 bg-gray-300 rounded-full left-[-7.5px] top-[5px] ring-2 ring-white group-hover:bg-gray-500 transition-colors cv-hide-print"></span>
-                                                    <div class="flex flex-col mb-1.5 print:mb-0">
+                                                <li class="relative pl-5 pb-5 last:pb-0 block">
+                                                    <span class="absolute w-2 h-2 bg-gray-300 rounded-full left-[-7.5px] top-[5px] ring-2 ring-white group-hover:bg-gray-500 transition-colors"></span>
+                                                    <div class="flex flex-col mb-1.5">
                                                         <div class="flex justify-between items-baseline">
-                                                            <h4 class="text-sm font-bold text-gray-800 print:text-[8pt] print:font-semibold">${role.title}</h4>
-                                                            <span class="text-[11px] font-bold text-gray-500 whitespace-nowrap ml-2 print:text-[7.5pt]">${role.period}</span>
+                                                            <h4 class="text-sm font-bold text-gray-800">${role.title}</h4>
+                                                            <span class="text-[11px] font-bold text-gray-500 whitespace-nowrap ml-2">${role.period}</span>
                                                         </div>
                                                     </div>
-                                                    <div class="cv-hide-print text-sm text-gray-600 leading-relaxed pl-0.5">
+                                                    <div class="text-sm text-gray-600 leading-relaxed pl-0.5">
                                                         ${formatText(role.description)}
                                                     </div>
                                                     ${role.skills && role.skills.length > 0 ? `
-                                                    <div class="cv-hide-print mt-2 pl-0.5">
+                                                    <div class="mt-2 pl-0.5">
                                                         <div class="flex flex-wrap gap-1.5">
                                                             ${role.skills.map(skill => `<span class="px-2.5 py-1 bg-white border border-gray-200 text-black font-medium text-[10px] uppercase tracking-wider rounded shadow-sm">${skill}</span>`).join('')}
                                                         </div>
@@ -898,13 +900,13 @@
 
             let pubsHTML = '';
             if (portfolioData.publications.books.length > 0) {
-                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 uppercase tracking-wide">Books & Chapters</h3> <div class="space-y-2 mb-8">${renderPubList(portfolioData.publications.books)}</div>`;
+                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 uppercase tracking-wide">Books & Chapters</h3> <div class="space-y-2 mb-8 pub-list-wrapper">${renderPubList(portfolioData.publications.books)}</div>`;
             }
             if (portfolioData.publications.journals.length > 0) {
-                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 uppercase tracking-wide">Journal Articles</h3> <div class="space-y-2 mb-8">${renderPubList(portfolioData.publications.journals)}</div>`;
+                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 uppercase tracking-wide">Journal Articles</h3> <div class="space-y-2 mb-8 pub-list-wrapper">${renderPubList(portfolioData.publications.journals)}</div>`;
             }
             if (portfolioData.publications.conferences.length > 0) {
-                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 uppercase tracking-wide">Conference Proceedings</h3> <div class="space-y-2 mb-8">${renderPubList(portfolioData.publications.conferences)}</div>`;
+                pubsHTML += `<h3 class="text-sm font-extrabold text-black mt-2 mb-2 uppercase tracking-wide">Conference Proceedings</h3> <div class="space-y-2 mb-8 pub-list-wrapper">${renderPubList(portfolioData.publications.conferences)}</div>`;
             }
             document.getElementById("publications-container").innerHTML = pubsHTML;
 
