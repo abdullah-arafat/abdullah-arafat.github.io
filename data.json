@@ -68,7 +68,7 @@
             "skills": ["Thermodynamics", "Physical Chemistry", "Mentorship"]
           },
           {
-            "title": "Laboratory Teaching Assistant (Mech Eng.)",
+            "title": "Laboratory Teaching Assistant (Mechanical)",
             "period": "Aug 2022 — May 2025",
             "description": "Lab Teaching Assistant for ME EN 3315 (Mechanics of Materials).\n- Assisted Professors: Dr. Michael Czabaj, Dr. Bozo Vazic, Dr. Ken Monson, Dr. Owen Kingstedt.\n- Guided students through complex mechanical testing protocols.",
             "skills": ["Mechanics of Materials", "Mentorship"]
@@ -160,10 +160,22 @@
   "publications": {
     "journals": [
       {
-        "mla": "Arafat, Abdullah, et al. \"Atomistic reaction mechanism of CVD grown MoS2 through MoO3 and H2S precursors.\" Scientific Reports, vol. 12, no. 1, 2022, p. 16085.",
+        "mla": "Ak, İ., H. Adin, \"Abdullah Arafat\", and M. Okumuş. \"Mechanical properties of Cu-Ni alloys: Comparison of experimental and MD simulation approaches.\" Physica B: Condensed Matter, vol. 700, 2025, p. 416928.",
+        "url": "https://www.sciencedirect.com/science/article/abs/pii/S0921452625000456",
+        "citations": 10,
+        "preview": "The rapid advancement of technology allows devices to be designed at atomistic scales, creating a need for material characterisation at micro and nano levels. In this study, nanoindentation tests and MD simulations are compared to analyse the hardness, modulus of elasticity and surface deformation of CuNi alloys produced by casting. These methods are used to comprehensively investigate and compare the mechanical properties of alloys. The applicability of the simulation method to metal alloys is also evaluated. Nanoindentation tests revealed Em values between 101.89 GPa and 139.27 GPa, while MD simulations showed higher Em values ranging from 126.30 GPa to 186.34 GPa. Larger grain sizes in Cu-%10Ni alloy reduced the hardness to 2.40 GPa, while smaller grains in Cu-%20Ni alloy increased the hardness to 3.09 GPa. MD simulations allow real-time atomic-scale deformation observations, supporting empirical results and in agreement with the literature, and their applicability in metal alloys has been observed."
+      },
+      {
+        "mla": "Sajal, Wahidur Rahman, Md Mehidi Hassan, Jahirul Islam, Tipu Sultan, Md Bokhtiar Hossen, and \"Abdullah Arafat\". \"Molecular dynamics study of mechanical stability of Ti4C3 MXene subjected to chirality, temperature, strain rate, and point-vacancy for Lithium-ion batteries.\" Heliyon, vol. 10, no. 19, 2024.",
+        "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VkHMZc4AAAAJ&citation_for_view=VkHMZc4AAAAJ:qjMakFHDy7sC",
+        "citations": 6,
+        "preview": "A comprehensive analysis of how extreme conditions and structural defects impact the durability of MXene materials, specifically aiming to improve longevity in Lithium-ion battery applications."
+      }
+      {
+        "mla": "Arafat, Abdullah, Md Sherajul Islam, Naim Ferdous, ASM Jannatul Islam, Md Mosarof Hossain Sarkar, Catherine Stampfl, and Jeongwon Park. \"Atomistic reaction mechanism of CVD grown MoS2 through MoO3 and H2S precursors.\" Scientific Reports, vol. 12, no. 1, 2022, p. 16085.",
         "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VkHMZc4AAAAJ&citation_for_view=VkHMZc4AAAAJ:u-x6o8ySG0sC",
-        "citations": 23,
-        "preview": "This paper details a theoretical model for the chemical vapor deposition of MoS2, exploring intermediary transition states and calculating activation energies for the reaction pathways using atomistic simulations."
+        "citations": 25,
+        "preview": "Chemical vapor deposition (CVD) through sulfidation of MoO3 is one of the most important synthesis techniques to obtain large-scale and high-quality two-dimensional (2D) MoS2. Recently, H2S precursor is being used in the CVD technique to synthesize 2D MoS2. Although several studies have been carried out to examine the mechanism of MoS2 growth in the presence of sulfur and MoO3 precursors, the growth of MoS2 in the presence of H2S precursor has largely remained unknown. In this study, we present a Reactive molecular dynamics (RMD) simulation to investigate the reaction mechanism of MoS2 from MoO3 and H2S precursors. The intermediate molecules formation, the reason behind those formations, and the surface compositions of MoOxSyHz during the initial steps of CVD have all been quantified. Surprisingly, a sudden separation of sulfur atoms from the surface was observed in the H2S precursor system due to the substantial oxygen evolution after 1660 K. The sulfur detachments and oxygen evolution from the surface were found to have a linear relationship. In addition, the intermediate molecules and surface bonds of MoS2 synthesized by MoO3 and H2S precursors were compared to those of a system using S2 and MoO3 precursors. The most stable subsidiary formation from the H2S precursor was found to be H2O, whereas in case of S2 precursor it was SO. These results provide a valuable insight in the formation of large-scale and high-quality 2D MoS2 by the CVD technique."
       },
       {
         "mla": "Komol, M.M.R., A.K. Podder, Abdullah Arafat, and T. Nabeed. \"Remote sensing global ranged door lock security system via mobile communication.\" International Journal of Wireless and Microwave Technologies, vol. 9, no. 5, 2019, pp. 25-37.",
@@ -172,23 +184,11 @@
         "preview": "A novel approach to global ranged security utilizing mobile communication modules integrated with electromechanical systems for real-time authentication and access control."
       },
       {
-        "mla": "Ak, İ., H. Adin, Abdullah Arafat, and M. Okumuş. \"Mechanical properties of Cu-Ni alloys: Comparison of experimental and MD simulation approaches.\" Physica B: Condensed Matter, vol. 700, 2025, p. 416928.",
-        "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VkHMZc4AAAAJ&citation_for_view=VkHMZc4AAAAJ:zYLM7Y9cAGgC",
-        "citations": 9,
-        "preview": "Investigates the tensile strength and elasticity of Cu-Ni alloys, drawing direct correlations between laboratory experimental data and simulated molecular dynamics predictions to validate computational models."
-      },
-      {
         "mla": "Sarkar, M.M.H., M.S. Islam, Abdullah Arafat, A.S.M.J. Islam, and N. Ferdous. \"Effects of the substrate structure on the CVD growth of two-dimensional hexagonal boron nitride.\" The Journal of Physical Chemistry C, vol. 126, no. 14, 2022, pp. 6373-6384.",
         "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VkHMZc4AAAAJ&citation_for_view=VkHMZc4AAAAJ:d1gIgvwDpCEC",
         "citations": 7,
         "preview": "Focuses on the epitaxial growth mechanics of h-BN, demonstrating how differing substrate lattice structures influence the orientation, defect rate, and quality of the resulting 2D material."
       },
-      {
-        "mla": "Sajal, W.R., et al., including Abdullah Arafat. \"Molecular dynamics study of mechanical stability of Ti4C3 MXene subjected to chirality, temperature, strain rate, and point-vacancy for Lithium-ion batteries.\" Heliyon, vol. 10, no. 19, 2024.",
-        "url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VkHMZc4AAAAJ&citation_for_view=VkHMZc4AAAAJ:qjMakFHDy7sC",
-        "citations": 6,
-        "preview": "A comprehensive analysis of how extreme conditions and structural defects impact the durability of MXene materials, specifically aiming to improve longevity in Lithium-ion battery applications."
-      }
     ],
     "conferences": [
       {
