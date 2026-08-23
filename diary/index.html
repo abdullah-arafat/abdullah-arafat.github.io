@@ -217,12 +217,12 @@
       
       <label>
         Data Repository
-        <input type="text" id="ghRepoInput" placeholder="username/repo">
+        <input type="text" id="ghRepoInput" placeholder="username/repo" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       </label>
       
       <label>
         Personal Access Token (PAT)
-        <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       </label>
 
       <div class="modal-actions">
@@ -397,7 +397,6 @@
         setStatus('error', 'Login Required');
         diaryData = {};
         renderList();
-        // Removed settingsModal.style.display = 'flex'; so it doesn't pop up on load
         return;
       }
       
@@ -407,7 +406,7 @@
       try {
         const response = await fetch(`https://api.github.com/repos/${targetRepo}/contents/${FILE_PATH}`, {
           headers: {
-            'Authorization': `token ${ghToken}`,
+            'Authorization': `Bearer ${ghToken}`,
             'Accept': 'application/vnd.github.v3+json'
           }
         });
@@ -421,7 +420,9 @@
         }
 
         if (response.status === 401) {
-          throw new Error("Unauthorized. Token is invalid or expired.");
+          ghToken = '';
+          localStorage.removeItem('gh_token');
+          throw new Error("Unauthorized. Token is invalid or expired. Please login again.");
         }
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -464,7 +465,7 @@
         const response = await fetch(`https://api.github.com/repos/${targetRepo}/contents/${FILE_PATH}`, {
           method: 'PUT',
           headers: {
-            'Authorization': `token ${ghToken}`,
+            'Authorization': `Bearer ${ghToken}`,
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json'
           },
