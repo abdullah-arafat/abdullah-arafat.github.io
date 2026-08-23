@@ -95,7 +95,7 @@
       
       <label>
         Data Repository
-        <input type="text" id="ghRepoInput" value="abdullah-arafat/liw-data">
+        <input type="text" id="ghRepoInput" placeholder="username/repo">
       </label>
       
       <label>
@@ -141,9 +141,12 @@
     let weekData = [];
     const msPerWeek = 1000 * 60 * 60 * 24 * 7;
     
-    // GitHub State defaults (Visitors see abdullah-arafat/liw-data without a token)
+    // Default repository for public viewers
+    const DEFAULT_PUBLIC_REPO = 'abdullah-arafat/liw-data';
+    
+    // GitHub State defaults 
     let ghToken = localStorage.getItem('liw_gh_token') || '';
-    let ghRepo = localStorage.getItem('liw_gh_repo') || 'abdullah-arafat/liw-data';
+    let ghRepo = localStorage.getItem('liw_gh_repo') || '';
     let fileSha = null;
     const FILE_PATH = 'liw_data.json'; 
 
@@ -192,14 +195,16 @@
     async function fetchFromGitHub() {
       setStatus('connecting', 'Fetching data...');
       
+      const targetRepo = ghRepo || DEFAULT_PUBLIC_REPO;
       const headers = { 'Accept': 'application/vnd.github.v3+json' };
+      
       // Only attach token if the admin is logged in
       if (ghToken) {
         headers['Authorization'] = `token ${ghToken}`;
       }
       
       try {
-        const response = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${FILE_PATH}`, {
+        const response = await fetch(`https://api.github.com/repos/${targetRepo}/contents/${FILE_PATH}`, {
           headers: headers
         });
 
@@ -226,12 +231,14 @@
 
     async function saveToGitHub() {
       // Final fallback to ensure non-admins cannot hit this code block
-      if (!ghToken || !ghRepo) {
+      if (!ghToken) {
         settingsModal.style.display = 'flex';
         return false;
       }
 
+      const targetRepo = ghRepo || DEFAULT_PUBLIC_REPO;
       setStatus('connecting', 'Committing...');
+      
       const jsonContent = JSON.stringify(liwData, null, 2);
       const base64Content = encodeUnicodeBase64(jsonContent);
 
@@ -243,7 +250,7 @@
       if (fileSha) body.sha = fileSha;
 
       try {
-        const response = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${FILE_PATH}`, {
+        const response = await fetch(`https://api.github.com/repos/${targetRepo}/contents/${FILE_PATH}`, {
           method: 'PUT',
           headers: {
             'Authorization': `token ${ghToken}`,
@@ -475,21 +482,22 @@
       // Only populates if you have explicitly saved a different repo name, otherwise shows placeholder
       document.getElementById('ghRepoInput').value = ghRepo; 
       document.getElementById('ghTokenInput').value = ghToken;
-      
+
       // Show/hide logout button based on login state
       document.getElementById('logoutAdminBtn').style.display = ghToken ? 'block' : 'none';
       document.getElementById('saveSettingsBtn').textContent = ghToken ? 'Update Token' : 'Login & Load';
-      
+
       settingsModal.style.display = 'flex';
     });
 
+    // Logout functionality
     document.getElementById('logoutAdminBtn').addEventListener('click', () => {
       ghToken = '';
       localStorage.removeItem('liw_gh_token');
       document.getElementById('ghTokenInput').value = '';
       
       settingsModal.style.display = 'none';
-      showToast("Logged out successfully.");
+      showToast("Logged out successfully. Returning to Public View.");
       
       // Re-fetch data to return to public read-only mode
       fetchFromGitHub();
@@ -513,7 +521,7 @@
     });
 
     // Auto-fetch on page load. 
-    // If no token exists, it performs an unauthenticated (public) read.
+    // If no token exists, it performs an unauthenticated (public) read from DEFAULT_PUBLIC_REPO.
     fetchFromGitHub();
 
   </script>
