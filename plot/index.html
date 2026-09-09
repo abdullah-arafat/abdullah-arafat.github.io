@@ -396,6 +396,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
   <div class="pane on" id="pane-series">
     <div class="sec"><h3 id="sel-title">No series selected</h3>
       <div class="body" id="series-editor" hidden>
+        <div class="row"><div style="flex:1"><label class="f">Series name</label><input id="s-name" type="text" readonly></div></div>
         <div class="row"><div style="flex:1"><label class="f">Legend label</label><input id="s-label" type="text"></div></div>
         <div class="grid2" style="margin-top:6px">
           <div><label class="f">X column</label><select id="s-x"></select></div>
@@ -469,7 +470,12 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 
   <div class="pane" id="pane-figure">
     <div class="sec"><h3>Labels</h3><div class="body">
-      <div class="row"><div style="flex:1"><label class="f">Title (automatic from plotted filenames)</label><input id="f-title" type="text" readonly></div></div>
+      <div class="row"><div style="flex:1"><label class="f">Title</label><input id="f-title" type="text" placeholder="Enter a figure title"></div></div>
+      <div class="row" style="margin-top:6px">
+        <label class="chk"><input id="f-showtitle" type="checkbox" checked>show title</label>
+        <label class="chk"><input id="f-autotitle" type="checkbox" checked>automatic from filenames</label>
+      </div>
+      <div class="hint">Typing a title switches to manual mode.</div>
       <div class="row"><div style="flex:1"><label class="f">X axis label</label><input id="f-xlabel" type="text"></div></div>
     </div></div>
     <div class="sec"><h3>X axis</h3><div class="body">
@@ -2294,7 +2300,7 @@ const state = {
   files: [], series: [],
   axes: [{ id: 'y', label: '', min: '', max: '', log: false, side: 'left', decimals: '', sci: false }],
   fig: {
-    title: '', xLabel: '', xMin: '', xMax: '', xLog: false, xSci: false, xDecimals: '', xTickCount: 6,
+    title: '', showTitle: true, autoTitle: true, xLabel: '', xMin: '', xMax: '', xLog: false, xSci: false, xDecimals: '', xTickCount: 6,
     panels: false, panelCols: 0,
     width: 900, height: 560, font: 'sans', fontScale: 1, frame: 'box', grid: 'none',
     minorTicks: true, tickDir: 'in', plotType: 'line', palette: 'tab10',
@@ -2386,14 +2392,14 @@ function computeSeriesRaw(s) {
   return pts;
 }
 
-function seriesLabel(s) {
-  if (s.label) return s.label;
+function seriesName(s) {
   const f = fileById(s.fileId);
   if (!f) return 'series';
   const x = f.columns[s.xi] ? f.columns[s.xi].name : '?';
   const y = f.columns[s.yi] ? f.columns[s.yi].name : '?';
   return f.short + '_(' + x + ')_Vs_(' + y + ')';
 }
+function seriesLabel(s) { return s.label || seriesName(s); }
 
 function nextColor() {
   const pal = P.PALETTES[state.fig.palette] || P.PALETTES.tab10;
@@ -2475,12 +2481,14 @@ function addSeries(fileId, xi, yi, opts) {
 /* ---------- figure spec ------------------------------------- */
 
 function updateAutomaticTitle() {
-  const names = [];
-  state.series.filter(s => s.visible).forEach(s => {
-    const f = fileById(s.fileId);
-    if (f && !names.includes(f.name)) names.push(f.name);
-  });
-  state.fig.title = names.join(', ');
+  if (state.fig.autoTitle !== false) {
+    const names = [];
+    state.series.filter(s => s.visible).forEach(s => {
+      const f = fileById(s.fileId);
+      if (f && !names.includes(f.name)) names.push(f.name);
+    });
+    state.fig.title = names.join(', ');
+  }
   const box = $('f-title'); if (box) box.value = state.fig.title;
   return state.fig.title;
 }
@@ -2517,7 +2525,8 @@ function buildSpec(overrides) {
   const axes = state.axes.map(a => Object.assign({}, a, zoom && zoom.y && zoom.y[a.id]
     ? { min: zoom.y[a.id][0], max: zoom.y[a.id][1] } : {}));
   return Object.assign({
-    width: +F.width, height: +F.height, title: F.title, xLabel: F.xLabel,
+    width: +F.width, height: +F.height, title: F.showTitle === false ? '' : F.title,
+    showTitle: F.showTitle !== false, autoTitle: F.autoTitle !== false, xLabel: F.xLabel,
     font: F.font, fontScale: +F.fontScale, frame: F.frame, grid: F.grid,
     minorTicks: F.minorTicks, tickDir: F.tickDir, plotType: F.plotType,
     boldTicks: F.boldTicks, boldAxes: F.boldAxes, boldLines: F.boldLines, boldTitle: F.boldTitle,
@@ -2559,8 +2568,10 @@ function buildPanelGrid(spec) {
     const file = src && fileById(src.fileId);
     const xLabel = src ? colName(src.fileId, src.xi) : spec.xLabel;
     const yLabel = src ? colName(src.fileId, src.yi) : own.label;
+    const panelTitle = spec.showTitle === false ? '' :
+      (spec.autoTitle === false ? spec.title : (file ? file.name : ''));
     return {
-      title: file ? file.name : '',
+      title: panelTitle,
       xLabel,
       // Separate panels identify the data channel on the Y axis and the
       // originating file in the title; the full series name stays in legend.
@@ -2672,11 +2683,11 @@ function renderSeriesList() {
     const sw = el('span', { className: 'swatch' }); sw.style.background = s.color;
     const eye = el('button', { className: 'eye' + (s.visible ? '' : ' off'), title: 'Show/hide' }, s.visible ? '◉' : '○');
     eye.onclick = ev => { ev.stopPropagation(); s.visible = !s.visible; render(); };
-    const nm = el('span', { className: 'nm' }, esc(seriesLabel(s)) + (s.proc !== 'none' ? ' <span class="sub">[' + s.proc + ']</span>' : ''));
+    const nm = el('span', { className: 'nm' }, esc(seriesName(s)) + (s.proc !== 'none' ? ' <span class="sub">[' + s.proc + ']</span>' : ''));
     const x = el('button', { className: 'x', title: 'Delete series' }, '✕');
     x.onclick = ev => {
       ev.stopPropagation();
-      if (!confirm('Delete series “' + seriesLabel(s) + '”?')) return;
+      if (!confirm('Delete series “' + seriesName(s) + '”?')) return;
       state.series.splice(i, 1);
       if (state.selSeries === s.id) state.selSeries = null;
       syncSeriesEditor(); render();
@@ -2729,7 +2740,7 @@ function refreshAxisChooser() {
   select.innerHTML = state.series.map(s => {
     const y = colName(s.fileId, s.yi) || '?';
     const axis = state.axes.find(a => a.id === s.axis);
-    return `<option value="${s.id}">${esc(seriesLabel(s))} — Y: ${esc(y)} (currently ${esc(axis ? axis.id : 'y')})</option>`;
+    return `<option value="${s.id}">${esc(seriesName(s))} — Y: ${esc(y)} (currently ${esc(axis ? axis.id : 'y')})</option>`;
   }).join('');
   refreshAxisPreview();
 }
@@ -2738,7 +2749,7 @@ function refreshAxisPreview() {
   const out = $('axis-preview');
   if (!s) { out.textContent = 'No series is available.'; return; }
   const y = colName(s.fileId, s.yi) || '?';
-  out.innerHTML = `<span class="swatch" style="display:inline-block;vertical-align:-1px;background:${escAttr(s.color)}"></span> New axis label: <b>${esc(y)}</b> · series: ${esc(seriesLabel(s))}`;
+  out.innerHTML = `<span class="swatch" style="display:inline-block;vertical-align:-1px;background:${escAttr(s.color)}"></span> New axis label: <b>${esc(y)}</b> · series: ${esc(seriesName(s))}`;
 }
 function addYAxisForSeries(s) {
   if (!s || !state.series.includes(s)) return null;
@@ -2818,9 +2829,10 @@ function selSeries() { return state.series.find(s => s.id === state.selSeries); 
 function syncSeriesEditor() {
   const s = selSeries();
   $('series-editor').hidden = !s;
-  $('sel-title').textContent = s ? seriesLabel(s) : 'No series selected';
+  $('sel-title').textContent = s ? seriesName(s) : 'No series selected';
   if (!s) { $('stats-out').innerHTML = '<div class="hint">Select a series to see its statistics.</div>'; return; }
   const f = fileById(s.fileId);
+  $('s-name').value = seriesName(s);
   $('s-label').value = s.label;
   $('s-x').innerHTML = optionsFor(f, s.xi);
   $('s-y').innerHTML = optionsFor(f, s.yi);
@@ -2850,7 +2862,11 @@ function bindSeries(id, key, cast) {
     if (key === 'xi' || key === 'yi' || key === 'xop' || key === 'yop' || key === 'proc' || key === 'procp' || key === 'decim' || key === 'sort') {
       if (s.fit) runFit(true);
     }
-    if (key === 'label') { renderSeriesList(); $('sel-title').textContent = seriesLabel(s); }
+    if (key === 'xi' || key === 'yi') {
+      $('s-name').value = seriesName(s);
+      $('sel-title').textContent = seriesName(s);
+      renderSeriesList();
+    }
     render();
   });
 }
@@ -2885,9 +2901,9 @@ function renderStatsTable() {
   let h = '<table class="t"><tr><th>series</th><th>n</th><th>mean</th><th>sd</th><th>min</th><th>max</th></tr>';
   vis.forEach(s => {
     const pts = inRange(computeSeries(s));
-    if (!pts.length) { h += `<tr><td>${esc(seriesLabel(s))}</td><td colspan="5">—</td></tr>`; return; }
+    if (!pts.length) { h += `<tr><td>${esc(seriesName(s))}</td><td colspan="5">—</td></tr>`; return; }
     const st = C.seriesStats(pts);
-    h += `<tr><td>${esc(seriesLabel(s))}</td><td class="n">${st.n}</td><td class="n">${C.fmtSig(st.mean)}</td>
+    h += `<tr><td>${esc(seriesName(s))}</td><td class="n">${st.n}</td><td class="n">${C.fmtSig(st.mean)}</td>
       <td class="n">${C.fmtSig(st.std)}</td><td class="n">${C.fmtSig(st.min)}</td><td class="n">${C.fmtSig(st.max)}</td></tr>`;
   });
   $('stats-table').innerHTML = h + '</table>';
@@ -2958,7 +2974,7 @@ function renderFitTable() {
   const withFits = state.series.filter(s => s.fit && s.fit.result);
   if (!withFits.length) { $('fit-table').innerHTML = '<div class="hint">No fits yet.</div>'; return; }
   let h = '<table class="t"><tr><th>series</th><th>model</th><th>R²</th><th>RMSE</th></tr>';
-  withFits.forEach(s => h += `<tr><td>${esc(seriesLabel(s))}</td><td>${s.fit.model}</td>
+  withFits.forEach(s => h += `<tr><td>${esc(seriesName(s))}</td><td>${s.fit.model}</td>
     <td class="n">${C.fmtSig(s.fit.result.r2, 5)}</td><td class="n">${C.fmtSig(s.fit.result.rmse, 3)}</td></tr>`);
   $('fit-table').innerHTML = h + '</table>';
 }
@@ -3005,7 +3021,7 @@ function setupOverlay() {
     }
     if (best) {
       out.style.display = 'block';
-      out.textContent = seriesLabel(best.s) + '\nx  ' + C.fmtSig(best.p[0], 6) + '\ny  ' + C.fmtSig(best.p[1], 6) +
+      out.textContent = seriesName(best.s) + '\nx  ' + C.fmtSig(best.p[0], 6) + '\ny  ' + C.fmtSig(best.p[1], 6) +
         (best.p[2] !== undefined ? '\n±  ' + C.fmtSig(best.p[2], 4) : '');
       const rr = ov.getBoundingClientRect();
       out.style.left = Math.min(d.csspx + 12, rr.width - 150) + 'px';
@@ -3226,7 +3242,7 @@ function buildExport() {
       let t = '# ' + s.fit.result.equation + '\n# R2=' + C.fmtSig(s.fit.result.r2, 6) + ' RMSE=' + C.fmtSig(s.fit.result.rmse, 6) + '\n';
       t += H(['x', 'y_fit']);
       s.fit.curve.forEach(p => t += fmtNum(p[0], prec, nanStr) + d + fmtNum(p[1], prec, nanStr) + '\n');
-      files.push({ name: safe(seriesLabel(s)) + '_fit', text: t });
+      files.push({ name: safe(seriesName(s)) + '_fit', text: t });
     });
   } else if (scope === 'stats') {
     let t = H(['series', 'n', 'mean', 'sd', 'sem', 'min', 'max', 'median', 'integral']);
@@ -3234,7 +3250,7 @@ function buildExport() {
       const pts = inRange(computeSeries(s));
       if (!pts.length) return;
       const st = C.seriesStats(pts);
-      t += [seriesLabel(s), st.n, st.mean, st.std, st.sem, st.min, st.max, st.median, st.area]
+      t += [seriesName(s), st.n, st.mean, st.std, st.sem, st.min, st.max, st.median, st.area]
         .map((v, i) => i === 0 ? v : fmtNum(v, prec, nanStr)).join(d) + '\n';
     });
     files.push({ name: 'statistics', text: t });
@@ -3251,7 +3267,7 @@ function buildExport() {
   return files;
 }
 function safe(s) { return String(s).replace(/[^\w.\-]+/g, '_').replace(/^_+|_+$/g, '') || 'data'; }
-function seriesDataStem(s) { return safe(seriesLabel(s)) + '_' + s.id; }
+function seriesDataStem(s) { return safe(seriesName(s)) + '_' + s.id; }
 function extFor(d) { return d === ',' ? 'csv' : d === '\t' ? 'tsv' : 'txt'; }
 function download(name, text, mime) {
   const b = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
@@ -3422,7 +3438,8 @@ function pythonScript() {
     if (separate) {
       const own = spec.axes.find(a => a.id === s.axis) || spec.axes[0];
       const srcFile = fileById(s.fileId);
-      if (srcFile) L.push(axv + '.set_title(' + q(srcFile.name) + ', fontweight=' + q(F.boldTitle ? 'bold' : 'normal') + ')');
+      const panelTitle = F.showTitle === false ? '' : (F.autoTitle === false ? F.title : (srcFile ? srcFile.name : ''));
+      if (panelTitle) L.push(axv + '.set_title(' + q(panelTitle) + ', fontweight=' + q(F.boldTitle ? 'bold' : 'normal') + ')');
       L.push(axv + '.set_ylabel(' + q(colName(s.fileId, s.yi)) + ')');
       L.push(axv + '.tick_params(axis="y", colors=' + q(s.color) + ')');
       L.push(axv + '.yaxis.label.set_color(' + q(s.color) + ')');
@@ -3450,7 +3467,7 @@ function pythonScript() {
     L.push('for unused_ax in panel_axes[' + vis.length + ':]:');
     L.push('    unused_ax.set_visible(False)');
   } else {
-    if (F.title) L.push('ax.set_title(' + q(F.title) + ', fontweight=' + q(F.boldTitle ? 'bold' : 'normal') + ')');
+    if (spec.title) L.push('ax.set_title(' + q(spec.title) + ', fontweight=' + q(F.boldTitle ? 'bold' : 'normal') + ')');
     if (F.xLabel) L.push('ax.set_xlabel(' + q(F.xLabel) + ')');
     spec.axes.forEach(a => {
       const v = a.id === 'y' ? 'ax' : extra[a.id];
@@ -3685,7 +3702,7 @@ function loadSession(text) {
 /* ---------- figure input sync ------------------------------- */
 
 const FIG_BIND = [
-  ['f-title', 'title'], ['f-xlabel', 'xLabel'], ['f-xmin', 'xMin'], ['f-xmax', 'xMax'],
+  ['f-showtitle', 'showTitle'], ['f-autotitle', 'autoTitle'], ['f-xlabel', 'xLabel'], ['f-xmin', 'xMin'], ['f-xmax', 'xMax'],
   ['f-xticks', 'xTickCount'], ['f-xdec', 'xDecimals'], ['f-xlog', 'xLog'], ['f-xsci', 'xSci'],
   ['f-w', 'width'], ['f-h', 'height'], ['f-font', 'font'], ['f-fscale', 'fontScale'],
   ['f-frame', 'frame'], ['f-grid', 'grid'], ['f-tickdir', 'tickDir'], ['f-minor', 'minorTicks'],
@@ -3693,9 +3710,12 @@ const FIG_BIND = [
   ['plot-type', 'plotType'], ['palette', 'palette']
 ];
 function syncFigureInputs() {
+  $('f-title').value = state.fig.title || '';
   FIG_BIND.forEach(([id, k]) => {
     const e = $(id);
-    if (e.type === 'checkbox') e.checked = !!state.fig[k]; else e.value = state.fig[k];
+    if (e.type === 'checkbox') {
+      e.checked = (k === 'showTitle' || k === 'autoTitle') ? state.fig[k] !== false : !!state.fig[k];
+    } else e.value = state.fig[k];
   });
   $('l-show').checked = state.legend.show; $('l-pos').value = state.legend.pos;
   $('l-cols').value = state.legend.cols; $('l-frame').checked = state.legend.frame;
@@ -3895,7 +3915,7 @@ function boot() {
   };
   $('s-del').onclick = () => {
     const s = selSeries(); if (!s) return;
-    if (!confirm('Delete series “' + seriesLabel(s) + '”?')) return;
+    if (!confirm('Delete series “' + seriesName(s) + '”?')) return;
     state.series.splice(state.series.indexOf(s), 1);
     state.selSeries = state.series.length ? state.series[0].id : null;
     syncSeriesEditor(); render();
@@ -3936,6 +3956,12 @@ function boot() {
   };
 
   // ---- figure controls
+  $('f-title').addEventListener('input', e => {
+    state.fig.title = e.target.value;
+    state.fig.autoTitle = false;
+    $('f-autotitle').checked = false;
+    render();
+  });
   FIG_BIND.forEach(([id, k]) => {
     const e = $(id);
     const ev = (e.type === 'checkbox' || e.tagName === 'SELECT') ? 'change' : 'input';
@@ -3977,7 +4003,7 @@ function boot() {
     const id = addYAxisForSeries(s);
     $('m-add-axis').classList.remove('on');
     syncSeriesEditor(); render();
-    say('Added ' + id + ' for “' + seriesLabel(s) + '”; the axis follows the plot colour.', 'ok');
+    say('Added ' + id + ' for “' + seriesName(s) + '”; the axis follows the plot colour.', 'ok');
   };
   $('axis-go-all').onclick = () => {
     if (!state.series.length) { say('Add at least one series first.', 'warn'); return; }
