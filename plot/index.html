@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+<!-- saved from url=(0039)https://abdullah-arafat.github.io/plot/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PlotForge</title>
 <style>:root{
@@ -33,6 +33,10 @@ header{
 .brand b{font-size:15px;font-weight:650}
 .brand span{color:var(--muted);font-size:11.5px}
 header .spacer{flex:1}
+.plot-state-tools{display:flex;align-items:center;gap:5px;min-width:0}
+.plot-state-tools label{font-size:10.5px;color:var(--muted);white-space:nowrap}
+.plot-state-tools select{width:150px;max-width:22vw;padding-block:3px}
+.plot-state-tools button{padding-inline:7px}
 .rail,.inspector{background:var(--surface);overflow-y:auto;overflow-x:hidden}
 .rail{border-right:1px solid var(--rule)}
 .inspector{border-left:1px solid var(--rule)}
@@ -186,6 +190,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
   main{min-height:70vh}
   .stage{padding:8px}
   header{position:sticky;top:0;z-index:20;overflow-x:auto;white-space:nowrap}
+  .plot-state-tools select{max-width:none;width:150px}
   .toolbar{position:sticky;top:42px;z-index:15;align-items:stretch}
   .toolbar>select,.toolbar>.mode-picker{flex:1 1 145px;min-width:0}
   .action-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));flex:1 1 100%}
@@ -206,8 +211,13 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-</head>
-<body>
+<style name="nordpass-fonts">@font-face{font-family:Inter;src:url("chrome-extension://eiaeiblijfjekdanodkjadfinkhbfgcd/assets/font-c9407645.woff2")format("woff2");font-weight:400 700;font-style:normal;font-display:swap;unicode-range:U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Inter;src:url("chrome-extension://eiaeiblijfjekdanodkjadfinkhbfgcd/assets/font-a28eb6d3.woff2")format("woff2");font-weight:400 700;font-style:normal;font-display:swap;unicode-range:U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Inter;src:url("chrome-extension://eiaeiblijfjekdanodkjadfinkhbfgcd/assets/font-7ddd9658.woff2")format("woff2");font-weight:400 700;font-style:italic;font-display:swap;unicode-range:U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Inter;src:url("chrome-extension://eiaeiblijfjekdanodkjadfinkhbfgcd/assets/font-e3f94a6c.woff2")format("woff2");font-weight:400 700;font-style:italic;font-display:swap;unicode-range:U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Roboto Mono;src:url("chrome-extension://eiaeiblijfjekdanodkjadfinkhbfgcd/assets/font-2ed6ac9e.woff2")format("woff2");font-weight:500 700;font-style:normal;font-display:swap;unicode-range:U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Roboto Mono;src:url("chrome-extension://eiaeiblijfjekdanodkjadfinkhbfgcd/assets/font-2cb74c78.woff2")format("woff2");font-weight:500 700;font-style:normal;font-display:swap;unicode-range:U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}</style></head>
+<body data-new-gr-c-s-check-loaded="14.1148.0" data-gr-ext-installed="">
 <div id="app">
 
 <header>
@@ -215,6 +225,13 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
   <div class="spacer"></div>
   <button id="btn-examples">Load example data</button>
   <button id="btn-grid">Column overview</button>
+  <div class="sep"></div>
+  <div class="plot-state-tools">
+    <label for="plot-state-select">Plot state</label>
+    <select id="plot-state-select" title="Switch among plots stored in this session"><option value="">Current / unsaved</option></select>
+    <button id="btn-save-plot" title="Name and store the current plot inside this session">Save plot state</button>
+    <button id="btn-delete-plot" class="warn" title="Delete the selected stored plot state">Delete state</button>
+  </div>
   <div class="sep"></div>
   <button id="btn-save">Save session</button>
   <button id="btn-load">Open session</button>
@@ -226,15 +243,15 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 <div class="rail">
 
   <div class="sec" id="sec-import">
-    <h3>Import data <svg class="chev" width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" stroke="currentColor" fill="none" stroke-width="1.4"/></svg></h3>
+    <h3>Import data <svg class="chev" width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" stroke="currentColor" fill="none" stroke-width="1.4"></path></svg></h3>
     <div class="body">
       <div id="drop"><b>Drop files here</b>log, dump, dat, txt, csv, tsv, out — any delimiter</div>
-      <input id="file-input" type="file" multiple hidden>
-      <input id="session-input" type="file" accept=".json" hidden>
+      <input id="file-input" type="file" multiple="" hidden="">
+      <input id="session-input" type="file" accept=".json" hidden="">
       <div class="row" style="margin-top:6px">
         <button id="btn-paste-open" class="wide">Paste text instead</button>
       </div>
-      <div id="paste-wrap" hidden style="margin-top:6px">
+      <div id="paste-wrap" hidden="" style="margin-top:6px">
         <textarea id="paste-area" rows="5" placeholder="Paste columns of numbers, with or without a header row"></textarea>
         <div class="row" style="margin-top:4px">
           <input id="paste-name" type="text" placeholder="name for this dataset">
@@ -245,12 +262,13 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
   </div>
 
   <div class="sec" id="sec-sources">
-    <h3>Sources <span id="src-count" class="tag">0</span><svg class="chev" width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" stroke="currentColor" fill="none" stroke-width="1.4"/></svg></h3>
+    <h3>Sources <span id="src-count" class="tag">0</span><svg class="chev" width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" stroke="currentColor" fill="none" stroke-width="1.4"></path></svg></h3>
     <div class="body">
       <div id="source-list"></div>
-      <div id="parse-panel" hidden>
+      <div id="parse-panel" hidden="">
         <hr>
         <div><label class="f">Source name</label><input id="p-name" type="text" placeholder="dataset name"></div>
+        <div style="margin-top:6px"><label class="f">Source comment</label><textarea id="p-note" rows="3" placeholder="Notes about origin, conditions, units, or preprocessing"></textarea></div>
         <div class="grid2">
           <div><label class="f">Delimiter</label>
             <select id="p-delim">
@@ -290,7 +308,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
   </div>
 
   <div class="sec" id="sec-series">
-    <h3>Series <span id="ser-count" class="tag">0</span><svg class="chev" width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" stroke="currentColor" fill="none" stroke-width="1.4"/></svg></h3>
+    <h3>Series <span id="ser-count" class="tag">0</span><svg class="chev" width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" stroke="currentColor" fill="none" stroke-width="1.4"></path></svg></h3>
     <div class="body">
       <div class="grid2">
         <div><label class="f">X column</label><select id="add-x"></select></div>
@@ -301,7 +319,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
         <button id="btn-add-all" style="flex:1" title="Plot every numeric column of this file against the chosen X">Add all Y columns</button>
       </div>
       <hr>
-      <div id="series-list"></div>
+      <div id="series-list"><div class="hint">No series yet.</div></div>
       <div class="row series-actions">
         <button id="btn-avg" style="flex:1" title="Mean ± SD across all visible series on a shared x grid">Mean of visible ± SD</button>
         <button id="btn-del-all-series" class="warn" style="flex:1" title="Delete every series">Delete all series</button>
@@ -310,7 +328,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
   </div>
 
   <div class="sec" id="sec-derive">
-    <h3>New column from formula <svg class="chev" width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" stroke="currentColor" fill="none" stroke-width="1.4"/></svg></h3>
+    <h3>New column from formula <svg class="chev" width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" stroke="currentColor" fill="none" stroke-width="1.4"></path></svg></h3>
     <div class="body">
       <div class="row"><input id="calc-name" type="text" placeholder="name, e.g. Pmean"></div>
       <div class="row"><input id="calc-formula" type="text" placeholder="(Pxx+Pyy+Pzz)/3"></div>
@@ -346,13 +364,13 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
     <button id="btn-recolor" title="Re-apply the palette to all series">Recolour</button>
     <div class="sep"></div>
     <button id="btn-zoomreset" title="Reset zoom to data limits">Reset view</button>
-    <label class="chk" title="Drag on the figure to zoom; shift-drag to pan"><input id="drag-zoom" type="checkbox" checked>drag-zoom</label>
+    <label class="chk" title="Drag on the figure to zoom; shift-drag to pan"><input id="drag-zoom" type="checkbox" checked="">drag-zoom</label>
     <div class="sep"></div>
     <select id="panel-mode" class="mode-picker" title="Draw series on shared axes or as separate plots">
       <option value="overlay">On top of each other</option>
       <option value="separate">Separate plots</option>
     </select>
-    <select id="panel-cols" title="Panels per row" hidden>
+    <select id="panel-cols" title="Panels per row" hidden="">
       <option value="0">auto</option><option value="1">1 col</option><option value="2">2 cols</option>
       <option value="3">3 cols</option><option value="4">4 cols</option>
     </select>
@@ -365,19 +383,40 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
     </div>
     <div class="spacer" style="flex:1"></div>
     <span class="coord" id="panel-note"></span>
-    <span class="coord" id="fig-dims"></span>
+    <span class="coord" id="fig-dims">900×560px</span>
   </div>
 
   <div class="stage">
-    <div id="paper">
-      <div id="figure"></div>
+    <div id="paper" data-natural-width="900" data-natural-height="560" style="width: 900px; height: auto; aspect-ratio: 900 / 560;">
+      <div id="figure"><svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560" font-family="Arial, &#39;Helvetica Neue&#39;, Helvetica, &#39;Liberation Sans&#39;, sans-serif" style="font-family:Arial, &#39;Helvetica Neue&#39;, Helvetica, &#39;Liberation Sans&#39;, sans-serif">
+<style>text{font-family:Arial, 'Helvetica Neue', Helvetica, 'Liberation Sans', sans-serif!important}</style>
+<rect width="900" height="560" fill="#ffffff"></rect>
+<clippath id="pfclip"><rect x="43.14" y="16" width="834.86" height="513.5"></rect></clippath>
+<path d="M43.14,529.5v-4.5M43.14,16v4.5M210.11,529.5v-4.5M210.11,16v4.5M377.08,529.5v-4.5M377.08,16v4.5M544.06,529.5v-4.5M544.06,16v4.5M711.03,529.5v-4.5M711.03,16v4.5M878,529.5v-4.5M878,16v4.5" stroke="#111111" stroke-width="1" fill="none"></path>
+<path d="M76.53,529.5v-2.475M76.53,16v2.475M109.93,529.5v-2.475M109.93,16v2.475M143.32,529.5v-2.475M143.32,16v2.475M176.72,529.5v-2.475M176.72,16v2.475M243.51,529.5v-2.475M243.51,16v2.475M276.9,529.5v-2.475M276.9,16v2.475M310.3,529.5v-2.475M310.3,16v2.475M343.69,529.5v-2.475M343.69,16v2.475M410.48,529.5v-2.475M410.48,16v2.475M443.87,529.5v-2.475M443.87,16v2.475M477.27,529.5v-2.475M477.27,16v2.475M510.66,529.5v-2.475M510.66,16v2.475M577.45,529.5v-2.475M577.45,16v2.475M610.84,529.5v-2.475M610.84,16v2.475M644.24,529.5v-2.475M644.24,16v2.475M677.63,529.5v-2.475M677.63,16v2.475M744.42,529.5v-2.475M744.42,16v2.475M777.82,529.5v-2.475M777.82,16v2.475M811.21,529.5v-2.475M811.21,16v2.475M844.61,529.5v-2.475M844.61,16v2.475" stroke="#111111" stroke-width="0.8" fill="none"></path>
+<text x="43.14" y="545.5" font-size="11" font-weight="400" text-anchor="middle" fill="#111111">0</text>
+<text x="210.11" y="545.5" font-size="11" font-weight="400" text-anchor="middle" fill="#111111">0.2</text>
+<text x="377.08" y="545.5" font-size="11" font-weight="400" text-anchor="middle" fill="#111111">0.4</text>
+<text x="544.06" y="545.5" font-size="11" font-weight="400" text-anchor="middle" fill="#111111">0.6</text>
+<text x="711.03" y="545.5" font-size="11" font-weight="400" text-anchor="middle" fill="#111111">0.8</text>
+<text x="878" y="545.5" font-size="11" font-weight="400" text-anchor="middle" fill="#111111">1</text>
+<path d="M43.14,529.5h4.5M878,529.5h-4.5M43.14,426.8h4.5M878,426.8h-4.5M43.14,324.1h4.5M878,324.1h-4.5M43.14,221.4h4.5M878,221.4h-4.5M43.14,118.7h4.5M878,118.7h-4.5M43.14,16h4.5M878,16h-4.5" stroke="#111111" stroke-width="1" fill="none"></path>
+<path d="M43.14,508.96h2.475M878,508.96h-2.475M43.14,488.42h2.475M878,488.42h-2.475M43.14,467.88h2.475M878,467.88h-2.475M43.14,447.34h2.475M878,447.34h-2.475M43.14,406.26h2.475M878,406.26h-2.475M43.14,385.72h2.475M878,385.72h-2.475M43.14,365.18h2.475M878,365.18h-2.475M43.14,344.64h2.475M878,344.64h-2.475M43.14,303.56h2.475M878,303.56h-2.475M43.14,283.02h2.475M878,283.02h-2.475M43.14,262.48h2.475M878,262.48h-2.475M43.14,241.94h2.475M878,241.94h-2.475M43.14,200.86h2.475M878,200.86h-2.475M43.14,180.32h2.475M878,180.32h-2.475M43.14,159.78h2.475M878,159.78h-2.475M43.14,139.24h2.475M878,139.24h-2.475M43.14,98.16h2.475M878,98.16h-2.475M43.14,77.62h2.475M878,77.62h-2.475M43.14,57.08h2.475M878,57.08h-2.475M43.14,36.54h2.475M878,36.54h-2.475" stroke="#111111" stroke-width="0.8" fill="none"></path>
+<text x="38.14" y="533.35" font-size="11" font-weight="400" text-anchor="end" fill="#111111">0</text>
+<text x="38.14" y="430.65" font-size="11" font-weight="400" text-anchor="end" fill="#111111">0.2</text>
+<text x="38.14" y="327.95" font-size="11" font-weight="400" text-anchor="end" fill="#111111">0.4</text>
+<text x="38.14" y="225.25" font-size="11" font-weight="400" text-anchor="end" fill="#111111">0.6</text>
+<text x="38.14" y="122.55" font-size="11" font-weight="400" text-anchor="end" fill="#111111">0.8</text>
+<text x="38.14" y="19.85" font-size="11" font-weight="400" text-anchor="end" fill="#111111">1</text>
+<rect x="43.14" y="16" width="834.86" height="513.5" fill="none" stroke="#111111" stroke-width="1"></rect>
+</svg></div>
       <div id="overlay"><div id="zoombox"></div></div>
-      <div id="readout"></div>
+      <div id="readout" style="display: none;"></div>
     </div>
   </div>
 
   <div class="statusbar">
-    <span class="msg" id="status">Load a file, or press “Load example data” to try every feature.</span>
+    <span class="msg" id="status">No series yet. Pick X and Y columns, then “Add series”.</span>
     <span class="coord" id="cursor"></span>
     <span class="hover-values" id="hover-values"></span>
   </div>
@@ -395,8 +434,9 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 
   <div class="pane on" id="pane-series">
     <div class="sec"><h3 id="sel-title">No series selected</h3>
-      <div class="body" id="series-editor" hidden>
-        <div class="row"><div style="flex:1"><label class="f">Series name</label><input id="s-name" type="text" readonly></div></div>
+      <div class="body" id="series-editor" hidden="">
+        <div class="row"><div style="flex:1"><label class="f">Series name</label><input id="s-name" type="text" readonly=""></div></div>
+        <div id="s-source-note" class="hint" hidden=""></div>
         <div class="row"><div style="flex:1"><label class="f">Legend label</label><input id="s-label" type="text"></div></div>
         <div class="grid2" style="margin-top:6px">
           <div><label class="f">X column</label><select id="s-x"></select></div>
@@ -413,7 +453,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
             <option value="scatter">scatter</option><option value="bar">bar</option>
             <option value="step">step</option><option value="area">area</option><option value="stem">stem</option>
           </select></div>
-          <div><label class="f">Marker</label><select id="s-marker"></select></div>
+          <div><label class="f">Marker</label><select id="s-marker"><option value="circle">circle</option><option value="square">square</option><option value="triangle">triangle</option><option value="diamond">diamond</option><option value="cross">cross</option><option value="plus">plus</option><option value="star">star</option><option value="none">none</option></select></div>
           <div><label class="f">Dashes</label><select id="s-dash">
             <option value="solid">solid</option><option value="dashed">dashed</option>
             <option value="dotted">dotted</option><option value="dashdot">dash-dot</option><option value="longdash">long dash</option>
@@ -437,6 +477,10 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
           <div><label class="f">Transform X</label><input id="s-xop" type="text" placeholder="x*0.001"></div>
           <div><label class="f">Transform Y</label><input id="s-yop" type="text" placeholder="y/1e9"></div>
         </div>
+        <div class="grid2" style="margin-top:4px">
+          <button id="s-save-x" title="Permanently replace this source column with its transformed values">Save X to source</button>
+          <button id="s-save-y" title="Permanently replace this source column with its transformed values">Save Y to source</button>
+        </div>
         <div class="grid2" style="margin-top:6px">
           <div><label class="f">Processing</label><select id="s-proc">
             <option value="none">raw data</option>
@@ -454,10 +498,13 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
           </select></div>
           <div><label class="f">Window / bins</label><input id="s-procp" type="number" min="2" value="11"></div>
         </div>
+        <button id="s-save-proc" class="wide" style="margin-top:4px" title="Write the selected processing result into the source Y column">Save processing to source</button>
         <div class="grid2" style="margin-top:6px">
           <div><label class="f">Keep every Nth point</label><input id="s-decim" type="number" min="1" value="1"></div>
           <div><label class="f">Sort by X</label><select id="s-sort"><option value="0">no</option><option value="1">yes</option></select></div>
         </div>
+        <button id="s-save-decim" class="wide" style="margin-top:4px" title="Delete skipped rows from this in-memory source">Save Nth-point filter to source</button>
+        <div class="hint">Transforms, processing and point filtering stay non-destructive until their Save button is pressed.</div>
         <hr>
         <div class="row">
           <button id="s-dup" style="flex:1">Duplicate</button>
@@ -472,8 +519,8 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
     <div class="sec"><h3>Labels</h3><div class="body">
       <div class="row"><div style="flex:1"><label class="f">Title</label><input id="f-title" type="text" placeholder="Enter a figure title"></div></div>
       <div class="row" style="margin-top:6px">
-        <label class="chk"><input id="f-showtitle" type="checkbox" checked>show title</label>
-        <label class="chk"><input id="f-autotitle" type="checkbox" checked>automatic from filenames</label>
+        <label class="chk"><input id="f-showtitle" type="checkbox" checked="">show title</label>
+        <label class="chk"><input id="f-autotitle" type="checkbox" checked="">automatic from filenames</label>
       </div>
       <div class="hint">Typing a title switches to manual mode.</div>
       <div class="row"><div style="flex:1"><label class="f">X axis label</label><input id="f-xlabel" type="text"></div></div>
@@ -521,7 +568,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
         </select></div>
         <div><label class="f">Ticks point</label><select id="f-tickdir"><option value="in">inward</option><option value="out">outward</option></select></div>
       </div>
-      <label class="chk" style="margin-top:6px"><input id="f-minor" type="checkbox" checked>minor ticks</label>
+      <label class="chk" style="margin-top:6px"><input id="f-minor" type="checkbox" checked="">minor ticks</label>
       <hr>
       <div class="grid2">
         <label class="chk"><input id="f-boldticks" type="checkbox">bold ticks</label>
@@ -531,7 +578,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
       </div>
     </div></div>
     <div class="sec"><h3>Legend</h3><div class="body">
-      <label class="chk"><input id="l-show" type="checkbox" checked>show legend</label>
+      <label class="chk"><input id="l-show" type="checkbox" checked="">show legend</label>
       <div class="grid2" style="margin-top:6px">
         <div><label class="f">Position</label><select id="l-pos">
           <option value="upper left">upper left</option><option value="upper right">upper right</option>
@@ -540,7 +587,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
         </select></div>
         <div><label class="f">Columns</label><input id="l-cols" type="number" min="1" max="4" value="1"></div>
       </div>
-      <label class="chk" style="margin-top:6px"><input id="l-frame" type="checkbox" checked>box around legend</label>
+      <label class="chk" style="margin-top:6px"><input id="l-frame" type="checkbox" checked="">box around legend</label>
     </div></div>
     <div class="sec"><h3>Reference lines &amp; notes</h3><div class="body">
       <div class="grid3">
@@ -557,7 +604,20 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 
   <div class="pane" id="pane-axes">
     <div class="sec"><h3>Y axes</h3><div class="body">
-      <div id="axes-list"></div>
+      <div id="axes-list"><div class="axcard">
+      <div class="row"><span class="swatch" style="background:#111111" title="Axis colour follows its plot"></span><span class="tag">y</span>
+        <input type="text" placeholder="axis label" value="" data-k="label">
+        <span class="sub mono">primary</span></div>
+      <div class="grid3" style="margin-top:5px">
+        <div><label class="f">Min</label><input type="number" value="" data-k="min" placeholder="auto"></div>
+        <div><label class="f">Max</label><input type="number" value="" data-k="max" placeholder="auto"></div>
+        <div><label class="f">Decimals</label><input type="number" min="0" max="10" value="" data-k="decimals" placeholder="auto"></div>
+      </div>
+      <div class="row" style="margin-top:5px">
+        <select data-k="side"><option value="left" selected="">left</option><option value="right">right</option></select>
+        <label class="chk"><input type="checkbox" data-k="log">log</label>
+        <label class="chk"><input type="checkbox" data-k="sci">sci</label>
+      </div></div></div>
       <button id="btn-add-axis" class="wide">Add another Y axis</button>
       <div class="hint">Series are assigned to an axis in the Series tab. A second axis lets you put, say, temperature and pressure on one figure without one flattening the other.</div>
     </div></div>
@@ -588,7 +648,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
         <label class="chk"><input id="fit-extrap" type="checkbox">extend across full x range</label>
       </div>
       <div class="row" style="margin-top:4px">
-        <label class="chk"><input id="fit-label" type="checkbox" checked>equation in legend</label>
+        <label class="chk"><input id="fit-label" type="checkbox" checked="">equation in legend</label>
       </div>
       <div class="row" style="margin-top:6px">
         <button id="fit-run" class="pri" style="flex:1">Fit</button>
@@ -596,7 +656,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
       </div>
       <div id="fit-out" style="margin-top:8px"></div>
     </div></div>
-    <div class="sec"><h3>All fits</h3><div class="body"><div id="fit-table"></div></div></div>
+    <div class="sec"><h3>All fits</h3><div class="body"><div id="fit-table"><div class="hint">No fits yet.</div></div></div></div>
   </div>
 
   <div class="pane" id="pane-stats">
@@ -609,7 +669,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
       </div>
       <div id="blk-out" class="hint"></div>
     </div></div>
-    <div class="sec"><h3>All visible series</h3><div class="body"><div id="stats-table"></div></div></div>
+    <div class="sec"><h3>All visible series</h3><div class="body"><div id="stats-table"><div class="hint">Nothing visible.</div></div></div></div>
   </div>
 </div>
 </div>
@@ -618,7 +678,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 
 <!-- ============ MODALS ============ -->
 <div class="modal" id="m-export">
-  <div class="sheet"><header><b>Export data</b><button data-close>✕</button></header><div class="body">
+  <div class="sheet"><header><b>Export data</b><button data-close="">✕</button></header><div class="body">
     <div class="grid2">
       <div><label class="f">What to write</label><select id="e-scope">
         <option value="plotted">plotted x/y pairs (per series)</option>
@@ -642,7 +702,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
       <div><label class="f">Custom delimiter</label><input id="e-custom" type="text" placeholder="e.g. ~"></div>
       <div><label class="f">Decimal places</label><input id="e-prec" type="number" min="0" max="17" value="6"></div>
     </div>
-    <div id="e-cols" hidden style="margin-top:6px">
+    <div id="e-cols" hidden="" style="margin-top:6px">
       <label class="f">Columns to include</label>
       <div id="e-collist" style="max-height:150px;overflow:auto;border:1px solid var(--rule);background:#fff;padding:5px"></div>
     </div>
@@ -651,7 +711,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
       <div><label class="f">Grid points (merged)</label><input id="e-grid" type="number" min="10" max="20000" value="500"></div>
     </div>
     <div class="row" style="margin-top:6px">
-      <label class="chk"><input id="e-header" type="checkbox" checked>write header row</label>
+      <label class="chk"><input id="e-header" type="checkbox" checked="">write header row</label>
       <label class="chk"><input id="e-comment" type="checkbox">prefix header with #</label>
       <label class="chk"><input id="e-one" type="checkbox">single file</label>
     </div>
@@ -667,11 +727,11 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 </div>
 
 <div class="modal" id="m-figexport">
-  <div class="sheet" style="max-width:460px"><header><b>Export figure</b><button data-close>✕</button></header><div class="body">
+  <div class="sheet" style="max-width:460px"><header><b>Export figure</b><button data-close="">✕</button></header><div class="body">
     <div class="grid2">
       <div><label class="f">Format</label><select id="x-fmt"><option value="svg">SVG (vector, best for papers)</option><option value="png">PNG (raster)</option><option value="pdf">PDF (publication-ready)</option></select></div>
       <div><label class="f">Raster scale (PNG/PDF)</label><select id="x-scale">
-        <option value="1">1× (screen)</option><option value="2" selected>2×</option>
+        <option value="1">1× (screen)</option><option value="2" selected="">2×</option>
         <option value="3">3×</option><option value="4">4× (≈300 dpi at 3in)</option><option value="6">6×</option><option value="8">8×</option>
       </select></div>
     </div>
@@ -686,7 +746,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 </div>
 
 <div class="modal" id="m-python">
-  <div class="sheet"><header><b>Matplotlib script</b><button data-close>✕</button></header><div class="body">
+  <div class="sheet"><header><b>Matplotlib script</b><button data-close="">✕</button></header><div class="body">
     <div class="hint" style="margin-bottom:6px">This reproduces the current figure from the exported data files. Export the data with the same prefix and drop both in the same folder.</div>
     <pre class="script" id="py-out"></pre>
     <div class="row" style="margin-top:8px">
@@ -697,12 +757,12 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 </div>
 
 <div class="modal" id="m-add-axis">
-  <div class="sheet" style="max-width:460px"><header><b>Add another Y axis</b><button data-close>✕</button></header><div class="body">
+  <div class="sheet" style="max-width:460px"><header><b>Add another Y axis</b><button data-close="">✕</button></header><div class="body">
     <div><label class="f">Series / Y column for the new axis</label><select id="axis-series"></select></div>
     <div id="axis-preview" class="hint" style="margin-top:8px"></div>
     <div class="hint">The selected series will move to the new Y axis. Every additional Y axis shares the same single X axis and uses the plot colour for its ticks, spine, and label.</div>
     <div class="row" style="margin-top:10px">
-      <button data-close>Cancel</button>
+      <button data-close="">Cancel</button>
       <button id="axis-go" style="flex:1">Add selected Y axis</button>
       <button id="axis-go-all" class="pri" style="flex:1">Add all Y axes</button>
     </div>
@@ -710,7 +770,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 </div>
 
 <div class="modal" id="m-grid">
-  <div class="sheet" style="max-width:430px"><header><b>Column overview</b><button data-close>✕</button></header><div class="body">
+  <div class="sheet" style="max-width:430px"><header><b>Column overview</b><button data-close="">✕</button></header><div class="body">
     <div class="hint" style="margin-bottom:8px">Opens a separate window with one small panel per column, so you can see every channel at a glance before choosing what to plot properly.</div>
     <div><label class="f">Source file</label><select id="g-file"></select></div>
     <div class="grid2" style="margin-top:6px">
@@ -735,7 +795,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 </div>
 
 <div class="modal" id="m-help">
-  <div class="sheet"><header><b>What changed, and how to drive it</b><button data-close>✕</button></header><div class="body" id="help-body"></div></div>
+  <div class="sheet"><header><b>What changed, and how to drive it</b><button data-close="">✕</button></header><div class="body" id="help-body"></div></div>
 </div>
 
 <script>/* ============================================================
@@ -2309,9 +2369,15 @@ const state = {
   legend: { show: true, pos: 'upper left', cols: 1, frame: true },
   refs: [], annos: [], bands: [],
   selFile: null, selSeries: null,
-  zoom: null
+  zoom: null,
+  plotStates: [], activePlotState: null
 };
 let lastFig = null, lastGrid = null, colorCursor = 0, renderToken = 0;
+
+function cloneJSON(value) { return JSON.parse(JSON.stringify(value)); }
+const DEFAULT_FIG = cloneJSON(state.fig);
+const DEFAULT_LEGEND = cloneJSON(state.legend);
+const DEFAULT_AXES = cloneJSON(state.axes);
 
 /* ---------- status ------------------------------------------ */
 let statusTimer = null;
@@ -2392,6 +2458,139 @@ function computeSeriesRaw(s) {
   return pts;
 }
 
+function tsvField(value) {
+  const s = String(value === undefined || value === null ? '' : value);
+  return /[\t\r\n"]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function storedCell(c, row) {
+  const v = c.values[row];
+  if (c.type === 'category') return c.levels && c.levels[v] !== undefined ? c.levels[v] : '';
+  return Number.isFinite(v) ? String(v) : '';
+}
+
+// A committed transform is written back as a canonical TSV table. This only
+// changes PlotForge's in-memory source; the user's original disk file is never
+// touched. The canonical text is what subsequent session saves and re-parses use.
+function rewriteSourceRaw(f) {
+  const lines = [f.columns.map(c => tsvField(c.name)).join('\t')];
+  for (let i = 0; i < f.nrow; i++) lines.push(f.columns.map(c => tsvField(storedCell(c, i))).join('\t'));
+  f.raw = lines.join('\n');
+  f.opts = { delimiter: 'tab', custom: '', headerMode: 'first', headerRow: 1, skipRows: 0, comment: '#!%', decimalComma: false };
+  // Formula values are now physically present in the canonical source, so do
+  // not evaluate them a second time when this source is opened again.
+  f.columns.forEach(c => { if (c.derived) delete c.derived; });
+  f.kind = 'table';
+  f.stamp = (f.stamp || 0) + 1;
+  seriesCache.clear();
+}
+
+function afterSourceCommit(f, message) {
+  const selected = state.selSeries;
+  refreshColumnPickers(); syncParsePanel(); syncSeriesEditor();
+  rehydrateFits(state.series.filter(s => s.fileId === f.id));
+  state.selSeries = state.series.some(s => s.id === selected) ? selected : state.selSeries;
+  syncSeriesEditor(); render();
+  say(message, 'ok');
+}
+
+function saveTransformToSource(which) {
+  const s = selSeries(); if (!s) { say('Select a series first.', 'warn'); return; }
+  const isX = which === 'x', key = isX ? 'xop' : 'yop', expr = String(s[key] || '').trim();
+  if (!expr || expr === which) { say('Enter a ' + which.toUpperCase() + ' transform first.', 'warn'); return; }
+  const f = fileById(s.fileId), xc = f && f.columns[s.xi], yc = f && f.columns[s.yi];
+  if (!f || !xc || !yc) return;
+  let fn;
+  try { fn = C.makeTransform(expr, which); } catch (e) { say(which.toUpperCase() + ' transform: ' + e.message, 'err'); return; }
+  if (!fn) return;
+  const target = isX ? xc : yc;
+  if (!confirm('Save ' + which.toUpperCase() + ' transform “' + expr + '” into source column “' + target.name + '”?')) return;
+  const values = new Array(f.nrow);
+  for (let i = 0; i < f.nrow; i++) {
+    const x = xc.values[i], y = yc.values[i];
+    try { values[i] = isX ? fn(x, y, i) : fn(y, x, i); } catch (_) { values[i] = NaN; }
+  }
+  target.values = values;
+  s[key] = '';
+  rewriteSourceRaw(f);
+  afterSourceCommit(f, which.toUpperCase() + ' transform saved into “' + f.name + '”.');
+}
+
+function processSourcePoints(s) {
+  const f = fileById(s.fileId), xc = f && f.columns[s.xi], yc = f && f.columns[s.yi];
+  if (!f || !xc || !yc) return { base: [], points: [] };
+  const base = [];
+  for (let i = 0; i < f.nrow; i++) {
+    const x = xc.values[i], y = yc.values[i];
+    if (Number.isFinite(x) && Number.isFinite(y)) { const p = [x, y]; p.rawIndex = i; base.push(p); }
+  }
+  if (s.sort) base.sort((a, b) => a[0] - b[0]);
+  const w = Math.max(2, +s.procp || 11);
+  let points = base;
+  switch (s.proc) {
+    case 'movavg': points = C.movingAverage(base, w); break;
+    case 'savgol': points = C.savitzkyGolay(base, w, 3); break;
+    case 'bin': points = C.binAverage(base, w); break;
+    case 'deriv': points = C.derivative(base); break;
+    case 'integral': points = C.integral(base); break;
+    case 'norm-max': points = C.normalize(base, 'max'); break;
+    case 'norm-minmax': points = C.normalize(base, 'minmax'); break;
+    case 'norm-zscore': points = C.normalize(base, 'zscore'); break;
+    case 'norm-first': points = C.normalize(base, 'first'); break;
+    case 'norm-sub-first': points = C.normalize(base, 'sub-first'); break;
+    case 'norm-sub-mean': points = C.normalize(base, 'sub-mean'); break;
+  }
+  return { base, points };
+}
+
+function saveProcessingToSource() {
+  const s = selSeries(); if (!s) { say('Select a series first.', 'warn'); return; }
+  if (!s.proc || s.proc === 'none') { say('Choose a processing operation first.', 'warn'); return; }
+  const f = fileById(s.fileId), xc = f && f.columns[s.xi], yc = f && f.columns[s.yi];
+  if (!f || !xc || !yc) return;
+  if (!confirm('Save “' + s.proc + '” into source “' + f.name + '”? The selected source columns will be changed.')) return;
+  const out = processSourcePoints(s), pts = out.points;
+  if (!pts.length) { say('Processing produced no finite points, so the source was not changed.', 'err'); return; }
+  if (s.proc === 'bin') {
+    const xs = new Array(f.nrow).fill(NaN), ys = new Array(f.nrow).fill(NaN);
+    pts.forEach((p, i) => { xs[i] = p[0]; ys[i] = p[1]; });
+    xc.values = xs; yc.values = ys;
+    let ei = s.ei;
+    if (ei < 0 || !f.columns[ei] || ei === s.xi || ei === s.yi) {
+      let name = yc.name + '_SD', n = 2;
+      while (f.columns.some(c => c.name === name)) name = yc.name + '_SD_' + n++;
+      f.columns.push({ name, type: 'number', values: new Array(f.nrow).fill(NaN) });
+      ei = f.columns.length - 1; s.ei = ei; s.errbars = true;
+    }
+    const ev = new Array(f.nrow).fill(NaN);
+    pts.forEach((p, i) => { if (Number.isFinite(p[2])) ev[i] = p[2]; });
+    f.columns[ei].values = ev;
+  } else {
+    const ys = yc.values.slice();
+    pts.forEach((p, i) => { const row = out.base[i] && out.base[i].rawIndex; if (row !== undefined) ys[row] = p[1]; });
+    yc.values = ys;
+  }
+  s.proc = 'none';
+  rewriteSourceRaw(f);
+  afterSourceCommit(f, 'Processing saved into “' + f.name + '”.');
+}
+
+function saveDecimationToSource() {
+  const s = selSeries(); if (!s) { say('Select a series first.', 'warn'); return; }
+  const n = Math.max(1, Math.floor(+s.decim || 1));
+  if (n === 1) { say('Set Keep every Nth point above 1 first.', 'warn'); return; }
+  const f = fileById(s.fileId); if (!f) return;
+  if (!confirm('Keep every ' + n + 'th row in source “' + f.name + '”? This commits the reduced rows to the session source.')) return;
+  const keep = [];
+  for (let i = 0; i < f.nrow; i += n) keep.push(i);
+  if (f.nrow && keep[keep.length - 1] !== f.nrow - 1) keep.push(f.nrow - 1);
+  f.columns.forEach(c => { c.values = keep.map(i => c.values[i]); });
+  f.nrow = keep.length;
+  s.decim = 1;
+  rewriteSourceRaw(f);
+  afterSourceCommit(f, 'Source reduced to ' + f.nrow + ' rows (every ' + n + 'th row, plus the last row).');
+}
+
 function seriesName(s) {
   const f = fileById(s.fileId);
   if (!f) return 'series';
@@ -2419,7 +2618,32 @@ function addFile(name, text, note) {
   return f;
 }
 function sourceStem(name) { return String(name || 'source').replace(/\.[^.]+$/, '') || 'source'; }
+
+function savedDerivedColumns(f) {
+  return (f.columns || []).filter(c => c.derived).map(c => ({
+    name: c.name, type: c.type, derived: c.derived,
+    values: c.values.map(v => Number.isFinite(v) ? v : null)
+  }));
+}
+
+function restoreDerivedColumns(f, saved) {
+  (saved || []).forEach(sc => {
+    let values = (sc.values || []).map(v => typeof v === 'number' ? v : NaN);
+    if (sc.derived) {
+      const scope = {};
+      f.columns.forEach(c => { if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(c.name)) scope[c.name] = c.values; });
+      try { values = C.evalColumn(sc.derived, scope, f.nrow); } catch (_) { /* use the saved values */ }
+    }
+    if (values.length < f.nrow) values = values.concat(new Array(f.nrow - values.length).fill(NaN));
+    if (values.length > f.nrow) values.length = f.nrow;
+    const col = { name: sc.name, type: sc.type || 'number', values, derived: sc.derived };
+    const at = f.columns.findIndex(c => c.name === sc.name);
+    if (at >= 0) f.columns[at] = col; else f.columns.push(col);
+  });
+}
+
 function reparse(f, quiet) {
+  const derived = savedDerivedColumns(f);
   const o = f.opts;
   const res = C.parseTable(f.raw, {
     delimiter: o.delimiter === 'custom' ? (o.custom || ',') : o.delimiter,
@@ -2427,6 +2651,7 @@ function reparse(f, quiet) {
     skipRows: +o.skipRows || 0, comment: o.comment, decimalComma: !!o.decimalComma
   });
   f.columns = res.columns; f.nrow = res.nrow; f.notes = res.notes; f.kind = res.kind;
+  restoreDerivedColumns(f, derived);
   f.stamp = (f.stamp || 0) + 1;
   if (!quiet) say(f.name + ': ' + res.nrow + ' rows × ' + res.columns.length + ' columns.', 'ok');
   return res;
@@ -2654,7 +2879,8 @@ function renderSourceList() {
   const box = $('source-list'); box.innerHTML = '';
   state.files.forEach(f => {
     const d = el('div', { className: 'item' + (f.id === state.selFile ? ' on' : '') });
-    d.innerHTML = `<span class="nm">${esc(f.name)}<br><span class="sub">${f.nrow}×${f.columns.length} · ${f.kind}</span></span>`;
+    const note = String(f.note || '').replace(/\s+/g, ' ').trim();
+    d.innerHTML = `<span class="nm">${esc(f.name)}<br><span class="sub">${f.nrow}×${f.columns.length} · ${f.kind}${note ? ' · ' + esc(note) : ''}</span></span>`;
     const x = el('button', { className: 'x', title: 'Remove file and its series' }, '✕');
     x.onclick = ev => {
       ev.stopPropagation();
@@ -2662,8 +2888,12 @@ function renderSourceList() {
       if (!confirm('Remove source “' + f.name + '”' + (count ? ' and its ' + count + ' series' : '') + '?')) return;
       state.series = state.series.filter(s => s.fileId !== f.id);
       state.files = state.files.filter(g => g.id !== f.id);
+      state.plotStates.forEach(ps => {
+        ps.plot.series = (ps.plot.series || []).filter(s => s.fileId !== f.id);
+        if (ps.plot.selFile === f.id) ps.plot.selFile = null;
+      });
       if (state.selFile === f.id) state.selFile = state.files.length ? state.files[0].id : null;
-      refreshColumnPickers(); render();
+      refreshColumnPickers(); renderPlotStatePicker(); render();
     };
     d.appendChild(x);
     d.onclick = () => { state.selFile = f.id; refreshColumnPickers(); syncParsePanel(); render(); };
@@ -2833,6 +3063,8 @@ function syncSeriesEditor() {
   if (!s) { $('stats-out').innerHTML = '<div class="hint">Select a series to see its statistics.</div>'; return; }
   const f = fileById(s.fileId);
   $('s-name').value = seriesName(s);
+  $('s-source-note').hidden = !(f && f.note);
+  $('s-source-note').textContent = f && f.note ? 'Source comment: ' + f.note : '';
   $('s-label').value = s.label;
   $('s-x').innerHTML = optionsFor(f, s.xi);
   $('s-y').innerHTML = optionsFor(f, s.yi);
@@ -2940,6 +3172,31 @@ function runFit(silent) {
   if (!silent) say('Fitted ' + model + ': R² = ' + C.fmtSig(res.r2, 5) + '.', 'ok');
   render();
 }
+
+function rehydrateFits(list) {
+  const selected = state.selSeries;
+  (list || state.series).forEach(s => {
+    if (!s.fit || !s.fit.model) return;
+    const cfg = cloneJSON(s.fit);
+    state.selSeries = s.id;
+    $('fit-model').value = cfg.model;
+    $('fit-x0').value = cfg.x0 ?? '';
+    $('fit-x1').value = cfg.x1 ?? '';
+    $('fit-extrap').checked = !!cfg.extrap;
+    $('fit-label').checked = cfg.showLabel !== false;
+    runFit(true);
+  });
+  state.selSeries = state.series.some(s => s.id === selected) ? selected : (state.series[0] ? state.series[0].id : null);
+}
+
+function addPointsAsSeries(name, label, points, note, options) {
+  const raw = 'x\ty\n' + points.map(p => (Number.isFinite(p[0]) ? p[0] : '') + '\t' + (Number.isFinite(p[1]) ? p[1] : '')).join('\n');
+  const f = addFile(safe(name) + '.tsv', raw, note || 'Generated in PlotForge');
+  const s = addSeries(f.id, 0, 1, Object.assign({ label }, options || {}));
+  refreshColumnPickers(); syncParsePanel(); syncSeriesEditor(); render();
+  return s;
+}
+
 function showFitResult(s) {
   const box = $('fit-out');
   if (!s || !s.fit || !s.fit.result) { box.innerHTML = ''; return; }
@@ -2951,16 +3208,20 @@ function showFitResult(s) {
         <tr><th>RMSE</th><td class="n">${C.fmtSig(r.rmse, 4)}</td></tr>
         <tr><th>reduced χ²</th><td class="n">${C.fmtSig(r.chi2red, 4)}</td></tr>
         <tr><th>points used</th><td class="n">${r.n}</td></tr></table>`;
-  h += `<div class="row" style="margin-top:6px"><button id="fit-resid" style="flex:1">Add residuals as a series</button>
+  h += `<button id="fit-series" class="wide pri" style="margin-top:6px">Add fitted data as a new series</button>
+        <div class="row" style="margin-top:6px"><button id="fit-resid" style="flex:1">Add residuals as a series</button>
         <button id="fit-anno">Note on figure</button></div>`;
   box.innerHTML = h;
+  $('fit-series').onclick = () => {
+    const label = seriesLabel(s) + ' fit';
+    addPointsAsSeries(label, label, s.fit.curve, 'Fitted data: ' + s.fit.result.equation,
+      { type: 'line', color: shade(s.color), dash: 'dashed', lw: 1.8, axis: s.axis });
+    say('Fitted curve added as an independent series.', 'ok');
+  };
   $('fit-resid').onclick = () => {
-    const f = fileById(s.fileId);
-    const ns = addSeries(s.fileId, s.xi, s.yi, { label: seriesLabel(s) + ' residuals', type: 'scatter', color: nextColor(), ms: 3 });
-    ns._override = s.fit.result.residuals;
-    ns.proc = 'none';
-    residualStore[ns.id] = s.fit.result.residuals;
-    syncSeriesEditor(); render();
+    const label = seriesLabel(s) + ' residuals';
+    addPointsAsSeries(label, label, s.fit.result.residuals, 'Fit residuals: observed minus fitted',
+      { type: 'scatter', color: nextColor(), ms: 3, axis: s.axis });
     say('Residuals added as a new series.', 'ok');
   };
   $('fit-anno').onclick = () => {
@@ -2969,7 +3230,6 @@ function showFitResult(s) {
     render();
   };
 }
-const residualStore = {};
 function renderFitTable() {
   const withFits = state.series.filter(s => s.fit && s.fit.result);
   if (!withFits.length) { $('fit-table').innerHTML = '<div class="hint">No fits yet.</div>'; return; }
@@ -3662,41 +3922,122 @@ function refreshGridCols() {
 
 /* ---------- session save / load ----------------------------- */
 
-function saveSession() {
-  const payload = {
-    format: 'plotforge/1', saved: new Date().toISOString(),
-    files: state.files.map(f => ({ id: f.id, name: f.name, note: f.note, opts: f.opts, raw: f.raw })),
-    series: state.series.map(s => {
-      const c = Object.assign({}, s);
-      if (c.fit) c.fit = { model: c.fit.model, x0: c.fit.x0, x1: c.fit.x1, extrap: c.fit.extrap, showLabel: c.fit.showLabel };
-      return c;
-    }),
-    axes: state.axes, fig: state.fig, legend: state.legend,
-    refs: state.refs, annos: state.annos, uid
+function seriesForSave(s) {
+  const c = Object.assign({}, s);
+  delete c._override;
+  if (c.fit) c.fit = {
+    model: c.fit.model, x0: c.fit.x0, x1: c.fit.x1,
+    extrap: !!c.fit.extrap, showLabel: c.fit.showLabel !== false
   };
+  return c;
+}
+
+function capturePlotSnapshot() {
+  return {
+    series: state.series.map(seriesForSave),
+    axes: cloneJSON(state.axes), fig: cloneJSON(state.fig), legend: cloneJSON(state.legend),
+    refs: cloneJSON(state.refs), annos: cloneJSON(state.annos), bands: cloneJSON(state.bands),
+    zoom: cloneJSON(state.zoom), selFile: state.selFile, selSeries: state.selSeries
+  };
+}
+
+function applyPlotSnapshot(plot, quiet) {
+  plot = plot || {};
+  state.series = cloneJSON(plot.series || []).filter(s => fileById(s.fileId));
+  state.axes = cloneJSON(plot.axes && plot.axes.length ? plot.axes : DEFAULT_AXES);
+  state.fig = Object.assign(cloneJSON(DEFAULT_FIG), cloneJSON(plot.fig || {}));
+  state.legend = Object.assign(cloneJSON(DEFAULT_LEGEND), cloneJSON(plot.legend || {}));
+  state.refs = cloneJSON(plot.refs || []); state.annos = cloneJSON(plot.annos || []);
+  state.bands = cloneJSON(plot.bands || []); state.zoom = cloneJSON(plot.zoom || null);
+  state.selFile = fileById(plot.selFile) ? plot.selFile : (state.files[0] ? state.files[0].id : null);
+  state.selSeries = state.series.some(s => s.id === plot.selSeries) ? plot.selSeries : (state.series[0] ? state.series[0].id : null);
+  seriesCache.clear();
+  syncFigureInputs(); refreshColumnPickers(); syncParsePanel();
+  rehydrateFits(state.series);
+  syncSeriesEditor(); renderPlotStatePicker(); render();
+  if (!quiet) say('Plot state loaded: ' + state.series.length + ' series.', 'ok');
+}
+
+function renderPlotStatePicker() {
+  const select = $('plot-state-select'); if (!select) return;
+  select.innerHTML = '<option value="">Current / unsaved</option>' + state.plotStates.map(ps =>
+    `<option value="${escAttr(ps.id)}">${esc(ps.name)}</option>`).join('');
+  select.value = state.plotStates.some(ps => ps.id === state.activePlotState) ? state.activePlotState : '';
+  $('btn-delete-plot').disabled = !select.value;
+}
+
+function savePlotState() {
+  const active = state.plotStates.find(ps => ps.id === state.activePlotState);
+  const proposed = prompt('Name this plot state:', active ? active.name : 'Plot ' + (state.plotStates.length + 1));
+  if (proposed === null) return;
+  const name = proposed.trim();
+  if (!name) { say('Plot state name cannot be empty.', 'warn'); return; }
+  let target = active && active.name.toLowerCase() === name.toLowerCase() ? active :
+    state.plotStates.find(ps => ps.name.toLowerCase() === name.toLowerCase());
+  if (target && target !== active && !confirm('Replace the existing plot state “' + target.name + '”?')) return;
+  if (!target) {
+    target = { id: 'plot-' + uid++, name, plot: null, saved: '' };
+    state.plotStates.push(target);
+  }
+  target.name = name; target.plot = capturePlotSnapshot(); target.saved = new Date().toISOString();
+  state.activePlotState = target.id;
+  renderPlotStatePicker();
+  say('Plot state “' + name + '” saved inside this session.', 'ok');
+}
+
+function deletePlotState() {
+  const ps = state.plotStates.find(q => q.id === state.activePlotState);
+  if (!ps) { say('Choose a saved plot state first.', 'warn'); return; }
+  if (!confirm('Delete plot state “' + ps.name + '”? The current plot and source data will remain.')) return;
+  state.plotStates = state.plotStates.filter(q => q.id !== ps.id);
+  state.activePlotState = null;
+  renderPlotStatePicker();
+  say('Plot state deleted. The current plot was kept.', 'ok');
+}
+
+function buildSessionPayload() {
+  return {
+    format: 'plotforge/2', saved: new Date().toISOString(),
+    files: state.files.map(f => ({
+      id: f.id, name: f.name, note: f.note || '', opts: cloneJSON(f.opts), raw: f.raw,
+      derivedColumns: savedDerivedColumns(f)
+    })),
+    currentPlot: capturePlotSnapshot(),
+    plotStates: cloneJSON(state.plotStates), activePlotState: state.activePlotState, uid
+  };
+}
+
+function saveSession() {
+  const payload = buildSessionPayload();
   download('plotforge-session.json', JSON.stringify(payload, null, 1), 'application/json');
-  say('Session saved (data included, so it reopens exactly as-is).', 'ok');
+  say('Session saved with source data and ' + state.plotStates.length + ' named plot state(s).', 'ok');
 }
 function loadSession(text) {
   let p;
   try { p = JSON.parse(text); } catch (e) { say('That file is not valid JSON.', 'err'); return; }
-  if (!p || p.format !== 'plotforge/1' || !Array.isArray(p.files)) { say('Not a PlotForge session file.', 'err'); return; }
+  if (!p || !['plotforge/1', 'plotforge/2'].includes(p.format) || !Array.isArray(p.files)) { say('Not a PlotForge session file.', 'err'); return; }
   state.files = p.files.map(f => {
-    const g = { id: f.id, name: f.name, short: sourceStem(f.name), raw: f.raw, note: f.note, opts: f.opts };
-    reparse(g, true); return g;
+    const g = {
+      id: f.id, name: f.name, short: sourceStem(f.name), raw: f.raw, note: f.note || '',
+      opts: Object.assign({ delimiter: 'auto', headerMode: 'auto', headerRow: 1, skipRows: 0, comment: '#!%', decimalComma: false }, f.opts || {})
+    };
+    reparse(g, true); restoreDerivedColumns(g, f.derivedColumns || []); return g;
   });
-  state.series = p.series || [];
-  state.axes = p.axes && p.axes.length ? p.axes : state.axes;
-  Object.assign(state.fig, p.fig || {});
-  Object.assign(state.legend, p.legend || {});
-  state.refs = p.refs || []; state.annos = p.annos || [];
-  uid = Math.max(p.uid || 1, ...state.files.map(f => f.id), ...state.series.map(s => s.id)) + 1;
-  state.selFile = state.files.length ? state.files[0].id : null;
-  state.selSeries = state.series.length ? state.series[0].id : null;
-  syncFigureInputs(); refreshColumnPickers(); syncParsePanel();
-  state.series.forEach(s => { if (s.fit && s.fit.model) { state.selSeries = s.id; $('fit-model').value = s.fit.model; $('fit-x0').value = s.fit.x0 ?? ''; $('fit-x1').value = s.fit.x1 ?? ''; $('fit-extrap').checked = !!s.fit.extrap; $('fit-label').checked = s.fit.showLabel !== false; runFit(true); } });
-  render();
-  say('Session restored: ' + state.files.length + ' files, ' + state.series.length + ' series.', 'ok');
+  const legacyPlot = {
+    series: p.series || [], axes: p.axes, fig: p.fig, legend: p.legend,
+    refs: p.refs || [], annos: p.annos || [], bands: p.bands || [], zoom: null,
+    selFile: state.files[0] ? state.files[0].id : null,
+    selSeries: p.series && p.series[0] ? p.series[0].id : null
+  };
+  const current = p.format === 'plotforge/2' && p.currentPlot ? p.currentPlot : legacyPlot;
+  state.plotStates = p.format === 'plotforge/2' && Array.isArray(p.plotStates)
+    ? p.plotStates.filter(ps => ps && ps.id && ps.name && ps.plot) : [];
+  state.activePlotState = state.plotStates.some(ps => ps.id === p.activePlotState) ? p.activePlotState : null;
+  const ids = state.files.map(f => +f.id || 0).concat((current.series || []).map(s => +s.id || 0));
+  state.plotStates.forEach(ps => (ps.plot.series || []).forEach(s => ids.push(+s.id || 0)));
+  uid = Math.max(1, +p.uid || 1, ...ids) + 1;
+  applyPlotSnapshot(current, true);
+  say('Session restored: ' + state.files.length + ' sources, ' + state.series.length + ' current series, ' + state.plotStates.length + ' named plot state(s).', 'ok');
 }
 
 /* ---------- figure input sync ------------------------------- */
@@ -3726,6 +4067,7 @@ function syncFigureInputs() {
 function syncParsePanel() {
   const f = fileById(state.selFile); if (!f) return;
   $('p-name').value = f.name;
+  $('p-note').value = f.note || '';
   $('p-delim').value = f.opts.delimiter; $('p-custom').value = f.opts.custom || '';
   $('p-header').value = f.opts.headerMode; $('p-headerrow').value = f.opts.headerRow;
   $('p-skip').value = f.opts.skipRows; $('p-comment').value = f.opts.comment;
@@ -3834,6 +4176,16 @@ function boot() {
     refreshColumnPickers(); syncSeriesEditor(); render();
     say('Source renamed to “' + name + '”.', 'ok');
   };
+  $('p-note').oninput = () => {
+    const f = fileById(state.selFile); if (!f) return;
+    f.note = $('p-note').value;
+  };
+  $('p-note').onchange = () => {
+    const f = fileById(state.selFile); if (!f) return;
+    f.note = $('p-note').value;
+    renderSourceList();
+    say('Source comment saved.', 'ok');
+  };
 
   // ---- series
   $('btn-plot').onclick = () => {
@@ -3906,6 +4258,10 @@ function boot() {
   bindSeries('s-z', 'z', 'num'); bindSeries('s-hollow', 'hollow'); bindSeries('s-errbars', 'errbars');
   bindSeries('s-xop', 'xop'); bindSeries('s-yop', 'yop'); bindSeries('s-proc', 'proc');
   bindSeries('s-procp', 'procp', 'num'); bindSeries('s-decim', 'decim', 'num'); bindSeries('s-sort', 'sort', 'int');
+  $('s-save-x').onclick = () => saveTransformToSource('x');
+  $('s-save-y').onclick = () => saveTransformToSource('y');
+  $('s-save-proc').onclick = saveProcessingToSource;
+  $('s-save-decim').onclick = saveDecimationToSource;
 
   $('s-dup').onclick = () => {
     const s = selSeries(); if (!s) return;
@@ -4077,6 +4433,16 @@ function boot() {
   $('g-go').onclick = openOverview;
 
   // ---- session
+  $('btn-save-plot').onclick = savePlotState;
+  $('btn-delete-plot').onclick = deletePlotState;
+  $('plot-state-select').onchange = e => {
+    const id = e.target.value;
+    if (!id) { state.activePlotState = null; renderPlotStatePicker(); return; }
+    const ps = state.plotStates.find(q => q.id === id);
+    if (!ps) return;
+    state.activePlotState = id;
+    applyPlotSnapshot(ps.plot);
+  };
   $('btn-save').onclick = saveSession;
   $('btn-load').onclick = () => $('session-input').click();
   $('session-input').onchange = e => {
@@ -4094,6 +4460,7 @@ function boot() {
 
   setupOverlay();
   syncFigureInputs();
+  renderPlotStatePicker();
   render();
 }
 
@@ -4130,7 +4497,10 @@ const HELP = `
 <li><code>fix ave/time</code> style files: the commented line above the data is used as the header.</li>
 <li><code>nan</code>, <code>inf</code>, <code>N/A</code>, empty cells, Fortran <code>1.5D-3</code>, quoted fields, decimal commas and ragged rows are all handled. A bad value breaks the line at that point instead of dropping the rest of the row.</li>
 <li>Text columns become categories so they can still be used as a bar-chart axis.</li>
+<li>Source comments and formula-created columns are stored in session files. Use the Save buttons beside transforms, processing and Nth-point filtering only when you want to commit that view into the in-memory source table.</li>
 </ul>
+<h4 style="margin:10px 0 4px">Plot states and sessions</h4>
+<p style="margin:0 0 8px">A named plot state stores its series choices, styling, axes, labels, fits and annotations. A session stores all sources, source comments, formula columns, the current plot and every named plot state. Choose any saved plot from the header dropdown after opening the session.</p>
 <h4 style="margin:10px 0 4px">On the figure</h4>
 <ul style="margin:0 0 8px 18px;padding:0">
 <li>Drag to zoom, shift-drag to pan, scroll to zoom x, right-click to reset, double-click to leave a note.</li>
@@ -4141,6 +4511,7 @@ const HELP = `
 Exponential, power and logarithmic models are linearised in log space. Gaussian, Lorentzian, logistic, exponential-decay and
 stretched-exponential (KWW) models use Levenberg–Marquardt; the sinusoid gets a frequency scan first, because a phase-blind
 optimiser will otherwise settle into a local minimum. Each fit reports R², adjusted R², RMSE and reduced χ².</p>
+<p style="margin:0 0 8px">Use <b>Add fitted data as a new series</b> to turn the sampled fit curve into an independent, editable series and source.</p>
 <h4 style="margin:10px 0 4px">Exports</h4>
 <p style="margin:0">Data in any delimiter, plotted pairs or full source columns, merged on a shared x grid, fit curves, or a statistics table.
 Figures as SVG (text stays text) or PNG up to 8×. The Python export rebuilds the same figure in matplotlib from the exported data.</p>`;
@@ -4149,5 +4520,26 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 })();
 </script>
-</body>
-</html>
+
+
+<div role="status" aria-live="polite" aria-atomic="true" style="position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0px; border: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(50%); white-space: nowrap;"></div><div role="alert" aria-live="assertive" aria-atomic="true" style="position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0px; border: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(50%); white-space: nowrap;"></div></body><grammarly-desktop-integration data-grammarly-shadow-root="true" style="visibility: visible !important;"><template shadowrootmode="open"><style>
+      div.grammarly-desktop-integration {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select:none;
+        user-select:none;
+      }
+
+      div.grammarly-desktop-integration:before {
+        content: attr(data-content);
+      }
+    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>
