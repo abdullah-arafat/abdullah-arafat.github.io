@@ -178,6 +178,10 @@ input[type=checkbox]{accent-color:var(--accent);cursor:pointer}
 .modal h3{margin:0;padding:12px 14px;font-size:13px;border-bottom:1px solid var(--line)}
 .modal-body{padding:13px 14px;max-height:70vh;overflow-y:auto}
 .modal-foot{display:flex;gap:7px;justify-content:flex-end;padding:11px 14px;border-top:1px solid var(--line);background:var(--panel2)}
+.tb-range{ width:56px; accent-color:var(--accent); margin:0 4px; }
+details.sub{ border:1px solid var(--line); border-radius:var(--r); padding:6px 8px; margin-bottom:8px; background:#fbfcfd; }
+details.sub > summary{ list-style:none; }
+details.sub > summary::-webkit-details-marker{ display:none; }
 </style>
 </head>
 <body>
@@ -226,6 +230,10 @@ input[type=checkbox]{accent-color:var(--accent);cursor:pointer}
       <details class="sec" open>
         <summary><span>Structures</span><span class="caret">›</span></summary>
         <div class="sec-body">
+          <div class="row" style="margin-bottom:8px">
+            <button class="btn sm grow" onclick="arrangeStructures('row')">Side by side</button>
+            <button class="btn sm grow" onclick="arrangeStructures('stack')">Stack at origin</button>
+          </div>
           <div id="structures-list"></div>
         </div>
       </details>
@@ -353,6 +361,9 @@ input[type=checkbox]{accent-color:var(--accent);cursor:pointer}
         <span class="tb-sep"></span>
         <button class="tb-btn" id="pick-btn" title="Pick atoms (P)" onclick="setPickMode(!pickMode)">✛</button>
         <button class="tb-btn" id="axes-btn" title="Show axes" onclick="toggleAxes()">⌗</button>
+        <button class="tb-btn on" id="btn-labels" title="Show the labels in the viewport (L)" onclick="setLabels()">A</button>
+        <input type="range" id="label-size" class="tb-range" min="0.3" max="1.6" step="0.05" value="0.62"
+               title="Label size" oninput="setLabelScale(parseFloat(this.value))">
         <span class="tb-sep"></span>
         <button class="tb-btn" style="width:auto;padding:0 8px" title="Open the analysis panel" onclick="toggleDrawer()">Analyse</button>
       </div>
@@ -674,6 +685,52 @@ function dirLabel(uvw, isHex){
   const r = rationalize([U,V,W]) ;
   const t = r ? [r[0],r[1],-(r[0]+r[1]),r[2]] : [U,V,-(U+V),W].map(x=>+x.toFixed(2));
   return '[' + t.join(' ') + ']';
+}
+
+
+/* ---- orientation frame ----------------------------------------------------
+   The frame is three lattice directions d1 d2 d3.  Writing them as the columns
+   of D (cartesian), a plane quoted as (H K L) in that frame has the cartesian
+   normal N = (D^-1)^T (H K L)^T, because plane indices transform like
+   reciprocal vectors.  Feeding N to millerFromNormal gives the true (h k l).  */
+function frameMatrix(fr, A){
+  const d = [fr.x, fr.y, fr.z].map(v => directionVector(v[0], v[1], v[2], A));
+  const D = new THREE.Matrix3().set(
+    d[0].x, d[1].x, d[2].x,
+    d[0].y, d[1].y, d[2].y,
+    d[0].z, d[1].z, d[2].z);
+  return { d, D };
+}
+function frameIsValid(fr, A){
+  const { d } = frameMatrix(fr, A);
+  if (d.some(v => v.lengthSq() < 1e-12)) return false;
+  const vol = d[0].dot(new THREE.Vector3().crossVectors(d[1], d[2]));
+  return Math.abs(vol) > 1e-8;
+}
+/* angles between the three frame axes, for the readout */
+function frameAngles(fr, A){
+  const { d } = frameMatrix(fr, A);
+  return { xy: d[0].angleTo(d[1])*DEG, xz: d[0].angleTo(d[2])*DEG, yz: d[1].angleTo(d[2])*DEG };
+}
+/* frame indices -> cartesian normal */
+function frameNormal(H, K, L, fr, A){
+  const { D } = frameMatrix(fr, A);
+  const M = D.clone().invert().transpose();
+  return new THREE.Vector3(H, K, L).applyMatrix3(M);
+}
+/* frame indices -> true crystal Miller indices */
+function frameToCrystal(H, K, L, fr, A){
+  if (!frameIsValid(fr, A)) return null;
+  const n = frameNormal(H, K, L, fr, A);
+  if (n.lengthSq() < 1e-14) return null;
+  return millerFromNormal(n, A);
+}
+/* true crystal indices -> the indices this frame would quote */
+function crystalToFrame(h, k, l, fr, A, B){
+  if (!frameIsValid(fr, A)) return null;
+  const n = planeNormal(h, k, l, B);
+  const { d } = frameMatrix(fr, A);
+  return rationalize([n.dot(d[0]), n.dot(d[1]), n.dot(d[2])]);
 }
 /* space group fingerprints, generated from the 530 standard settings */
 const SG_TABLE = {"cf28085b":[1,"P1","1","triclinic"],"62f53c26":[2,"P-1","-1","triclinic"],"2a74b8b2":[3,"P2","2","monoclinic"],"2465e122":[3,"P2","2","monoclinic"],"45a5f882":[3,"P2","2","monoclinic"],"bce079e0":[4,"P2_1","2","monoclinic"],"a7dcbd80":[4,"P2_1","2","monoclinic"],"f6745140":[4,"P2_1","2","monoclinic"],"476bfbf8":[5,"C2","2","monoclinic"],"2e3bd908":[5,"C2","2","monoclinic"],"4d6c056a":[5,"C2","2","monoclinic"],"7de670b4":[5,"C2","2","monoclinic"],"fcf21198":[5,"C2","2","monoclinic"],"5a83bc5e":[5,"C2","2","monoclinic"],"7e691af0":[5,"C2","2","monoclinic"],"a35fa9fc":[5,"C2","2","monoclinic"],"a15fa6d6":[5,"C2","2","monoclinic"],"d32697f4":[6,"Pm","m","monoclinic"],"ef839eac":[6,"Pm","m","monoclinic"],"8aff866c":[6,"Pm","m","monoclinic"],"1b027e1e":[7,"Pc","m","monoclinic"],"73c8cb34":[7,"Pc","m","monoclinic"],"5937f65e":[7,"Pc","m","monoclinic"],"4e4b2a56":[7,"Pc","m","monoclinic"],"39534b6c":[7,"Pc","m","monoclinic"],"1287d096":[7,"Pc","m","monoclinic"],"9ff76556":[7,"Pc","m","monoclinic"],"a55a216c":[7,"Pc","m","monoclinic"],"859cca56":[7,"Pc","m","monoclinic"],"9e263200":[8,"Cm","m","monoclinic"],"4ca3bd58":[8,"Cm","m","monoclinic"],"26346bf4":[8,"Cm","m","monoclinic"],"6f142694":[8,"Cm","m","monoclinic"],"0f44d304":[8,"Cm","m","monoclinic"],"5994cfb8":[8,"Cm","m","monoclinic"],"761d6a8c":[8,"Cm","m","monoclinic"],"acfa3944":[8,"Cm","m","monoclinic"],"cf253588":[8,"Cm","m","monoclinic"],"23ff2b08":[9,"Cc","m","monoclinic"],"1c75a8d8":[9,"Cc","m","monoclinic"],"0a457c1c":[9,"Cc","m","monoclinic"],"d25c640c":[9,"Cc","m","monoclinic"],"aacf6150":[9,"Cc","m","monoclinic"],"95a4fac4":[9,"Cc","m","monoclinic"],"9ca83f60":[9,"Cc","m","monoclinic"],"7551282c":[9,"Cc","m","monoclinic"],"72ed0270":[9,"Cc","m","monoclinic"],"cbb379e0":[10,"P2/m","2/m","monoclinic"],"1bb55f48":[10,"P2/m","2/m","monoclinic"],"cd52a228":[10,"P2/m","2/m","monoclinic"],"3947b8b2":[11,"P2_1/m","2/m","monoclinic"],"57ce858a":[11,"P2_1/m","2/m","monoclinic"],"41abae4a":[11,"P2_1/m","2/m","monoclinic"],"cf953e3c":[12,"C2/m","2/m","monoclinic"],"b5325324":[12,"C2/m","2/m","monoclinic"],"402f6858":[12,"C2/m","2/m","monoclinic"],"1f73c124":[12,"C2/m","2/m","monoclinic"],"5a5e8b8c":[12,"C2/m","2/m","monoclinic"],"69da6328":[12,"C2/m","2/m","monoclinic"],"2f67b55c":[12,"C2/m","2/m","monoclinic"],"391acb4c":[12,"C2/m","2/m","monoclinic"],"cdb25460":[12,"C2/m","2/m","monoclinic"],"ba63c856":[13,"P2/c","2/m","monoclinic"],"a90b2068":[13,"P2/c","2/m","monoclinic"],"48f4a21e":[13,"P2/c","2/m","monoclinic"],"8021d8be":[13,"P2/c","2/m","monoclinic"],"25fc4c5c":[13,"P2/c","2/m","monoclinic"],"a88c8532":[13,"P2/c","2/m","monoclinic"],"18441412":[13,"P2/c","2/m","monoclinic"],"3993b44c":[13,"P2/c","2/m","monoclinic"],"879d0936":[13,"P2/c","2/m","monoclinic"],"a56be96c":[14,"P2_1/c","2/m","monoclinic"],"da972e9a":[14,"P2_1/c","2/m","monoclinic"],"e4b9b1b4":[14,"P2_1/c","2/m","monoclinic"],"b41bd314":[14,"P2_1/c","2/m","monoclinic"],"b96c33c6":[14,"P2_1/c","2/m","monoclinic"],"6bc25810":[14,"P2_1/c","2/m","monoclinic"],"7d1c9110":[14,"P2_1/c","2/m","monoclinic"],"6129d076":[14,"P2_1/c","2/m","monoclinic"],"6006ed0c":[14,"P2_1/c","2/m","monoclinic"],"3b56ae54":[15,"C2/c","2/m","monoclinic"],"81b15f84":[15,"C2/c","2/m","monoclinic"],"791f31d0":[15,"C2/c","2/m","monoclinic"],"f5c1046c":[15,"C2/c","2/m","monoclinic"],"57384670":[15,"C2/c","2/m","monoclinic"],"c0102bec":[15,"C2/c","2/m","monoclinic"],"40a01af8":[15,"C2/c","2/m","monoclinic"],"ed8856a4":[15,"C2/c","2/m","monoclinic"],"866fc758":[15,"C2/c","2/m","monoclinic"],"3a5afa42":[16,"P222","222","orthorhombic"],"5deab8c8":[17,"P222_1","222","orthorhombic"],"884aae00":[17,"P2_122","222","orthorhombic"],"1aab6018":[17,"P22_12","222","orthorhombic"],"81aba6ba":[18,"P2_12_12","222","orthorhombic"],"fe9ff4b2":[18,"P22_12_1","222","orthorhombic"],"9f047dea":[18,"P2_122_1","222","orthorhombic"],"84f9e830":[19,"P2_12_12_1","222","orthorhombic"],"c499195a":[20,"C222_1","222","orthorhombic"],"080fb3d2":[20,"A2_122","222","orthorhombic"],"b14be2be":[20,"B22_12","222","orthorhombic"],"c6ed473e":[21,"C222","222","orthorhombic"],"ded1195e":[21,"A222","222","orthorhombic"],"6a035bde":[21,"B222","222","orthorhombic"],"634e2968":[22,"F222","222","orthorhombic"],"ad7d722a":[23,"I222","222","orthorhombic",[24],["I2_12_12_1"]],"624a103e":[25,"Pmm2","mm2","orthorhombic"],"2d2bfc9e":[25,"P2mm","mm2","orthorhombic"],"1137da46":[25,"Pm2m","mm2","orthorhombic"],"97cd5c62":[26,"Pmc2_1","mm2","orthorhombic"],"f1f92e32":[26,"Pcm2_1","mm2","orthorhombic"],"7686940a":[26,"P2_1ma","mm2","orthorhombic"],"836bbaea":[26,"P2_1am","mm2","orthorhombic"],"4b922246":[26,"Pb2_1m","mm2","orthorhombic"],"e5c17652":[26,"Pm2_1b","mm2","orthorhombic"],"ae241b2e":[27,"Pcc2","mm2","orthorhombic"],"c31b4d3e":[27,"P2aa","mm2","orthorhombic"],"cd3354f2":[27,"Pb2b","mm2","orthorhombic"],"731ef500":[28,"Pma2","mm2","orthorhombic"],"082483dc":[28,"Pbm2","mm2","orthorhombic"],"939e9428":[28,"P2mb","mm2","orthorhombic"],"fe3d4810":[28,"P2cm","mm2","orthorhombic"],"44839490":[28,"Pc2m","mm2","orthorhombic"],"39a18540":[28,"Pm2a","mm2","orthorhombic"],"f748a9c4":[29,"Pca2_1","mm2","orthorhombic"],"6810ed28":[29,"Pbc2_1","mm2","orthorhombic"],"e42f2d14":[29,"P2_1ab","mm2","orthorhombic"],"29467acc":[29,"P2_1ca","mm2","orthorhombic"],"8c51fb8c":[29,"Pc2_1b","mm2","orthorhombic"],"56e97be0":[29,"Pb2_1a","mm2","orthorhombic"],"5b25aee4":[30,"Pnc2","mm2","orthorhombic"],"0bdf0350":[30,"Pcn2","mm2","orthorhombic"],"1d1ca4b0":[30,"P2na","mm2","orthorhombic"],"f992a788":[30,"P2an","mm2","orthorhombic"],"ab43e5dc":[30,"Pb2n","mm2","orthorhombic"],"6030a084":[30,"Pn2b","mm2","orthorhombic"],"35b4ffd4":[31,"Pmn2_1","mm2","orthorhombic"],"4e3d1ae0":[31,"Pnm2_1","mm2","orthorhombic"],"bf8c12f4":[31,"P2_1mn","mm2","orthorhombic"],"02507dac":[31,"P2_1nm","mm2","orthorhombic"],"68150f38":[31,"Pn2_1m","mm2","orthorhombic"],"0a25e9dc":[31,"Pm2_1n","mm2","orthorhombic"],"a2f39aaa":[32,"Pba2","mm2","orthorhombic"],"4de8fb36":[32,"P2cb","mm2","orthorhombic"],"6ad43d36":[32,"Pc2a","mm2","orthorhombic"],"6d54064e":[33,"Pna2_1","mm2","orthorhombic"],"72184286":[33,"Pbn2_1","mm2","orthorhombic"],"4b5b3472":[33,"P2_1nb","mm2","orthorhombic"],"d186e2d2":[33,"P2_1cn","mm2","orthorhombic"],"0d09f922":[33,"Pc2_1n","mm2","orthorhombic"],"b011b6ee":[33,"Pn2_1a","mm2","orthorhombic"],"1760ff42":[34,"Pnn2","mm2","orthorhombic"],"d3398616":[34,"P2nn","mm2","orthorhombic"],"58c7edea":[34,"Pn2n","mm2","orthorhombic"],"9057a84e":[35,"Cmm2","mm2","orthorhombic"],"c81f3e7e":[35,"A2mm","mm2","orthorhombic"],"65a656be":[35,"Bm2m","mm2","orthorhombic"],"80eec702":[36,"Cmc2_1","mm2","orthorhombic"],"9d757cc2":[36,"Ccm2_1","mm2","orthorhombic"],"f3b74faa":[36,"A2_1ma","mm2","orthorhombic"],"499d42d2":[36,"A2_1am","mm2","orthorhombic"],"e4b74592":[36,"Bb2_1m","mm2","orthorhombic"],"747c87a2":[36,"Bm2_1b","mm2","orthorhombic"],"8677615e":[37,"Ccc2","mm2","orthorhombic"],"87f78b16":[37,"A2aa","mm2","orthorhombic"],"57e3e936":[37,"Bb2b","mm2","orthorhombic"],"811274e6":[38,"Amm2","mm2","orthorhombic"],"238b3ffe":[38,"Bmm2","mm2","orthorhombic"],"e5dacef6":[38,"B2mm","mm2","orthorhombic"],"ef22d836":[38,"C2mm","mm2","orthorhombic"],"4692fbde":[38,"Cm2m","mm2","orthorhombic"],"051d24ce":[38,"Am2m","mm2","orthorhombic"],"2d306cee":[39,"Aem2","mm2","orthorhombic"],"26549f46":[39,"Bme2","mm2","orthorhombic"],"9bc713fe":[39,"B2em","mm2","orthorhombic"],"314b96ea":[39,"C2me","mm2","orthorhombic"],"385de672":[39,"Cm2e","mm2","orthorhombic"],"0067ee86":[39,"Ae2m","mm2","orthorhombic"],"85edc066":[40,"Ama2","mm2","orthorhombic"],"3b576a4a":[40,"Bbm2","mm2","orthorhombic"],"b122903a":[40,"B2mb","mm2","orthorhombic"],"e5134afe":[40,"C2cm","mm2","orthorhombic"],"22bd6ee6":[40,"Cc2m","mm2","orthorhombic"],"209bad86":[40,"Am2a","mm2","orthorhombic"],"320bb86e":[41,"Aea2","mm2","orthorhombic"],"3368e672":[41,"Bbe2","mm2","orthorhombic"],"3ac882b2":[41,"B2eb","mm2","orthorhombic"],"2e46ae42":[41,"C2ce","mm2","orthorhombic"],"e0119b0a":[41,"Cc2e","mm2","orthorhombic"],"3e0b22fe":[41,"Ae2a","mm2","orthorhombic"],"dd730a58":[42,"Fmm2","mm2","orthorhombic"],"83815f64":[42,"F2mm","mm2","orthorhombic"],"73842234":[42,"Fm2m","mm2","orthorhombic"],"ce77f9fc":[43,"Fdd2","mm2","orthorhombic"],"449f7b40":[43,"F2dd","mm2","orthorhombic"],"d1b19cc4":[43,"Fd2d","mm2","orthorhombic"],"14399da2":[44,"Imm2","mm2","orthorhombic"],"b8ca502a":[44,"I2mm","mm2","orthorhombic"],"c9f32b0a":[44,"Im2m","mm2","orthorhombic"],"d959a1e2":[45,"Iba2","mm2","orthorhombic"],"0a1554d6":[45,"I2cb","mm2","orthorhombic"],"90a19a56":[45,"Ic2a","mm2","orthorhombic"],"6fcb40aa":[46,"Ima2","mm2","orthorhombic"],"31c1605a":[46,"Ibm2","mm2","orthorhombic"],"d30a1b9e":[46,"I2mb","mm2","orthorhombic"],"54020b32":[46,"I2cm","mm2","orthorhombic"],"a05f82d2":[46,"Ic2m","mm2","orthorhombic"],"474e6b9e":[46,"Im2a","mm2","orthorhombic"],"63d1f2d4":[47,"Pmmm","mmm","orthorhombic"],"7238fa9c":[48,"Pnnn","mmm","orthorhombic"],"3ae35df4":[49,"Pccm","mmm","orthorhombic"],"504bf1bc":[49,"Pmaa","mmm","orthorhombic"],"e93b0a54":[49,"Pbmb","mmm","orthorhombic"],"21f61154":[50,"Pban","mmm","orthorhombic"],"397df39c":[50,"Pncb","mmm","orthorhombic"],"e424081c":[50,"Pcna","mmm","orthorhombic"],"17754d98":[51,"Pmma","mmm","orthorhombic"],"fc00edac":[51,"Pmmb","mmm","orthorhombic"],"7697d62c":[51,"Pbmm","mmm","orthorhombic"],"1ac729f8":[51,"Pcmm","mmm","orthorhombic"],"5a25c598":[51,"Pmcm","mmm","orthorhombic"],"8a7424b0":[51,"Pmam","mmm","orthorhombic"],"798f855c":[52,"Pnna","mmm","orthorhombic"],"b1854230":[52,"Pnnb","mmm","orthorhombic"],"79ed63e0":[52,"Pbnn","mmm","orthorhombic"],"07a477dc":[52,"Pcnn","mmm","orthorhombic"],"ea404930":[52,"Pncn","mmm","orthorhombic"],"d8eb4878":[52,"Pnan","mmm","orthorhombic"],"ebd87160":[53,"Pmna","mmm","orthorhombic"],"a0304178":[53,"Pnmb","mmm","orthorhombic"],"90774fb8":[53,"Pbmn","mmm","orthorhombic"],"36443510":[53,"Pcnm","mmm","orthorhombic"],"5cfdf834":[53,"Pncm","mmm","orthorhombic"],"34bbf4ac":[53,"Pman","mmm","orthorhombic"],"b15e8038":[54,"Pcca","mmm","orthorhombic"],"cee970dc":[54,"Pccb","mmm","orthorhombic"],"aa23adb4":[54,"Pbaa","mmm","orthorhombic"],"1f274a00":[54,"Pcaa","mmm","orthorhombic"],"41325ce0":[54,"Pbcb","mmm","orthorhombic"],"57bc48b8":[54,"Pbab","mmm","orthorhombic"],"a2cd6fb8":[55,"Pbam","mmm","orthorhombic"],"1283dda8":[55,"Pmcb","mmm","orthorhombic"],"148b86d4":[55,"Pcma","mmm","orthorhombic"],"8088b250":[56,"Pccn","mmm","orthorhombic"],"e99b4120":[56,"Pnaa","mmm","orthorhombic"],"788dd02c":[56,"Pbnb","mmm","orthorhombic"],"9c758ba0":[57,"Pbcm","mmm","orthorhombic"],"517cb2ac":[57,"Pcam","mmm","orthorhombic"],"b4973674":[57,"Pmca","mmm","orthorhombic"],"071b8d40":[57,"Pmab","mmm","orthorhombic"],"6d77b9a0":[57,"Pbma","mmm","orthorhombic"],"4e9cf078":[57,"Pcmb","mmm","orthorhombic"],"299d2b30":[58,"Pnnm","mmm","orthorhombic"],"4b3ee4a8":[58,"Pmnn","mmm","orthorhombic"],"93b005f4":[58,"Pnmn","mmm","orthorhombic"],"3fd69440":[59,"Pmmn","mmm","orthorhombic"],"c933d8f8":[59,"Pnmm","mmm","orthorhombic"],"1884280c":[59,"Pmnm","mmm","orthorhombic"],"b148d72c":[60,"Pbcn","mmm","orthorhombic"],"8757f778":[60,"Pcan","mmm","orthorhombic"],"7f7ea0b8":[60,"Pnca","mmm","orthorhombic"],"5af4fef4":[60,"Pnab","mmm","orthorhombic"],"bd29f228":[60,"Pbna","mmm","orthorhombic"],"47cdab50":[60,"Pcnb","mmm","orthorhombic"],"f0edc92c":[61,"Pbca","mmm","orthorhombic"],"ea4506f4":[61,"Pcab","mmm","orthorhombic"],"440d25d4":[62,"Pnma","mmm","orthorhombic"],"b9d1a384":[62,"Pmnb","mmm","orthorhombic"],"586f30e4":[62,"Pbnm","mmm","orthorhombic"],"23000df4":[62,"Pcmn","mmm","orthorhombic"],"f28caa84":[62,"Pmcn","mmm","orthorhombic"],"143c982c":[62,"Pnam","mmm","orthorhombic"],"6e0881f0":[63,"Cmcm","mmm","orthorhombic"],"5feb4ab0":[63,"Ccmm","mmm","orthorhombic"],"31851818":[63,"Amma","mmm","orthorhombic"],"e5f4a2d0":[63,"Amam","mmm","orthorhombic"],"016e6450":[63,"Bbmm","mmm","orthorhombic"],"3ac58200":[63,"Bmmb","mmm","orthorhombic"],"e2350594":[64,"Cmce","mmm","orthorhombic"],"fce4dff4":[64,"Ccme","mmm","orthorhombic"],"02fd3aa0":[64,"Aema","mmm","orthorhombic"],"237a78d8":[64,"Aeam","mmm","orthorhombic"],"e57de0c8":[64,"Bbem","mmm","orthorhombic"],"29f3e7a8":[64,"Bmeb","mmm","orthorhombic"],"ecbdcb4c":[65,"Cmmm","mmm","orthorhombic"],"c0ab851c":[65,"Ammm","mmm","orthorhombic"],"2c6b0b7c":[65,"Bmmm","mmm","orthorhombic"],"b3f5d23c":[66,"Cccm","mmm","orthorhombic"],"276f95e4":[66,"Amaa","mmm","orthorhombic"],"614a7d64":[66,"Bbmb","mmm","orthorhombic"],"3191e6c0":[67,"Cmme","mmm","orthorhombic"],"204c58c4":[67,"Aemm","mmm","orthorhombic"],"e7662554":[67,"Bmem","mmm","orthorhombic"],"40c1c7b0":[68,"Ccce","mmm","orthorhombic"],"8885628c":[68,"Aeaa","mmm","orthorhombic"],"9d71b7ec":[68,"Bbeb","mmm","orthorhombic"],"43a460d8":[69,"Fmmm","mmm","orthorhombic"],"87f7a000":[70,"Fddd","mmm","orthorhombic"],"0d384e98":[71,"Immm","mmm","orthorhombic"],"6360e1d8":[72,"Ibam","mmm","orthorhombic"],"83e104e4":[72,"Imcb","mmm","orthorhombic"],"a6c1ad54":[72,"Icma","mmm","orthorhombic"],"5caa4d9c":[73,"Ibca","mmm","orthorhombic"],"adbf10dc":[74,"Imma","mmm","orthorhombic"],"bb04c560":[74,"Ibmm","mmm","orthorhombic"],"78a97650":[74,"Imcm","mmm","orthorhombic"],"6d22ff6e":[75,"P4","4","tetragonal"],"0c63702c":[76,"P4_1","4","tetragonal",[78],["P4_3"]],"80760e42":[77,"P4_2","4","tetragonal"],"5ee486f6":[79,"I4","4","tetragonal"],"b80021ee":[80,"I4_1","4","tetragonal"],"9709616a":[81,"P-4","-4","tetragonal"],"dffc712e":[82,"I-4","-4","tetragonal"],"26e5cf9c":[83,"P4/m","4/m","tetragonal"],"e4577af0":[84,"P4_2/m","4/m","tetragonal"],"e4746300":[85,"P4/n","4/m","tetragonal"],"a3207424":[86,"P4_2/n","4/m","tetragonal"],"211df4a0":[87,"I4/m","4/m","tetragonal"],"e403be24":[88,"I4_1/a","4/m","tetragonal"],"0db802f9":[89,"P422","422","tetragonal"],"7d93dd09":[90,"P42_12","422","tetragonal"],"e8a4a767":[91,"P4_122","422","tetragonal",[95],["P4_322"]],"280c6157":[92,"P4_12_12","422","tetragonal",[96],["P4_32_12"]],"2820a3b1":[93,"P4_222","422","tetragonal"],"9fcd8041":[94,"P4_22_12","422","tetragonal"],"9cd7d358":[97,"I422","422","tetragonal"],"23027228":[98,"I4_122","422","tetragonal"],"5b1aae6f":[99,"P4mm","4mm","tetragonal"],"4ffb77f7":[100,"P4bm","4mm","tetragonal"],"9eda4c7f":[101,"P4_2cm","4mm","tetragonal"],"51e64bd7":[102,"P4_2nm","4mm","tetragonal"],"b47b3f5b":[103,"P4cc","4mm","tetragonal"],"95ccbc23":[104,"P4nc","4mm","tetragonal"],"ad2459eb":[105,"P4_2mc","4mm","tetragonal"],"e35ca0a3":[106,"P4_2bc","4mm","tetragonal"],"7afb84a0":[107,"I4mm","4mm","tetragonal"],"3f5699d0":[108,"I4cm","4mm","tetragonal"],"48faba56":[109,"I4_1md","4mm","tetragonal"],"68e9c606":[110,"I4_1cd","4mm","tetragonal"],"cd1d7e81":[111,"P-42m","-42m","tetragonal"],"aa388fed":[112,"P-42c","-42m","tetragonal"],"efdb1c05":[113,"P-42_1m","-42m","tetragonal"],"dc90cf11":[114,"P-42_1c","-42m","tetragonal"],"c1383d03":[115,"P-4m2","-42m","tetragonal"],"93e930d3":[116,"P-4c2","-42m","tetragonal"],"b9ca0cff":[117,"P-4b2","-42m","tetragonal"],"85f02b77":[118,"P-4n2","-42m","tetragonal"],"7932841c":[119,"I-4m2","-42m","tetragonal"],"1268bb5c":[120,"I-4c2","-42m","tetragonal"],"0cbf35c0":[121,"I-42m","-42m","tetragonal"],"ab00235e":[122,"I-42d","-42m","tetragonal"],"8c69a6bc":[123,"P4/mmm","4/mmm","tetragonal"],"3cde8298":[124,"P4/mcc","4/mmm","tetragonal"],"a481f498":[125,"P4/nbm","4/mmm","tetragonal"],"47a3d244":[126,"P4/nnc","4/mmm","tetragonal"],"e0e56cd4":[127,"P4/mbm","4/mmm","tetragonal"],"38210c50":[128,"P4/mnc","4/mmm","tetragonal"],"846cacd0":[129,"P4/nmm","4/mmm","tetragonal"],"5ffff21c":[130,"P4/ncc","4/mmm","tetragonal"],"49037234":[131,"P4_2/mmc","4/mmm","tetragonal"],"2ec9b4e8":[132,"P4_2/mcm","4/mmm","tetragonal"],"cc3d2da0":[133,"P4_2/nbc","4/mmm","tetragonal"],"77e43e44":[134,"P4_2/nnm","4/mmm","tetragonal"],"f48e443c":[135,"P4_2/mbc","4/mmm","tetragonal"],"0b6948d0":[136,"P4_2/mnm","4/mmm","tetragonal"],"a5f9e048":[137,"P4_2/nmc","4/mmm","tetragonal"],"5f7d61cc":[138,"P4_2/ncm","4/mmm","tetragonal"],"1c4db61c":[139,"I4/mmm","4/mmm","tetragonal"],"fa8e761c":[140,"I4/mcm","4/mmm","tetragonal"],"25341a26":[141,"I4_1/amd","4/mmm","tetragonal"],"74c47676":[142,"I4_1/acd","4/mmm","tetragonal"],"fa005aed":[143,"P3","3","trigonal"],"83106f51":[144,"P3_1","3","trigonal",[145],["P3_2"]],"0cff5a1b":[146,"R3","3","trigonal"],"739bf245":[146,"R3","3","trigonal"],"1b207f00":[147,"P-3","-3","trigonal"],"3bef270c":[148,"R-3","-3","trigonal"],"efa15d10":[148,"R-3","-3","trigonal"],"3e8f46e4":[149,"P312","32","trigonal"],"7bc6d16b":[150,"P321","32","trigonal"],"e113eae8":[151,"P3_112","32","trigonal",[153],["P3_212"]],"5d9a4d5f":[152,"P3_121","32","trigonal",[154],["P3_221"]],"fc60a839":[155,"R32","32","trigonal"],"d38dc5b6":[155,"R32","32","trigonal"],"b5cdc671":[156,"P3m1","3m","trigonal"],"3044c84a":[157,"P31m","3m","trigonal"],"794c20bf":[158,"P3c1","3m","trigonal"],"88e80eec":[159,"P31c","3m","trigonal"],"996205cc":[160,"R3m","3m","trigonal"],"ec3b327c":[160,"R3m","3m","trigonal"],"f3c4614f":[161,"R3c","3m","trigonal"],"cda3adda":[161,"R3c","3m","trigonal"],"ba6a953c":[162,"P-31m","-3m","trigonal"],"ca183ca2":[163,"P-31c","-3m","trigonal"],"180dbee6":[164,"P-3m1","-3m","trigonal"],"af527868":[165,"P-3c1","-3m","trigonal"],"da691521":[166,"R-3m","-3m","trigonal"],"7464b220":[166,"R-3m","-3m","trigonal"],"69973cfe":[167,"R-3c","-3m","trigonal"],"320ec2ba":[167,"R-3c","-3m","trigonal"],"a71dccc6":[168,"P6","6","hexagonal"],"98db96b1":[169,"P6_1","6","hexagonal",[170],["P6_5"]],"8e3d948e":[171,"P6_2","6","hexagonal",[172],["P6_4"]],"b96f3e78":[173,"P6_3","6","hexagonal"],"3640ca20":[174,"P-6","-6","hexagonal"],"22eb0996":[175,"P6/m","6/m","hexagonal"],"859edd88":[176,"P6_3/m","6/m","hexagonal"],"b6db2ad9":[177,"P622","622","hexagonal"],"39d9c022":[178,"P6_122","622","hexagonal",[179],["P6_522"]],"c659cb69":[180,"P6_222","622","hexagonal",[181],["P6_422"]],"0b60452b":[182,"P6_322","622","hexagonal"],"22335bbf":[183,"P6mm","6mm","hexagonal"],"83d41f0b":[184,"P6cc","6mm","hexagonal"],"5bbf450b":[185,"P6_3cm","6mm","hexagonal"],"175599c7":[186,"P6_3mc","6mm","hexagonal"],"eb695197":[187,"P-6m2","-6m2","hexagonal"],"51b6fa5d":[188,"P-6c2","-6m2","hexagonal"],"8db9cf43":[189,"P-62m","-6m2","hexagonal"],"8cd89df5":[190,"P-62c","-6m2","hexagonal"],"db2bbb86":[191,"P6/mmm","6/mmm","hexagonal"],"de681472":[192,"P6/mcc","6/mmm","hexagonal"],"5d12131e":[193,"P6_3/mcm","6/mmm","hexagonal"],"75c6011a":[194,"P6_3/mmc","6/mmm","hexagonal"],"2cc2c15e":[195,"P23","23","cubic"],"6e84f2d8":[196,"F23","23","cubic"],"0502be4e":[197,"I23","23","cubic",[199],["I2_13"]],"bd1f7f94":[198,"P2_13","23","cubic"],"547997fc":[200,"Pm-3","m-3","cubic"],"cea5d2e4":[201,"Pn-3","m-3","cubic"],"d12a61b8":[202,"Fm-3","m-3","cubic"],"d4282b40":[203,"Fd-3","m-3","cubic"],"4d403f44":[204,"Im-3","m-3","cubic"],"89eb4484":[205,"Pa-3","m-3","cubic"],"08b14678":[206,"Ia-3","m-3","cubic"],"3d3624d1":[207,"P432","432","cubic"],"4e403051":[208,"P4_232","432","cubic"],"76cb1fcc":[209,"F432","432","cubic"],"d4682a44":[210,"F4_132","432","cubic"],"6e4427f4":[211,"I432","432","cubic"],"022480bb":[212,"P4_332","432","cubic",[213],["P4_132"]],"f071dd6c":[214,"I4_132","432","cubic"],"76f69d3b":[215,"P-43m","-43m","cubic"],"823700a8":[216,"F-43m","-43m","cubic"],"5abc37ac":[217,"I-43m","-43m","cubic"],"a62d3b87":[218,"P-43n","-43m","cubic"],"e0744730":[219,"F-43c","-43m","cubic"],"5ffc7a5a":[220,"I-43d","-43m","cubic"],"8ade7f8c":[221,"Pm-3m","m-3m","cubic"],"79b96c5c":[222,"Pn-3n","m-3m","cubic"],"d68d7a54":[223,"Pm-3n","m-3m","cubic"],"90d3cd4c":[224,"Pn-3m","m-3m","cubic"],"1fec49bc":[225,"Fm-3m","m-3m","cubic"],"40e9c4f4":[226,"Fm-3c","m-3m","cubic"],"3a0a684c":[227,"Fd-3m","m-3m","cubic"],"77f29eb4":[228,"Fd-3c","m-3m","cubic"],"c228a750":[229,"Im-3m","m-3m","cubic"],"9a40c3aa":[230,"Ia-3d","m-3m","cubic"]};
@@ -1198,7 +1255,11 @@ function newStructure(name, latt, atoms){
     showFFT: false, fftQmax: 6, rendered: [],
     colorMode: 'element', atomColor: col, bondColor: '#5a6472',
     radiusScale: 0.30, bondMode: 'auto', bondCutoff: 2.6, bondTol: 1.15,
-    plane: { show:false, h:1, k:1, l:1, dist:0, thickness:4, color:col, slabCut:false },
+    plane: { show:false, h:1, k:1, l:1, dist:0, thickness:4, color:col, slabCut:false, opacity:0.45 },
+    /* orientation frame: three lattice directions that define the axes the
+       Miller indices below are read in.  Identity means plain crystal axes. */
+    frame: { use:false, x:[1,0,0], y:[0,1,0], z:[0,0,1] },
+    bondAuto: true,
     alignConfig: { ph:0, pk:0, pl:1, pt:0, du:1, dv:0, dw:0, dt:-1 },
     pos: V3(0,0,0), quat: new THREE.Quaternion(),
     anim: null, group: null
@@ -1277,8 +1338,9 @@ function addStructure(parsed){
   structures.push(s);
   if (structures.length === 1){ activeAlignSrc = s.id; activeAlignTgt = s.id; }
   else if (structures.length === 2){ activeAlignSrc = structures[1].id; activeAlignTgt = structures[0].id; }
+  placeNew(s);
   updateUI(); rebuildScene();
-  if (structures.length === 1) resetView();
+  fitView();
   toast(`${s.name}: ${s.atoms.length} atoms, ${s.isHex ? 'hexagonal' : 'general'} cell.`);
   return s;
 }
@@ -1398,7 +1460,7 @@ function saveWorkspace(){
       showBonds:s.showBonds, colorMode:s.colorMode, atomColor:s.atomColor, bondColor:s.bondColor,
       radiusScale:s.radiusScale, bondMode:s.bondMode, bondCutoff:s.bondCutoff, bondTol:s.bondTol,
       showFFT:s.showFFT, fftQmax:s.fftQmax,
-      plane:s.plane, alignConfig:s.alignConfig,
+      plane:s.plane, alignConfig:s.alignConfig, frame:s.frame, bondAuto:s.bondAuto,
       pos:v2arr(s.pos), quat:[s.quat.x,s.quat.y,s.quat.z,s.quat.w]
     })),
     activeAlignSrc, activeAlignTgt
@@ -1431,6 +1493,8 @@ function loadWorkspace(ev){
           radiusScale: s.radiusScale ?? 0.30, bondMode: s.bondMode || 'auto',
           bondCutoff: s.bondCutoff ?? 2.6, bondTol: s.bondTol ?? 1.15,
           plane: Object.assign(base.plane, s.plane || {}),
+          frame: Object.assign(base.frame, s.frame || {}),
+          bondAuto: s.bondAuto !== undefined ? s.bondAuto : true,
           alignConfig: Object.assign(base.alignConfig, s.alignConfig || {}),
           pos: s.pos ? arr2v(s.pos) : (s.offset ? V3(s.offset.x,s.offset.y,s.offset.z) : V3(0,0,0)),
           quat: s.quat ? new THREE.Quaternion(s.quat[0],s.quat[1],s.quat[2],s.quat[3]) : new THREE.Quaternion()
@@ -1554,6 +1618,19 @@ function viewAlong(vec, upHint){
 }
 
 /* ---- labels ---- */
+let showLabels = true;
+let labelScale = 0.62;                       // relative size of the viewport labels
+function setLabels(on){
+  showLabels = on === undefined ? !showLabels : on;
+  const btn = byId('btn-labels');
+  if (btn) btn.classList.toggle('on', showLabels);
+  rebuildScene();
+  toast(showLabels ? 'Labels shown.' : 'Labels hidden.');
+}
+function setLabelScale(v){
+  labelScale = clamp(v, 0.3, 1.6);
+  rebuildScene();
+}
 function makeLabel(text, colorCss='#12161b'){
   const c = document.createElement('canvas');
   const ctx = c.getContext('2d');
@@ -1563,20 +1640,21 @@ function makeLabel(text, colorCss='#12161b'){
   c.width = w; c.height = fs + 24;
   const g = c.getContext('2d');
   g.font = `600 ${fs}px -apple-system,Segoe UI,Helvetica,Arial,sans-serif`;
-  g.fillStyle = 'rgba(255,255,255,0.92)';
+  g.fillStyle = 'rgba(255,255,255,0.72)';
   if (g.roundRect){ g.beginPath(); g.roundRect(0,0,c.width,c.height,12); g.fill(); }
   else g.fillRect(0,0,c.width,c.height);
-  g.strokeStyle = colorCss; g.lineWidth = 3;
+  g.strokeStyle = colorCss; g.lineWidth = 2.5;
   if (g.roundRect){ g.beginPath(); g.roundRect(1.5,1.5,c.width-3,c.height-3,12); g.stroke(); }
   g.fillStyle = colorCss; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillText(text, c.width/2, c.height/2 + 2);
   const tex = new THREE.CanvasTexture(c);
   tex.minFilter = THREE.LinearFilter;
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, depthTest:false, transparent:true }));
-  const scale = viewSpan()/26;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, depthTest:false, transparent:true, opacity:0.8 }));
+  const scale = viewSpan()/26*labelScale;
   sp.scale.set(c.width/95*scale, c.height/95*scale, 1);
   sp.renderOrder = 999;
   sp.userData.isLabel = true;
+  sp.visible = showLabels;
   return sp;
 }
 
@@ -1806,17 +1884,34 @@ function rebuildScene(){
       const geo = new THREE.PlaneGeometry(size, size);
       const boxClip = boxPlanes(A, s.supercell).map(p=>p.applyMatrix4(group.matrixWorld));
       const mat = new THREE.MeshBasicMaterial({
-        color: s.plane.color, transparent:true, opacity:0.3, side:THREE.DoubleSide,
-        depthWrite:false, clippingPlanes: boxClip });
+        color: s.plane.color, transparent:true, opacity: s.plane.opacity ?? 0.45,
+        side:THREE.DoubleSide, depthWrite:false, clippingPlanes: boxClip,
+        polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.quaternion.setFromUnitVectors(V3(0,0,1), n);
       const proj = n.dot(centerLocal) - s.plane.dist;
       mesh.position.copy(centerLocal).addScaledVector(n, -proj);
       mesh.userData.noPick = true;
+      mesh.renderOrder = 3;
       group.add(mesh);
 
+      /* an outline so the plane stays readable even at low opacity */
+      const half = size/2;
+      const edge = new THREE.LineLoop(
+        new THREE.BufferGeometry().setFromPoints([V3(-half,-half,0),V3(half,-half,0),V3(half,half,0),V3(-half,half,0)]),
+        new THREE.LineBasicMaterial({ color: s.plane.color, transparent:true, opacity:0.9,
+                                      depthTest:false, clippingPlanes: boxClip }));
+      edge.quaternion.copy(mesh.quaternion); edge.position.copy(mesh.position);
+      edge.renderOrder = 4;
+      group.add(edge);
+
+      /* a short normal arrow, so which way the plane faces is obvious */
+      const arrow = new THREE.ArrowHelper(n, mesh.position, size*0.18, s.plane.color, size*0.05, size*0.03);
+      arrow.userData.noPick = true;
+      group.add(arrow);
+
       const lab = makeLabel(`${s.name} ${millerLabel([s.plane.h,s.plane.k,s.plane.l], s.isHex)}`, s.plane.color);
-      lab.position.copy(mesh.position).addScaledVector(n, 0.6);
+      lab.position.copy(mesh.position).addScaledVector(n, size*0.2 + 0.6);
       group.add(lab);
     }
 
@@ -1993,7 +2088,10 @@ function updateUI(){
           <option value="uniform" ${s.colorMode==='uniform'?'selected':''}>One colour</option>
         </select>
         <input type="color" value="${s.atomColor}" onchange="setField('${s.id}','atomColor',this.value)" title="Structure colour, also used for the cell edges">
-        <input type="color" value="${s.bondColor}" onchange="setField('${s.id}','bondColor',this.value)" title="Bond colour">
+        <input type="color" value="${s.bondColor}" onchange="setField('${s.id}','bondColor',this.value)"
+          title="${s.bondAuto ? 'Bond colour, currently following the structure colour' : 'Bond colour, set by hand'}">
+        ${s.bondAuto ? '' : `<button class="btn sm" style="flex:0 0 auto;padding:2px 6px" title="Follow the structure colour again"
+          onclick="relinkBondColor('${s.id}')">↺</button>`}
       </div>
       <div class="row">
         <span class="lbl w">Atom size</span>
@@ -2043,13 +2141,27 @@ function updateUI(){
 }
 function escapeAttr(t){ return String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
+/* darken a hex colour so bonds read as a shadow of the atom colour */
+function shade(hex, f){
+  const n = parseInt(hex.slice(1), 16);
+  const c = [(n>>16)&255, (n>>8)&255, n&255].map(v => Math.round(clamp(v*f, 0, 255)));
+  return '#' + c.map(v=>v.toString(16).padStart(2,'0')).join('');
+}
 function setField(id, field, value){
   const s = S(id); if (!s) return;
   s[field] = value;
+  /* bonds track the structure colour until the bond colour is picked by hand */
+  if (field === 'atomColor' && s.bondAuto){ s.bondColor = shade(value, 0.62); updateUI(); }
+  if (field === 'bondColor') s.bondAuto = false;
   if (field === 'visible' && !value) selection = selection.filter(x=>x.structId!==id);
   if (field === 'name'){ updateUI(); }
   rebuildScene();
   if (field === 'showBonds' || field === 'bondMode' || field === 'showFFT') updateUI();
+}
+function relinkBondColor(id){
+  const s = S(id); if (!s) return;
+  s.bondAuto = true; s.bondColor = shade(s.atomColor, 0.62);
+  updateUI(); rebuildScene();
 }
 function setSupercell(id, axis, v){
   const s = S(id); if (!s) return;
@@ -2057,6 +2169,44 @@ function setSupercell(id, axis, v){
   selection = selection.filter(x=>x.structId!==id);
   updateUI(); rebuildScene();
 }
+/* width of one structure along a cartesian axis, supercell included */
+function structExtent(s){
+  const A = worldLattice(s);
+  const v = new THREE.Vector3();
+  [0,1,2].forEach(i=>v.addScaledVector(A[i], s.supercell[i]));
+  const w = worldLattice(s).map((a,i)=>a.clone().multiplyScalar(s.supercell[i]));
+  return new THREE.Vector3(
+    Math.abs(w[0].x)+Math.abs(w[1].x)+Math.abs(w[2].x),
+    Math.abs(w[0].y)+Math.abs(w[1].y)+Math.abs(w[2].y),
+    Math.abs(w[0].z)+Math.abs(w[1].z)+Math.abs(w[2].z));
+}
+/* lay the structures out in a row so several of them stay readable */
+function arrangeStructures(mode){
+  if (mode === 'stack'){
+    structures.forEach(s=>s.pos.set(0,0,0));
+  } else {
+    let x = 0;
+    structures.forEach((s,i)=>{
+      const e = structExtent(s);
+      if (i) x += e.x/2 + 2;
+      s.pos.set(x, 0, 0);
+      x += e.x/2;
+    });
+    const half = x/2;
+    structures.forEach(s=>s.pos.x -= half);
+  }
+  updateUI(); rebuildScene(); fitView();
+  toast(mode === 'stack' ? 'All structures share the origin.' : 'Structures laid out side by side.');
+}
+/* where a newly added structure should go: to the right of what is already there */
+function placeNew(s){
+  if (structures.length < 2) return;
+  let maxX = -Infinity;
+  structures.forEach(o=>{ if (o !== s) maxX = Math.max(maxX, o.pos.x + structExtent(o).x/2); });
+  if (!isFinite(maxX)) return;
+  s.pos.set(maxX + 2 + structExtent(s).x/2, 0, 0);
+}
+
 function removeStructure(id){
   structures = structures.filter(s=>s.id!==id);
   selection = selection.filter(x=>x.structId!==id);
@@ -2077,18 +2227,50 @@ function renderPlanePanel(){
   const iField = s.isHex
     ? `<input class="inp mono sm" value="${-(p.h+p.k)}" readonly title="i is fixed by h and k">` : '';
 
+  const fr = s.frame;
+  const frOK = frameIsValid(fr, A);
+  const ang = frOK ? frameAngles(fr, A) : null;
+  const trueHKL = (fr.use && frOK) ? frameToCrystal(p.H ?? p.h, p.K ?? p.k, p.L ?? p.l, fr, A) : null;
+  const dirIn = (axis) => [0,1,2].map(i=>
+    `<input type="number" class="inp mono sm" style="flex:1" value="${fr[axis][i]}"
+       onchange="setFrame('${s.id}','${axis}',${i},this.value)">`).join('');
+
   box.innerHTML = `
+    <details class="sub" ${fr.use?'open':''}>
+      <summary class="lbl" style="cursor:pointer;margin-bottom:6px">Axis frame for the indices</summary>
+      <label class="check" style="margin-bottom:6px"><input type="checkbox" ${fr.use?'checked':''}
+        onchange="setFrameUse('${s.id}',this.checked)"><span>Read the indices in this frame</span></label>
+      <div class="row"><span class="lbl w">x along</span>${dirIn('x')}</div>
+      <div class="row"><span class="lbl w">y along</span>${dirIn('y')}</div>
+      <div class="row"><span class="lbl w">z along</span>${dirIn('z')}</div>
+      <div class="row">
+        <button class="btn sm grow" onclick="resetFrame('${s.id}')">Reset to a b c</button>
+        <button class="btn sm grow" onclick="frameFromView('${s.id}')">z from the view</button>
+      </div>
+      ${!frOK ? '<div class="hint" style="color:#c0392b">Those three directions are coplanar, so they do not define a frame.</div>'
+        : `<div class="hint">Axis angles ${fmt(ang.xy,1)}° x·y, ${fmt(ang.xz,1)}° x·z, ${fmt(ang.yz,1)}° y·z${
+            (Math.abs(ang.xy-90)>1 || Math.abs(ang.xz-90)>1 || Math.abs(ang.yz-90)>1)
+            ? '. The frame is not orthogonal, which is allowed but the view will be skewed.' : '.'}</div>`}
+    </details>
     <div class="row">
       <span class="lbl w">Indices</span>
-      <input type="number" id="p-h" class="inp mono sm" value="${p.h}" onchange="updatePlane('${s.id}')">
-      <input type="number" id="p-k" class="inp mono sm" value="${p.k}" onchange="updatePlane('${s.id}')">
-      ${iField}
-      <input type="number" id="p-l" class="inp mono sm" value="${p.l}" onchange="updatePlane('${s.id}')">
+      <input type="number" id="p-h" class="inp mono sm" value="${fr.use ? (p.H ?? p.h) : p.h}" onchange="updatePlane('${s.id}')">
+      <input type="number" id="p-k" class="inp mono sm" value="${fr.use ? (p.K ?? p.k) : p.k}" onchange="updatePlane('${s.id}')">
+      ${fr.use ? '' : iField}
+      <input type="number" id="p-l" class="inp mono sm" value="${fr.use ? (p.L ?? p.l) : p.l}" onchange="updatePlane('${s.id}')">
     </div>
+    ${fr.use ? `<div class="hint" style="margin:-2px 0 6px">In the frame that is ${millerLabel([p.H??p.h,p.K??p.k,p.L??p.l], false)}; on the crystal axes it is
+      <b class="mono">${trueHKL ? millerLabel(trueHKL, s.isHex) : '—'}</b>.</div>` : ''}
     <div class="row">
       <label class="check"><input type="checkbox" id="p-show" ${p.show?'checked':''} onchange="updatePlane('${s.id}')"><span>Draw plane</span></label>
       <input type="color" value="${p.color}" onchange="setPlaneColor('${s.id}',this.value)">
       <button class="btn sm grow" onclick="viewAlongPlane('${s.id}')">Look down it</button>
+    </div>
+    <div class="row">
+      <span class="lbl w">Opacity</span>
+      <input type="range" min="0.05" max="1" step="0.05" value="${p.opacity ?? 0.45}"
+        oninput="setPlaneOpacity('${s.id}', parseFloat(this.value))">
+      <button class="btn sm grow" onclick="planeFromView('${s.id}')" title="Make a plane facing the camera">Plane facing me</button>
     </div>
     <div class="row">
       <label class="check"><input type="checkbox" id="p-slab" ${p.slabCut?'checked':''} onchange="updatePlane('${s.id}')"><span>Cut a slab</span></label>
@@ -2120,11 +2302,90 @@ function perpListHtml(h,k,l,B,hex){
   if (!list.length) return '<span class="hint">none found within that index range</span>';
   return list.map(p=>`${millerLabel(p.hkl,hex)} <span style="color:var(--muted)">d = ${fmt(p.d,3)} Å</span>`).join('<br>');
 }
+function setFrame(id, axis, i, val){
+  const s = S(id); if (!s) return;
+  s.frame[axis][i] = parseInt(val)||0;
+  if (s.frame.use) applyFrameIndices(s);
+  renderPlanePanel(); rebuildScene();
+}
+function setFrameUse(id, on){
+  const s = S(id); if (!s) return;
+  s.frame.use = on;
+  const A = localLattice(s), B = reciprocal(A);
+  if (on){
+    /* keep the plane that is drawn, expressed in the new frame */
+    const f = crystalToFrame(s.plane.h, s.plane.k, s.plane.l, s.frame, A, B);
+    if (f){ s.plane.H = f[0]; s.plane.K = f[1]; s.plane.L = f[2]; }
+    else { s.plane.H = s.plane.h; s.plane.K = s.plane.k; s.plane.L = s.plane.l; }
+  }
+  renderPlanePanel(); rebuildScene();
+}
+function resetFrame(id){
+  const s = S(id); if (!s) return;
+  s.frame.x = [1,0,0]; s.frame.y = [0,1,0]; s.frame.z = [0,0,1];
+  if (s.frame.use) applyFrameIndices(s);
+  renderPlanePanel(); rebuildScene();
+  toast('Frame reset to the crystal axes.');
+}
+/* point the frame z at whatever the camera is looking down, keeping y upright */
+function frameFromView(id){
+  const s = S(id); if (!s) return;
+  const A = localLattice(s);
+  const inv = s.quat.clone().invert();
+  const zc = camera.position.clone().sub(controls.target).applyQuaternion(inv);
+  const yc = camera.up.clone().applyQuaternion(inv);
+  const z = directionIndices(zc, A);
+  if (!z) return toast('That view is not close enough to a simple lattice direction.', true);
+  const y = directionIndices(yc.projectOnPlane(directionVector(z[0],z[1],z[2],A).normalize()), A);
+  s.frame.z = z;
+  if (y) s.frame.y = y;
+  const dz = directionVector(z[0],z[1],z[2],A), dy = directionVector(s.frame.y[0],s.frame.y[1],s.frame.y[2],A);
+  const x = directionIndices(new THREE.Vector3().crossVectors(dy, dz), A);
+  if (x) s.frame.x = x;
+  if (s.frame.use) applyFrameIndices(s);
+  renderPlanePanel(); rebuildScene();
+  toast(`Frame z set to ${dirLabel(z, s.isHex)}.`);
+}
+/* turn the frame indices into the true crystal indices that everything else uses */
+function applyFrameIndices(s){
+  const A = localLattice(s);
+  const t = frameToCrystal(s.plane.H ?? s.plane.h, s.plane.K ?? s.plane.k, s.plane.L ?? s.plane.l, s.frame, A);
+  if (t){ s.plane.h = t[0]; s.plane.k = t[1]; s.plane.l = t[2]; }
+}
+function setPlaneOpacity(id, v){
+  const s = S(id); if (!s) return;
+  s.plane.opacity = clamp(v, 0.05, 1);
+  rebuildScene();
+}
+/* the lattice plane whose normal is closest to the direction the camera faces */
+function planeFromView(id){
+  const s = S(id); if (!s) return;
+  const A = localLattice(s), B = reciprocal(A);
+  const dir = camera.position.clone().sub(controls.target).applyQuaternion(s.quat.clone().invert());
+  const hkl = millerFromNormal(dir, A);
+  if (!hkl) return toast('That view direction is not close to a simple lattice plane.', true);
+  s.plane.h = hkl[0]; s.plane.k = hkl[1]; s.plane.l = hkl[2];
+  s.plane.show = true;
+  if (s.frame.use){
+    const f = crystalToFrame(hkl[0], hkl[1], hkl[2], s.frame, A, B);
+    if (f){ s.plane.H = f[0]; s.plane.K = f[1]; s.plane.L = f[2]; }
+  }
+  renderPlanePanel(); rebuildScene();
+  toast(`Plane facing the camera is ${millerLabel(hkl, s.isHex)}.`);
+}
+
 function updatePlane(id){
   const s = S(id);
-  s.plane.h = parseInt(byId('p-h').value)||0;
-  s.plane.k = parseInt(byId('p-k').value)||0;
-  s.plane.l = parseInt(byId('p-l').value)||0;
+  const h = parseInt(byId('p-h').value)||0;
+  const k = parseInt(byId('p-k').value)||0;
+  const l = parseInt(byId('p-l').value)||0;
+  if (s.frame.use){
+    s.plane.H = h; s.plane.K = k; s.plane.L = l;
+    if (!h && !k && !l) s.plane.L = 1;
+    applyFrameIndices(s);
+  } else {
+    s.plane.h = h; s.plane.k = k; s.plane.l = l;
+  }
   if (!s.plane.h && !s.plane.k && !s.plane.l) s.plane.l = 1;
   s.plane.dist = parseFloat(byId('p-dist').value);
   s.plane.thickness = parseFloat(byId('p-thick').value);
@@ -2137,9 +2398,15 @@ function viewAlongPlane(id){
   const s = S(id);
   if (!s) return;
   if (!(s.plane.h||s.plane.k||s.plane.l)) return toast('(0 0 0) is not a plane. Give at least one non-zero index.', true);
-  const B = reciprocal(worldLattice(s));
-  viewAlong(planeNormal(s.plane.h, s.plane.k, s.plane.l, B));
-  toast('Looking along the plane normal.');
+  const Aw = worldLattice(s), B = reciprocal(Aw);
+  /* with a frame in use, keep its y axis pointing up so (0 0 1) really is the top view */
+  let up;
+  if (s.frame.use && frameIsValid(s.frame, Aw)){
+    const f = s.frame;
+    up = directionVector(f.y[0], f.y[1], f.y[2], Aw);
+  }
+  viewAlong(planeNormal(s.plane.h, s.plane.k, s.plane.l, B), up);
+  toast(s.frame.use ? 'Looking down the frame plane.' : 'Looking along the plane normal.');
 }
 function copyPlaneReport(id){
   const s = S(id);
@@ -3623,6 +3890,7 @@ window.addEventListener('keydown', e=>{
   else if (e.key === 'p' || e.key === 'P') setPickMode(!pickMode);
   else if (e.key === 'a' || e.key === 'A') toggleAxes();
   else if (e.key === 'f' || e.key === 'F') resetView();
+  else if (e.key === 'l' || e.key === 'L') setLabels();
 });
 
 /* ---- start ---- */
