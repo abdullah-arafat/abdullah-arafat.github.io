@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PlotForge</title>
+<title>PlotForge — simulation data plotter</title>
 <style>:root{
   --bg:#e4e7ea; --surface:#f2f4f5; --panel:#fbfcfc; --paper:#ffffff;
   --rule:#c0c6cc; --rule-soft:#d8dde1;
   --ink:#161a1e; --ink-2:#3d474f; --muted:#67727d;
   --accent:#0f5c8c; --accent-ink:#0a4568; --amber:#8a5a00; --danger:#9c2b2b; --good:#1c6b45;
   --mono:'SFMono-Regular',ui-monospace,Consolas,'DejaVu Sans Mono',monospace;
-  --ui:'Inter','Helvetica Neue',Helvetica,Arial,system-ui,sans-serif;
+  --ui:Arial,'Helvetica Neue',Helvetica,'Liberation Sans',sans-serif;
   --r:2px;
 }
 *{box-sizing:border-box}
@@ -19,6 +19,7 @@ body{
   background:var(--bg); color:var(--ink); font:13px/1.45 var(--ui);
   -webkit-font-smoothing:antialiased; overflow:hidden;
 }
+#app,#app button,#app input,#app select,#app textarea{font-family:var(--ui)!important}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 
@@ -73,6 +74,8 @@ button.pri:hover{background:var(--accent-ink)}
 button.warn{color:var(--danger)}
 #btn-add-all{background:#fff;color:var(--ink);border-color:var(--rule)}
 #btn-add-all:hover{background:#eaf2f7;color:var(--accent-ink)}
+#btn-avg,#btn-del-all-series{min-width:0;padding:4px 5px;font-size:10.5px;line-height:1.2;white-space:normal}
+.series-actions{width:100%;min-width:0;align-items:stretch}
 button.wide{width:100%;justify-content:center}
 button:disabled{opacity:.45;cursor:not-allowed}
 .hint{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.4}
@@ -136,6 +139,13 @@ hr{border:0;border-top:1px solid var(--rule-soft);margin:9px 0}
 .hover-values.on{display:block}
 .msg.err{color:var(--danger)}.msg.ok{color:var(--good)}.msg.warn{color:var(--amber)}
 .statusbar .coord{font-family:var(--mono);color:var(--muted)}
+.focus-exit{display:none;position:fixed;top:10px;right:10px;z-index:90;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+body.plot-only{overflow:hidden}
+body.plot-only #app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:100vh}
+body.plot-only header,body.plot-only .rail,body.plot-only .inspector,body.plot-only .toolbar,body.plot-only .statusbar{display:none}
+body.plot-only main{grid-column:1;grid-row:1;height:100vh;min-height:0}
+body.plot-only .stage{padding:8px;align-items:center}
+body.plot-only .focus-exit{display:block}
 
 /* ---------- inspector tabs ---------- */
 .tabs{display:flex;background:#eceff1;border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:2}
@@ -201,13 +211,14 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
 <div id="app">
 
 <header>
-  <div class="brand"><b>PlotForge</b><span>(Abdullah's plotting software)</span></div>
+  <div class="brand"><b>PlotForge</b><span>simulation data → paper figure</span></div>
   <div class="spacer"></div>
   <button id="btn-examples">Load example data</button>
   <button id="btn-grid">Column overview…</button>
   <div class="sep"></div>
   <button id="btn-save">Save session</button>
   <button id="btn-load">Open session</button>
+  <button id="btn-focus" title="Hide all controls and show only the plot">Plot only</button>
   <button id="btn-help">Help</button>
 </header>
 
@@ -291,7 +302,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
       </div>
       <hr>
       <div id="series-list"></div>
-      <div class="row">
+      <div class="row series-actions">
         <button id="btn-avg" style="flex:1" title="Mean ± SD across all visible series on a shared x grid">Mean of visible ± SD</button>
         <button id="btn-del-all-series" class="warn" style="flex:1" title="Delete every series">Delete all series</button>
       </div>
@@ -505,6 +516,13 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
         <div><label class="f">Ticks point</label><select id="f-tickdir"><option value="in">inward</option><option value="out">outward</option></select></div>
       </div>
       <label class="chk" style="margin-top:6px"><input id="f-minor" type="checkbox" checked>minor ticks</label>
+      <hr>
+      <div class="grid2">
+        <label class="chk"><input id="f-boldticks" type="checkbox">bold ticks</label>
+        <label class="chk"><input id="f-boldaxes" type="checkbox">bold axes</label>
+        <label class="chk"><input id="f-boldlines" type="checkbox">bold plot lines</label>
+        <label class="chk"><input id="f-boldtitle" type="checkbox">bold titles</label>
+      </div>
     </div></div>
     <div class="sec"><h3>Legend</h3><div class="body">
       <label class="chk"><input id="l-show" type="checkbox" checked>show legend</label>
@@ -589,6 +607,8 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
   </div>
 </div>
 </div>
+
+<button id="btn-focus-exit" class="focus-exit pri" title="Restore all PlotForge controls">Show controls</button>
 
 <!-- ============ MODALS ============ -->
 <div class="modal" id="m-export">
@@ -1695,7 +1715,7 @@ root.PFCore = API;
 const C = root.PFCore || require('./core.js');
 
 const FONTS = {
-  sans: "'Helvetica Neue', Helvetica, Arial, 'DejaVu Sans', sans-serif",
+  sans: "Arial, 'Helvetica Neue', Helvetica, 'Liberation Sans', sans-serif",
   serif: "'Times New Roman', Times, 'DejaVu Serif', Georgia, serif",
   mono: "'SFMono-Regular', Consolas, 'DejaVu Sans Mono', monospace"
 };
@@ -1786,7 +1806,8 @@ function buildFigure(spec) {
     width: 900, height: 560, font: 'sans', fontScale: 1, bg: '#ffffff',
     frame: 'box', grid: 'none', minorTicks: true, tickDir: 'in',
     plotType: 'line', legend: { show: true, pos: 'best', frame: true },
-    xTickCount: 6, yTickCount: 6
+    xTickCount: 6, yTickCount: 6,
+    boldTicks: false, boldAxes: false, boldLines: false, boldTitle: false
   }, spec || {});
   const fam = FONTS[S.font] || FONTS.sans;
   const fs = 11 * (S.fontScale || 1);          // tick label size
@@ -1849,8 +1870,15 @@ function buildFigure(spec) {
     for (const v of t) w = Math.max(w, C.fmtTick(v, { decimals: a.decimals, sci: a.sci || a.log }).length);
     return w * fs * 0.58 + 10 + (a.label ? fsAx * 1.5 : 0);
   }
+  const lgForMargin = S.legend || {};
+  let outsideLegendW = 0;
+  if (lgForMargin.show !== false && lgForMargin.pos === 'outside') {
+    const legendItems = series.map((s, i) => ({ label: s.label || 'series ' + (i + 1) }));
+    fits.forEach(f => { if (f.label) legendItems.push({ label: f.label }); });
+    if (legendItems.length) outsideLegendW = legendMetrics(legendItems, fs, lgForMargin).w + 18;
+  }
   const mL = 14 + (leftAxes.length ? leftAxes.reduce((s, a) => s + tickWidth(a), 0) : 30);
-  const mR = 14 + (rightAxes.length ? rightAxes.reduce((s, a) => s + tickWidth(a), 0) : 8);
+  const mR = 14 + (rightAxes.length ? rightAxes.reduce((s, a) => s + tickWidth(a), 0) : 8) + outsideLegendW;
   const mT = 12 + (S.title ? fsTi * 1.9 : 4);
   const mB = 14 + fs * 1.5 + (S.xLabel ? fsAx * 1.8 : 0);
   const W = S.width, H = S.height;
@@ -1863,7 +1891,8 @@ function buildFigure(spec) {
 
   /* --- assemble --- */
   const out = [];
-  out.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="${fam}">`);
+  out.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="${fam}" style="font-family:${fam}">`);
+  out.push(`<style>text{font-family:${fam}!important}</style>`);
   out.push(`<rect width="${W}" height="${H}" fill="${S.bg}"/>`);
   if (S.plotBg && S.plotBg !== S.bg) out.push(`<rect x="${num(L)}" y="${num(T)}" width="${num(pw)}" height="${num(ph)}" fill="${S.plotBg}"/>`);
   out.push(`<clipPath id="pfclip"><rect x="${num(L)}" y="${num(T)}" width="${num(pw)}" height="${num(ph)}"/></clipPath>`);
@@ -1909,13 +1938,13 @@ function buildFigure(spec) {
     const sc = ys[h.axis || 'y'] || ys[usedAxes[0].id];
     const py = sc.to(h.value);
     if (py < T || py > B) return;
-    out.push(`<line x1="${num(L)}" y1="${num(py)}" x2="${num(R)}" y2="${num(py)}" stroke="${h.color || '#444'}" stroke-width="${h.lineWidth || 1}" stroke-dasharray="${DASHES[h.dash || 'dashed']}"/>`);
+    out.push(`<line x1="${num(L)}" y1="${num(py)}" x2="${num(R)}" y2="${num(py)}" stroke="${h.color || '#444'}" stroke-width="${(h.lineWidth || 1) * (S.boldLines ? 1.75 : 1)}" stroke-dasharray="${DASHES[h.dash || 'dashed']}"/>`);
     if (h.label) out.push(`<text x="${num(R - 8)}" y="${num(Math.max(T + fs, py - 5))}" font-size="${num(fs * 0.92)}" text-anchor="end" fill="${h.color || '#444'}">${esc(h.label)}</text>`);
   });
   (S.vlines || []).forEach(v => {
     const px = xs.to(v.value);
     if (px < L || px > R) return;
-    out.push(`<line x1="${num(px)}" y1="${num(T)}" x2="${num(px)}" y2="${num(B)}" stroke="${v.color || '#444'}" stroke-width="${v.lineWidth || 1}" stroke-dasharray="${DASHES[v.dash || 'dashed']}"/>`);
+    out.push(`<line x1="${num(px)}" y1="${num(T)}" x2="${num(px)}" y2="${num(B)}" stroke="${v.color || '#444'}" stroke-width="${(v.lineWidth || 1) * (S.boldLines ? 1.75 : 1)}" stroke-dasharray="${DASHES[v.dash || 'dashed']}"/>`);
     if (v.label) {
       const right = px > (L + R) / 2;
       out.push(`<text x="${num(px + (right ? -5 : 5))}" y="${num(T + fs * 1.15)}" font-size="${num(fs * 0.92)}" text-anchor="${right ? 'end' : 'start'}" fill="${v.color || '#444'}">${esc(v.label)}</text>`);
@@ -1930,7 +1959,7 @@ function buildFigure(spec) {
     const type = s.type || S.plotType;
     const sc = ys[s.axis || 'y'] || ys[usedAxes[0].id];
     const col = s.color || PALETTES.tab10[si % 10];
-    const lw = s.lineWidth === undefined ? 1.5 : s.lineWidth;
+    const lw = (s.lineWidth === undefined ? 1.5 : s.lineWidth) * (S.boldLines ? 1.75 : 1);
     const ms = s.markerSize === undefined ? 4 : s.markerSize;
     const alpha = s.alpha === undefined ? 1 : s.alpha;
     const dash = DASHES[s.dash || 'solid'];
@@ -1948,7 +1977,7 @@ function buildFigure(spec) {
         const cx = xs.to(p[0]) + off, py = sc.to(p[1]);
         if (!Number.isFinite(cx) || !Number.isFinite(py) || !Number.isFinite(zeroPy)) return;
         const y0 = Math.min(py, zeroPy), hgt = Math.max(0.5, Math.abs(py - zeroPy));
-        g.push(`<rect x="${num(cx - bw / 2)}" y="${num(y0)}" width="${num(Math.max(1, bw * 0.92))}" height="${num(hgt)}" fill="${col}" stroke="${s.edgeColor || '#222'}" stroke-width="${s.edgeWidth === undefined ? 0.7 : s.edgeWidth}"/>`);
+        g.push(`<rect x="${num(cx - bw / 2)}" y="${num(y0)}" width="${num(Math.max(1, bw * 0.92))}" height="${num(hgt)}" fill="${col}" stroke="${s.edgeColor || '#222'}" stroke-width="${(s.edgeWidth === undefined ? 0.7 : s.edgeWidth) * (S.boldLines ? 1.75 : 1)}"/>`);
       });
       barIdx++;
     } else if (type === 'area') {
@@ -1975,7 +2004,7 @@ function buildFigure(spec) {
       if (type === 'scatter' || type === 'both') {
         const mk = s.marker && s.marker !== 'none' ? s.marker : 'circle';
         const filled = s.hollow ? 'none' : col;
-        g.push(`<g fill="${filled}" stroke="${col}" stroke-width="${s.hollow ? 1.1 : 0.6}">${pts.map(p => markerPath(mk, xs.to(p[0]), sc.to(p[1]), ms)).join('')}</g>`);
+        g.push(`<g fill="${filled}" stroke="${col}" stroke-width="${(s.hollow ? 1.1 : 0.6) * (S.boldLines ? 1.75 : 1)}">${pts.map(p => markerPath(mk, xs.to(p[0]), sc.to(p[1]), ms)).join('')}</g>`);
       }
     }
 
@@ -1999,7 +2028,7 @@ function buildFigure(spec) {
     const sc = ys[f.axis || 'y'] || ys[usedAxes[0].id];
     body.push({
       z: 1000 + i,
-      svg: `<path clip-path="url(#pfclip)" d="${lineD(f.points, xs, sc, false)}" fill="none" stroke="${f.color || '#111'}" stroke-width="${f.lineWidth || 1.8}" stroke-dasharray="${DASHES[f.dash || 'dashed']}"/>`
+      svg: `<path clip-path="url(#pfclip)" d="${lineD(f.points, xs, sc, false)}" fill="none" stroke="${f.color || '#111'}" stroke-width="${(f.lineWidth || 1.8) * (S.boldLines ? 1.75 : 1)}" stroke-dasharray="${DASHES[f.dash || 'dashed']}"/>`
     });
   });
   body.sort((a, b) => a.z - b.z).forEach(b => out.push(b.svg));
@@ -2019,7 +2048,8 @@ function buildFigure(spec) {
 
   /* axes: spines, ticks, labels */
   const spine = S.spineColor || '#111111';
-  const sw = S.spineWidth || 1;
+  const sw = (S.spineWidth || 1) * (S.boldAxes ? 1.6 : 1);
+  const tw = (S.spineWidth || 1) * (S.boldTicks ? 1.6 : 1);
   const tickLen = S.tickLen || 4.5, minorLen = tickLen * 0.55;
   const inward = (S.tickDir || 'in') === 'in';
 
@@ -2037,14 +2067,14 @@ function buildFigure(spec) {
     xtdm.push(`M${num(px)},${num(B)}v${inward ? -minorLen : minorLen}`);
     if (S.frame === 'box') xtdm.push(`M${num(px)},${num(T)}v${inward ? minorLen : -minorLen}`);
   });
-  out.push(`<path d="${xtd.join('')}" stroke="${spine}" stroke-width="${sw}" fill="none"/>`);
-  if (xtdm.length) out.push(`<path d="${xtdm.join('')}" stroke="${spine}" stroke-width="${sw * 0.8}" fill="none"/>`);
+  out.push(`<path d="${xtd.join('')}" stroke="${spine}" stroke-width="${tw}" fill="none"/>`);
+  if (xtdm.length) out.push(`<path d="${xtdm.join('')}" stroke="${spine}" stroke-width="${tw * 0.8}" fill="none"/>`);
   xt.ticks.forEach(v => {
     const px = xs.to(v);
     if (px < L - 0.5 || px > R + 0.5) return;
-    out.push(`<text x="${num(px)}" y="${num(B + fs + (inward ? 5 : 5 + tickLen))}" font-size="${num(fs)}" text-anchor="middle" fill="${spine}">${esc(xLabelOf(v))}</text>`);
+    out.push(`<text x="${num(px)}" y="${num(B + fs + (inward ? 5 : 5 + tickLen))}" font-size="${num(fs)}" font-weight="${S.boldTicks ? 700 : 400}" text-anchor="middle" fill="${spine}">${esc(xLabelOf(v))}</text>`);
   });
-  if (S.xLabel) out.push(`<text x="${num((L + R) / 2)}" y="${num(H - 6)}" font-size="${num(fsAx)}" text-anchor="middle" fill="${spine}">${esc(S.xLabel)}</text>`);
+  if (S.xLabel) out.push(`<text x="${num((L + R) / 2)}" y="${num(H - 6)}" font-size="${num(fsAx)}" font-weight="${S.boldAxes ? 700 : 400}" text-anchor="middle" fill="${spine}">${esc(S.xLabel)}</text>`);
 
   // y axes
   let offL = 0, offR = 0;
@@ -2070,19 +2100,19 @@ function buildFigure(spec) {
       if (S.frame === 'box' && usedAxes.length === 1) dm.push(`M${num(R)},${num(py)}h${inward ? -minorLen : minorLen}`);
     });
     if (offL > 0 || offR > 0) out.push(`<line x1="${num(xpos)}" y1="${num(T)}" x2="${num(xpos)}" y2="${num(B)}" stroke="${acol}" stroke-width="${sw}"/>`);
-    out.push(`<path d="${d.join('')}" stroke="${acol}" stroke-width="${sw}" fill="none"/>`);
-    if (dm.length) out.push(`<path d="${dm.join('')}" stroke="${acol}" stroke-width="${sw * 0.8}" fill="none"/>`);
+    out.push(`<path d="${d.join('')}" stroke="${acol}" stroke-width="${tw}" fill="none"/>`);
+    if (dm.length) out.push(`<path d="${dm.join('')}" stroke="${acol}" stroke-width="${tw * 0.8}" fill="none"/>`);
     let maxw = 0;
     t.ticks.forEach(v => {
       const py = sc.to(v);
       if (py < T - 0.5 || py > B + 0.5) return;
       const lab = C.fmtTick(v, { decimals: a.decimals, sci: a.sci || a.log });
       maxw = Math.max(maxw, lab.length * fs * 0.58);
-      out.push(`<text x="${num(xpos - dir * (inward ? 5 : 5 + tickLen))}" y="${num(py + fs * 0.35)}" font-size="${num(fs)}" text-anchor="${side === 'left' ? 'end' : 'start'}" fill="${acol}">${esc(lab)}</text>`);
+      out.push(`<text x="${num(xpos - dir * (inward ? 5 : 5 + tickLen))}" y="${num(py + fs * 0.35)}" font-size="${num(fs)}" font-weight="${S.boldTicks ? 700 : 400}" text-anchor="${side === 'left' ? 'end' : 'start'}" fill="${acol}">${esc(lab)}</text>`);
     });
     if (a.label) {
       const lx = xpos - dir * (maxw + 12 + fsAx * 0.4);
-      out.push(`<text x="${num(lx)}" y="${num((T + B) / 2)}" font-size="${num(fsAx)}" text-anchor="middle" fill="${acol}" transform="rotate(${side === 'left' ? -90 : 90} ${num(lx)} ${num((T + B) / 2)})">${esc(a.label)}</text>`);
+      out.push(`<text x="${num(lx)}" y="${num((T + B) / 2)}" font-size="${num(fsAx)}" font-weight="${S.boldAxes ? 700 : 400}" text-anchor="middle" fill="${acol}" transform="rotate(${side === 'left' ? -90 : 90} ${num(lx)} ${num((T + B) / 2)})">${esc(a.label)}</text>`);
     }
     const consumed = maxw + 14 + (a.label ? fsAx * 1.6 : 0);
     if (side === 'left') offL += consumed; else offR += consumed;
@@ -2095,7 +2125,7 @@ function buildFigure(spec) {
   }
 
   /* title */
-  if (S.title) out.push(`<text x="${num((L + R) / 2)}" y="${num(mT - fsTi * 0.65)}" font-size="${num(fsTi)}" text-anchor="middle" fill="${spine}" font-weight="500">${esc(S.title)}</text>`);
+  if (S.title) out.push(`<text x="${num((L + R) / 2)}" y="${num(mT - fsTi * 0.65)}" font-size="${num(fsTi)}" text-anchor="middle" fill="${spine}" font-weight="${S.boldTitle ? 700 : 500}">${esc(S.title)}</text>`);
 
   /* legend */
   const lg = S.legend || {};
@@ -2177,11 +2207,7 @@ function minorBetween(ticks, step, sc) {
 }
 
 function legendSVG(entries, box, fs, lg, spine, bg) {
-  const cols = Math.max(1, lg.cols || 1);
-  const rows = Math.ceil(entries.length / cols);
-  const sampleW = 26, gap = 6, rowH = fs * 1.55;
-  const colW = entries.reduce((m, e) => Math.max(m, e.label.length), 1) * fs * 0.55 + sampleW + gap + 12;
-  const w = colW * cols + 8, h = rows * rowH + 10;
+  const { cols, rows, sampleW, gap, rowH, colW, w, h } = legendMetrics(entries, fs, lg);
   const pos = lg.pos || 'best';
   let x, y;
   const pad = 8;
@@ -2211,6 +2237,13 @@ function legendSVG(entries, box, fs, lg, spine, bg) {
   g.push('</g>');
   return g.join('');
 }
+function legendMetrics(entries, fs, lg) {
+  const cols = Math.max(1, lg.cols || 1);
+  const rows = Math.ceil(entries.length / cols);
+  const sampleW = 26, gap = 6, rowH = fs * 1.55;
+  const colW = entries.reduce((m, e) => Math.max(m, String(e.label || '').length), 1) * fs * 0.55 + sampleW + gap + 12;
+  return { cols, rows, sampleW, gap, rowH, colW, w: colW * cols + 8, h: rows * rowH + 10 };
+}
 
 /* ---------- small-multiples grid (all columns vs one) ------- */
 
@@ -2221,9 +2254,11 @@ function buildGrid(spec) {
   const pw = spec.panelWidth || 380, ph = spec.panelHeight || 260;
   const titleH = spec.title ? 34 : 0;
   const W = cols * pw, H = rows * ph + titleH;
-  const parts = [`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="${FONTS[spec.font] || FONTS.sans}">`,
+  const fam = FONTS[spec.font] || FONTS.sans;
+  const parts = [`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="${fam}" style="font-family:${fam}">`,
+    `<style>text{font-family:${fam}!important}</style>`,
     `<rect width="${W}" height="${H}" fill="${spec.bg || '#ffffff'}"/>`];
-  if (spec.title) parts.push(`<text x="${W / 2}" y="22" font-size="15" text-anchor="middle" font-weight="500">${esc(spec.title)}</text>`);
+  if (spec.title) parts.push(`<text x="${W / 2}" y="22" font-size="15" text-anchor="middle" font-weight="${spec.boldTitle ? 700 : 500}">${esc(spec.title)}</text>`);
   const panelMeta = [];
   panels.forEach((p, i) => {
     const cx = (i % cols) * pw, cy = titleH + Math.floor(i / cols) * ph;
@@ -2262,7 +2297,8 @@ const state = {
     title: '', xLabel: '', xMin: '', xMax: '', xLog: false, xSci: false, xDecimals: '', xTickCount: 6,
     panels: false, panelCols: 0,
     width: 900, height: 560, font: 'sans', fontScale: 1, frame: 'box', grid: 'none',
-    minorTicks: true, tickDir: 'in', plotType: 'line', palette: 'tab10'
+    minorTicks: true, tickDir: 'in', plotType: 'line', palette: 'tab10',
+    boldTicks: false, boldAxes: false, boldLines: false, boldTitle: false
   },
   legend: { show: true, pos: 'upper left', cols: 1, frame: true },
   refs: [], annos: [], bands: [],
@@ -2484,6 +2520,7 @@ function buildSpec(overrides) {
     width: +F.width, height: +F.height, title: F.title, xLabel: F.xLabel,
     font: F.font, fontScale: +F.fontScale, frame: F.frame, grid: F.grid,
     minorTicks: F.minorTicks, tickDir: F.tickDir, plotType: F.plotType,
+    boldTicks: F.boldTicks, boldAxes: F.boldAxes, boldLines: F.boldLines, boldTitle: F.boldTitle,
     xLog: F.xLog, xSci: F.xSci, xDecimals: F.xDecimals, xTickCount: +F.xTickCount || 6,
     xMin: zoom ? zoom.x[0] : F.xMin, xMax: zoom ? zoom.x[1] : F.xMax,
     axes, series, fits, bands: state.bands, xCategories,
@@ -2542,6 +2579,7 @@ function buildPanelGrid(spec) {
     title: '', cols, panelWidth: pw, panelHeight: ph, font: spec.font, bg: spec.bg, panels,
     common: {
       font: spec.font, fontScale: spec.fontScale, bg: spec.bg === undefined ? '#ffffff' : spec.bg, frame: spec.frame, grid: spec.grid,
+      boldTicks: spec.boldTicks, boldAxes: spec.boldAxes, boldLines: spec.boldLines, boldTitle: spec.boldTitle,
       minorTicks: spec.minorTicks, tickDir: spec.tickDir, plotType: spec.plotType,
       xLog: spec.xLog, xSci: spec.xSci, xMin: spec.xMin, xMax: spec.xMax,
       xTickCount: Math.max(3, Math.round(spec.xTickCount * 0.7)), xCategories: spec.xCategories
@@ -3324,6 +3362,8 @@ function pythonScript() {
   const F = state.fig, vis = state.series.filter(s => s.visible), spec = buildSpec();
   const separate = !!F.panels && vis.length > 1;
   const panelGrid = separate ? buildPanelGrid(spec) : null;
+  const lineScale = F.boldLines ? 1.75 : 1;
+  const legendAnchor = state.legend.pos === 'outside' ? ', bbox_to_anchor=(1.02, 0.5), borderaxespad=0' : '';
   const dataPrefix = safe($('e-name').value || 'plotforge');
   const q = s => "'" + String(s).replace(/'/g, "\\'") + "'";
   const L = [];
@@ -3367,14 +3407,14 @@ function pythonScript() {
     L.push('d' + i + ' = np.genfromtxt(' + q(file) + ', delimiter=' + (dl === ' ' || dl === '  ' ? 'None' : q(dl)) + ', names=True)');
     const type = s.type || F.plotType;
     const opts = 'color=' + q(s.color) + ', label=' + q(seriesLabel(s)) + ', alpha=' + s.alpha;
-    if (type === 'bar') L.push(axv + '.bar(d' + i + '["x"], d' + i + '["y"], ' + opts + ', edgecolor="black", linewidth=0.7)');
+    if (type === 'bar') L.push(axv + '.bar(d' + i + '["x"], d' + i + '["y"], ' + opts + ', edgecolor="black", linewidth=' + (0.7 * lineScale).toFixed(3) + ')');
     else if (type === 'scatter') L.push(axv + '.plot(d' + i + '["x"], d' + i + '["y"], ' + q(pyMarker(s.marker)) + ', ms=' + s.ms + ', ' + opts + ', ls="none")');
-    else if (type === 'step') L.push(axv + '.step(d' + i + '["x"], d' + i + '["y"], where="post", lw=' + s.lw + ', ' + opts + ')');
+    else if (type === 'step') L.push(axv + '.step(d' + i + '["x"], d' + i + '["y"], where="post", lw=' + (s.lw * lineScale).toFixed(3) + ', ' + opts + ')');
     else if (type === 'area') L.push(axv + '.fill_between(d' + i + '["x"], d' + i + '["y"], ' + opts + ')');
     else if (type === 'stem') L.push(axv + '.stem(d' + i + '["x"], d' + i + '["y"], linefmt=' + q('-') + ', basefmt=" ", label=' + q(seriesLabel(s)) + ')');
-    else L.push(axv + '.plot(d' + i + '["x"], d' + i + '["y"], lw=' + s.lw + ', ls=' + q(pyDash(s.dash)) +
+    else L.push(axv + '.plot(d' + i + '["x"], d' + i + '["y"], lw=' + (s.lw * lineScale).toFixed(3) + ', ls=' + q(pyDash(s.dash)) +
       (type === 'both' ? ', marker=' + q(pyMarker(s.marker)) + ', ms=' + s.ms : '') + ', ' + opts + ')');
-    if (s.errbars) L.push(axv + '.errorbar(d' + i + '["x"], d' + i + '["y"], yerr=d' + i + '["err"], fmt="none", ecolor=' + q(s.color) + ', elinewidth=0.9, capsize=2)');
+    if (s.errbars) L.push(axv + '.errorbar(d' + i + '["x"], d' + i + '["y"], yerr=d' + i + '["err"], fmt="none", ecolor=' + q(s.color) + ', elinewidth=' + (0.9 * lineScale).toFixed(3) + ', capsize=2)');
     if (s.fit && s.fit.result) {
       L.push('# fit: ' + s.fit.result.equation + '   (R^2 = ' + C.fmtSig(s.fit.result.r2, 5) + ')');
       L.push(pyFitLine(s, axv, i));
@@ -3382,7 +3422,7 @@ function pythonScript() {
     if (separate) {
       const own = spec.axes.find(a => a.id === s.axis) || spec.axes[0];
       const srcFile = fileById(s.fileId);
-      if (srcFile) L.push(axv + '.set_title(' + q(srcFile.name) + ')');
+      if (srcFile) L.push(axv + '.set_title(' + q(srcFile.name) + ', fontweight=' + q(F.boldTitle ? 'bold' : 'normal') + ')');
       L.push(axv + '.set_ylabel(' + q(colName(s.fileId, s.yi)) + ')');
       L.push(axv + '.tick_params(axis="y", colors=' + q(s.color) + ')');
       L.push(axv + '.yaxis.label.set_color(' + q(s.color) + ')');
@@ -3395,13 +3435,13 @@ function pythonScript() {
       if (F.grid !== 'none') L.push(axv + '.grid(True, ls=' + q(F.grid === 'major' ? '--' : '-') + ', lw=0.5, alpha=0.6)');
       if (F.frame === 'lr') { L.push(axv + '.spines["top"].set_visible(False)'); L.push(axv + '.spines["right"].set_visible(False)'); }
       if (F.frame === 'none') L.push('[sp.set_visible(False) for sp in ' + axv + '.spines.values()]');
-      state.refs.forEach(r => L.push(axv + '.ax' + (r.kind === 'h' ? 'h' : 'v') + 'line(' + r.value + ', color="0.3", ls="--", lw=1' + (r.label ? ', label=' + q(r.label) : '') + ')'));
+      state.refs.forEach(r => L.push(axv + '.ax' + (r.kind === 'h' ? 'h' : 'v') + 'line(' + r.value + ', color="0.3", ls="--", lw=' + lineScale.toFixed(3) + (r.label ? ', label=' + q(r.label) : '') + ')'));
       state.annos.forEach(a => {
         L.push(axv + '.annotate(' + q(String(a.text).replace(/\n/g, '\\n')) + ', xy=(' + a.x + ', ' + a.y + '), xytext=(' +
           (a.dx || 10) + ', ' + (-(a.dy || -14)) + '), textcoords="offset points",');
         L.push('            bbox=dict(fc="white", ec="black", lw=0.5, alpha=0.85), arrowprops=dict(arrowstyle="-", lw=0.8))');
       });
-      if (state.legend.show) L.push(axv + '.legend(loc=' + q(pyLoc(state.legend.pos)) + ', ncol=' + state.legend.cols + ', frameon=' + (state.legend.frame ? 'True' : 'False') + ', fontsize=' + (10 * F.fontScale).toFixed(1) + ')');
+      if (state.legend.show) L.push(axv + '.legend(loc=' + q(pyLoc(state.legend.pos)) + legendAnchor + ', ncol=' + state.legend.cols + ', frameon=' + (state.legend.frame ? 'True' : 'False') + ', fontsize=' + (10 * F.fontScale).toFixed(1) + ')');
       L.push('');
     }
   });
@@ -3410,7 +3450,7 @@ function pythonScript() {
     L.push('for unused_ax in panel_axes[' + vis.length + ':]:');
     L.push('    unused_ax.set_visible(False)');
   } else {
-    if (F.title) L.push('ax.set_title(' + q(F.title) + ')');
+    if (F.title) L.push('ax.set_title(' + q(F.title) + ', fontweight=' + q(F.boldTitle ? 'bold' : 'normal') + ')');
     if (F.xLabel) L.push('ax.set_xlabel(' + q(F.xLabel) + ')');
     spec.axes.forEach(a => {
       const v = a.id === 'y' ? 'ax' : extra[a.id];
@@ -3431,7 +3471,7 @@ function pythonScript() {
     if (F.grid !== 'none') L.push('ax.grid(True, ls=' + q(F.grid === 'major' ? '--' : '-') + ', lw=0.5, alpha=0.6)');
     if (F.frame === 'lr') { L.push('ax.spines["top"].set_visible(False)'); L.push('ax.spines["right"].set_visible(False)'); }
     if (F.frame === 'none') L.push('[sp.set_visible(False) for sp in ax.spines.values()]');
-    state.refs.forEach(r => L.push('ax.ax' + (r.kind === 'h' ? 'h' : 'v') + 'line(' + r.value + ', color="0.3", ls="--", lw=1' + (r.label ? ', label=' + q(r.label) : '') + ')'));
+    state.refs.forEach(r => L.push('ax.ax' + (r.kind === 'h' ? 'h' : 'v') + 'line(' + r.value + ', color="0.3", ls="--", lw=' + lineScale.toFixed(3) + (r.label ? ', label=' + q(r.label) : '') + ')'));
     state.annos.forEach(a => {
       L.push('ax.annotate(' + q(String(a.text).replace(/\n/g, '\\n')) + ', xy=(' + a.x + ', ' + a.y + '), xytext=(' +
         (a.dx || 10) + ', ' + (-(a.dy || -14)) + '), textcoords="offset points",');
@@ -3441,8 +3481,22 @@ function pythonScript() {
       const axisVars = ['ax'].concat(Object.values(extra));
       L.push('_handles, _labels = [], []');
       axisVars.forEach(v => L.push('_h, _l = ' + v + '.get_legend_handles_labels(); _handles += _h; _labels += _l'));
-      L.push('ax.legend(_handles, _labels, loc=' + q(pyLoc(state.legend.pos)) + ', ncol=' + state.legend.cols +
+      L.push('ax.legend(_handles, _labels, loc=' + q(pyLoc(state.legend.pos)) + legendAnchor + ', ncol=' + state.legend.cols +
         ', frameon=' + (state.legend.frame ? 'True' : 'False') + ', fontsize=' + (10 * F.fontScale).toFixed(1) + ')');
+    }
+  }
+  L.push('');
+  if (F.boldTicks || F.boldAxes) {
+    L.push('for _axis in fig.axes:');
+    if (F.boldTicks) {
+      L.push('    _axis.tick_params(axis="both", which="major", width=1.6)');
+      L.push('    _axis.tick_params(axis="both", which="minor", width=1.25)');
+      L.push('    plt.setp(_axis.get_xticklabels() + _axis.get_yticklabels(), fontweight="bold")');
+    }
+    if (F.boldAxes) {
+      L.push('    _axis.xaxis.label.set_fontweight("bold")');
+      L.push('    _axis.yaxis.label.set_fontweight("bold")');
+      L.push('    [_spine.set_linewidth(1.6) for _spine in _axis.spines.values()]');
     }
   }
   L.push('');
@@ -3470,7 +3524,7 @@ function pyFitLine(s, axv, i) {
   else if (r.model === 'sine') expr = p.offset + ' + ' + p.A + '*np.sin(2*np.pi*' + p.freq + '*' + xf + ' + ' + p.phase + ')';
   else return '# (fit curve exported in the data files)';
   return xf + ' = np.linspace(' + lo + ', ' + hi + ', 300)\n' +
-    axv + '.plot(' + xf + ', ' + expr + ', "k--", lw=1.6, label=' +
+    axv + '.plot(' + xf + ', ' + expr + ', "k--", lw=' + (state.fig.boldLines ? 2.8 : 1.6) + ', label=' +
     (s.fit.showLabel ? "'" + (seriesLabel(s) + ': ' + r.equation).replace(/'/g, "\\'") + "'" : "'fit'") + ')';
 }
 function pyMarker(m) { return ({ circle: 'o', square: 's', triangle: '^', diamond: 'D', cross: 'x', plus: '+', star: '*' })[m] || 'o'; }
@@ -3635,6 +3689,7 @@ const FIG_BIND = [
   ['f-xticks', 'xTickCount'], ['f-xdec', 'xDecimals'], ['f-xlog', 'xLog'], ['f-xsci', 'xSci'],
   ['f-w', 'width'], ['f-h', 'height'], ['f-font', 'font'], ['f-fscale', 'fontScale'],
   ['f-frame', 'frame'], ['f-grid', 'grid'], ['f-tickdir', 'tickDir'], ['f-minor', 'minorTicks'],
+  ['f-boldticks', 'boldTicks'], ['f-boldaxes', 'boldAxes'], ['f-boldlines', 'boldLines'], ['f-boldtitle', 'boldTitle'],
   ['plot-type', 'plotType'], ['palette', 'palette']
 ];
 function syncFigureInputs() {
@@ -3660,6 +3715,11 @@ function syncParsePanel() {
 /* ---------- helpers ----------------------------------------- */
 function esc(s) { return String(s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 function escAttr(s) { return esc(s).replace(/"/g, '&quot;'); }
+function setPlotOnly(on) {
+  document.body.classList.toggle('plot-only', !!on);
+  const trigger = $('btn-focus'); if (trigger) trigger.setAttribute('aria-pressed', on ? 'true' : 'false');
+  requestAnimationFrame(render);
+}
 
 /* ---------- wiring ------------------------------------------ */
 
@@ -3677,7 +3737,10 @@ function boot() {
     m.querySelectorAll('[data-close]').forEach(b => b.onclick = () => m.classList.remove('on'));
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') document.querySelectorAll('.modal.on').forEach(m => m.classList.remove('on'));
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal.on').forEach(m => m.classList.remove('on'));
+      if (document.body.classList.contains('plot-only')) setPlotOnly(false);
+    }
   });
 
   $('s-marker').innerHTML = P.MARKERS.map(m => `<option value="${m}">${m}</option>`).join('');
@@ -4000,6 +4063,8 @@ function boot() {
 
   // ---- help
   $('btn-help').onclick = () => { $('help-body').innerHTML = HELP; $('m-help').classList.add('on'); };
+  $('btn-focus').onclick = () => setPlotOnly(true);
+  $('btn-focus-exit').onclick = () => setPlotOnly(false);
 
   setupOverlay();
   syncFigureInputs();
