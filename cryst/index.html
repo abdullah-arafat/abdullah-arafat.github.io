@@ -1,0 +1,3639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crystal Workbench</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<style>
+:root{
+  --bg:#e9ebef; --panel:#ffffff; --panel2:#f6f7f9; --ink:#12161b; --muted:#6a7380;
+  --line:#d8dde4; --accent:#1a63d8; --accent-soft:#e8f0fd; --sel:#e07b12; --ok:#1c8a52; --bad:#c0392b;
+  --r:6px; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  overflow:hidden;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#c3c9d2;border-radius:5px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- layout ---------- */
+.app{display:flex;height:100vh;width:100vw}
+.side{
+  width:346px;flex:none;background:var(--panel);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;height:100%;
+}
+.brand{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:12px 14px;border-bottom:1px solid var(--line);
+}
+.brand h1{margin:0;font-size:14px;font-weight:650;letter-spacing:-.01em}
+.brand .sub{font-size:11px;color:var(--muted);font-weight:400}
+.side-scroll{flex:1;overflow-y:auto;padding:10px 12px 24px}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.view-wrap{flex:1;position:relative;background:#fff;min-height:0}
+#canvas-container{position:absolute;inset:0}
+
+/* ---------- collapsible sections ---------- */
+.sec{border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px;background:var(--panel);overflow:hidden}
+.sec>summary{
+  list-style:none;cursor:pointer;padding:9px 11px;font-weight:600;font-size:12.5px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--panel2);
+}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary:hover{background:#eef1f5}
+.sec>summary .caret{color:var(--muted);font-size:10px;transition:transform .15s}
+.sec[open]>summary .caret{transform:rotate(90deg)}
+.sec-body{padding:11px;border-top:1px solid var(--line)}
+
+/* ---------- controls ---------- */
+.row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.row:last-child{margin-bottom:0}
+.lbl{color:var(--muted);font-size:11.5px;flex:none}
+.lbl.w{width:78px}
+.grow{flex:1;min-width:0}
+.inp{
+  width:100%;background:#fff;border:1px solid var(--line);border-radius:5px;
+  padding:4px 6px;font-size:12px;min-width:0;
+}
+.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.inp.mono{font-family:var(--mono);text-align:center}
+.inp.sm{padding:3px 4px;font-size:11.5px}
+textarea.inp{resize:vertical;font-family:var(--mono);font-size:11px;line-height:1.35}
+select.inp{cursor:pointer}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=color]{width:26px;height:22px;padding:0;border:1px solid var(--line);border-radius:4px;background:#fff;cursor:pointer}
+input[type=checkbox]{accent-color:var(--accent);cursor:pointer}
+.btn{
+  border:1px solid var(--line);background:#fff;border-radius:5px;padding:5px 10px;
+  cursor:pointer;font-size:12px;white-space:nowrap;
+}
+.btn:hover{background:var(--panel2)}
+.btn:active{transform:translateY(1px)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:hover{background:#154fad}
+.btn.wide{width:100%;text-align:center}
+.btn.sm{padding:3px 7px;font-size:11.5px}
+.btn.danger{color:var(--bad);border-color:#e8c5c0}
+.btn.danger:hover{background:#fdf1ef}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.check{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;user-select:none}
+.hint{font-size:11px;color:var(--muted);line-height:1.4}
+.hint.mt{margin-top:7px}
+.mono{font-family:var(--mono)}
+.divider{height:1px;background:var(--line);margin:9px 0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+.tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+
+/* ---------- structure cards ---------- */
+.card{border:1px solid var(--line);border-radius:var(--r);padding:9px;margin-bottom:8px;background:var(--panel)}
+.card.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.card-head{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.card-head input{font-weight:600;border:none;border-bottom:1px solid transparent;background:transparent;padding:2px 0;min-width:0;flex:1}
+.card-head input:hover{border-bottom-color:var(--line)}
+.card-head input:focus{outline:none;border-bottom-color:var(--accent)}
+.swatch{width:11px;height:11px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.15)}
+.empty{color:var(--muted);font-size:12px;text-align:center;padding:14px 8px;background:var(--panel2);border-radius:var(--r)}
+
+/* ---------- viewport overlays ---------- */
+.toolbar{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  display:flex;gap:4px;align-items:center;background:rgba(255,255,255,.94);
+  border:1px solid var(--line);border-radius:8px;padding:5px;
+  box-shadow:0 2px 8px rgba(20,25,35,.09);z-index:5;
+}
+.tb-btn{
+  width:26px;height:26px;border:none;background:transparent;border-radius:5px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:#3c4552;
+}
+.tb-btn:hover{background:var(--panel2)}
+.tb-btn.on{background:var(--accent);color:#fff}
+.tb-sep{width:1px;height:18px;background:var(--line);margin:0 3px}
+.tb-lbl{font-size:11px;color:var(--muted);padding:0 4px}
+.hud{
+  position:absolute;top:10px;left:10px;z-index:5;max-width:300px;
+  background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:8px;
+  padding:9px 10px;box-shadow:0 2px 8px rgba(20,25,35,.09);font-size:11.5px;
+}
+.hud h4{margin:0 0 5px;font-size:11.5px;font-weight:650}
+.hud .k{color:var(--muted)}
+.hud table{border-collapse:collapse;width:100%}
+.hud td{padding:1px 0;vertical-align:top}
+.hud td.v{font-family:var(--mono);text-align:right;padding-left:8px}
+.corner{
+  position:absolute;bottom:8px;right:10px;z-index:4;font-size:11px;color:#8a929d;
+  background:rgba(255,255,255,.85);border-radius:5px;padding:3px 7px;pointer-events:none;
+}
+.legend{position:absolute;bottom:8px;left:10px;z-index:4;display:flex;gap:9px;flex-wrap:wrap;
+  background:rgba(255,255,255,.88);border-radius:5px;padding:4px 8px;font-size:11px}
+.legend span{display:flex;align-items:center;gap:4px}
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(8px);
+  background:#12161b;color:#fff;padding:8px 14px;border-radius:6px;font-size:12.5px;
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:80;max-width:70vw;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.bad{background:#8f2b20}
+
+/* ---------- analysis drawer ---------- */
+.drawer{
+  height:0;flex:none;background:var(--panel);border-top:1px solid var(--line);
+  display:flex;flex-direction:column;overflow:hidden;transition:height .18s;
+}
+.drawer.open{height:352px}
+.drawer-head{display:flex;align-items:center;gap:4px;padding:6px 10px;border-bottom:1px solid var(--line);background:var(--panel2)}
+.tab{border:none;background:transparent;padding:5px 10px;border-radius:5px;cursor:pointer;font-size:12px;color:var(--muted)}
+.tab:hover{background:#e9edf3}
+.tab.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 0 0 1px var(--line)}
+.drawer-body{flex:1;display:flex;min-height:0}
+.pane-ctl{width:250px;flex:none;border-right:1px solid var(--line);padding:10px;overflow-y:auto}
+.pane-out{flex:1;display:flex;flex-direction:column;min-width:0;padding:8px 10px}
+.pane-out canvas{flex:1;width:100%;min-height:0;background:#fff;border:1px solid var(--line);border-radius:var(--r)}
+.out-bar{display:flex;gap:6px;align-items:center;padding-top:7px;flex-wrap:wrap}
+.readout{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px;font-family:var(--mono)}
+.tbl th{text-align:right;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);padding:3px 6px;position:sticky;top:0;background:#fff}
+.tbl td{text-align:right;padding:2px 6px;border-bottom:1px solid #eef0f3}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.scroll{overflow:auto;flex:1;min-height:0;border:1px solid var(--line);border-radius:var(--r)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;font-size:12px}
+.kv div:nth-child(odd){color:var(--muted)}
+.kv div:nth-child(even){font-family:var(--mono);text-align:right}
+
+/* ---------- modal ---------- */
+.modal-bg{position:fixed;inset:0;background:rgba(18,22,27,.42);display:none;align-items:center;justify-content:center;z-index:90}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:10px;width:420px;max-width:92vw;box-shadow:0 12px 40px rgba(0,0,0,.25);overflow:hidden}
+.modal h3{margin:0;padding:12px 14px;font-size:13px;border-bottom:1px solid var(--line)}
+.modal-body{padding:13px 14px;max-height:70vh;overflow-y:auto}
+.modal-foot{display:flex;gap:7px;justify-content:flex-end;padding:11px 14px;border-top:1px solid var(--line);background:var(--panel2)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="side">
+    <div class="brand">
+      <div>
+        <h1>Crystal Workbench</h1>
+        <div class="sub">POSCAR viewer, geometry &amp; diffraction</div>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="btn sm" onclick="saveWorkspace()" title="Save all structures and settings to a JSON file">Save</button>
+        <label class="btn sm" title="Load a saved workspace">Load<input type="file" accept=".json" hidden onchange="loadWorkspace(event)"></label>
+      </div>
+    </div>
+
+    <div class="side-scroll">
+
+      <!-- Add structure -->
+      <details class="sec" open>
+        <summary><span>Add a structure</span><span class="caret">›</span></summary>
+        <div class="sec-body">
+          <textarea id="poscar-input" class="inp" rows="5" placeholder="Paste POSCAR / CONTCAR text here"></textarea>
+          <div class="row" style="margin-top:7px">
+            <button class="btn pri grow" onclick="addPoscarFromInput()">Add structure</button>
+            <label class="btn" title="Read one or more POSCAR files">File<input type="file" hidden multiple onchange="loadPoscarFiles(event)"></label>
+          </div>
+          <div class="row">
+            <select id="example-sel" class="inp grow">
+              <option value="si">Silicon, diamond cubic (a = 5.431 Å)</option>
+              <option value="w">Tungsten, bcc (a = 3.165 Å)</option>
+              <option value="cu">Copper, fcc (a = 3.615 Å)</option>
+              <option value="mg">Magnesium, hcp (a = 3.209 Å)</option>
+              <option value="nacl">Rock salt NaCl (a = 5.640 Å)</option>
+              <option value="ice">Ice Ih, hexagonal (a = 4.511 Å)</option>
+            </select>
+            <button class="btn" onclick="loadExample()">Add</button>
+          </div>
+          <div class="hint mt">Direct or Cartesian coordinates, selective dynamics and negative scale factors are all handled.</div>
+        </div>
+      </details>
+
+      <!-- Structures -->
+      <details class="sec" open>
+        <summary><span>Structures</span><span class="caret">›</span></summary>
+        <div class="sec-body">
+          <div id="structures-list"></div>
+        </div>
+      </details>
+
+      <!-- Selection & measurement -->
+      <details class="sec" open>
+        <summary><span>Select &amp; measure</span><span class="caret">›</span></summary>
+        <div class="sec-body">
+          <label class="check" style="margin-bottom:7px">
+            <input type="checkbox" id="pick-toggle" onchange="setPickMode(this.checked)">
+            <span>Pick atoms by clicking (a short click selects, drag still pans)</span>
+          </label>
+          <div id="selection-out" class="hint">Nothing selected. One atom shows its position, two give a bond length, three give the bond angle and the Miller plane, four give a dihedral angle.</div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn grow sm" onclick="clearSelection()">Clear</button>
+            <button class="btn grow sm" onclick="copySelectionReport()">Copy report</button>
+          </div>
+          <div class="divider"></div>
+          <div class="row">
+            <span class="lbl w">Neighbours</span>
+            <input type="number" id="perp-count" class="inp mono sm" value="6" min="1" max="20" step="1" title="How many perpendicular planes to list">
+            <span class="lbl">max index</span>
+            <input type="number" id="perp-max" class="inp mono sm" value="4" min="1" max="8" step="1">
+          </div>
+          <div class="hint">These two settings control the list of perpendicular planes shown for a picked or typed plane.</div>
+        </div>
+      </details>
+
+      <!-- Planes & slabs -->
+      <details class="sec">
+        <summary><span>Miller planes &amp; slabs</span><span class="caret">›</span></summary>
+        <div class="sec-body">
+          <div class="row">
+            <span class="lbl w">Structure</span>
+            <select id="plane-struct-sel" class="inp grow" onchange="renderPlanePanel()"></select>
+          </div>
+          <div id="plane-panel-content"></div>
+        </div>
+      </details>
+
+      <!-- Move -->
+      <details class="sec">
+        <summary><span>Move a crystal</span><span class="caret">›</span></summary>
+        <div class="sec-body">
+          <div class="row">
+            <span class="lbl w">Structure</span>
+            <select id="move-struct-sel" class="inp grow" onchange="renderMovePanel()"></select>
+          </div>
+          <div id="move-panel-content"></div>
+        </div>
+      </details>
+
+      <!-- Align -->
+      <details class="sec">
+        <summary><span>Align two crystals</span><span class="caret">›</span></summary>
+        <div class="sec-body">
+          <div id="align-src-panel" style="border:1px solid #f0ccc6;border-radius:var(--r);padding:8px;margin-bottom:8px"></div>
+          <div id="align-tgt-panel" style="border:1px solid #c6e6d2;border-radius:var(--r);padding:8px;margin-bottom:8px"></div>
+          <div class="row">
+            <span class="lbl w">Twist about normal</span>
+            <input type="number" id="align-offset-norm" class="inp mono sm" value="0" step="5">
+          </div>
+          <div class="row">
+            <span class="lbl w">Tilt about direction</span>
+            <input type="number" id="align-offset-dir" class="inp mono sm" value="0" step="5">
+          </div>
+          <button class="btn pri wide" onclick="applyAlignment()">Align source to target</button>
+          <div class="hint mt">The source rotates so its plane normal meets the target normal and its direction meets the target direction. Arrows in the view show both.</div>
+        </div>
+      </details>
+
+      <!-- Export -->
+      <details class="sec">
+        <summary><span>Export</span><span class="caret">›</span></summary>
+        <div class="sec-body">
+          <div class="row">
+            <span class="lbl w">Structure</span>
+            <select id="export-struct-sel" class="inp grow"></select>
+          </div>
+          <div class="row">
+            <label class="check"><input type="checkbox" id="export-supercell" checked> <span>Write the full supercell</span></label>
+          </div>
+          <div class="row">
+            <label class="check"><input type="checkbox" id="export-transform" checked> <span>Apply the current move and alignment</span></label>
+          </div>
+          <div class="row">
+            <button class="btn grow sm" onclick="copyPoscar()">Copy POSCAR</button>
+            <button class="btn grow sm" onclick="downloadPoscar()">Download POSCAR</button>
+          </div>
+          <div class="row"><button class="btn grow sm" onclick="copyXYZ()">Copy XYZ of every visible structure</button></div>
+          <div class="divider"></div>
+          <button class="btn wide" onclick="openRender()">Render an image…</button>
+          <div class="hint mt">Choose a view direction, size and background, then copy the image or save it.</div>
+        </div>
+      </details>
+
+      <div class="hint" style="padding:2px 2px 8px">
+        Drag to pan, middle-drag or right-drag to rotate, scroll to zoom. Press <span class="mono">P</span> to toggle picking, <span class="mono">Esc</span> to clear a selection.
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <div class="view-wrap" id="canvas-wrapper">
+      <div id="canvas-container"></div>
+
+      <div class="toolbar">
+        <button class="tb-btn" title="Pan up" onclick="panView(0,1)">↑</button>
+        <button class="tb-btn" title="Pan down" onclick="panView(0,-1)">↓</button>
+        <button class="tb-btn" title="Pan left" onclick="panView(-1,0)">←</button>
+        <button class="tb-btn" title="Pan right" onclick="panView(1,0)">→</button>
+        <span class="tb-sep"></span>
+        <button class="tb-btn" title="Rotate left" onclick="rotateView(-1,0)">⟲</button>
+        <button class="tb-btn" title="Rotate right" onclick="rotateView(1,0)">⟳</button>
+        <button class="tb-btn" title="Rotate up" onclick="rotateView(0,1)">⤒</button>
+        <button class="tb-btn" title="Rotate down" onclick="rotateView(0,-1)">⤓</button>
+        <span class="tb-sep"></span>
+        <button class="tb-btn" title="Roll counter-clockwise" onclick="rollView(-1)">↺</button>
+        <button class="tb-btn" title="Roll clockwise" onclick="rollView(1)">↻</button>
+        <span class="tb-sep"></span>
+        <button class="tb-btn" title="Zoom in" onclick="zoomView(1.2)">+</button>
+        <button class="tb-btn" title="Zoom out" onclick="zoomView(1/1.2)">−</button>
+        <button class="tb-btn" title="Fit everything in view" onclick="resetView()">⌂</button>
+        <span class="tb-sep"></span>
+        <button class="tb-btn" id="pick-btn" title="Pick atoms (P)" onclick="setPickMode(!pickMode)">✛</button>
+        <button class="tb-btn" id="axes-btn" title="Show axes" onclick="toggleAxes()">⌗</button>
+        <span class="tb-sep"></span>
+        <button class="tb-btn" style="width:auto;padding:0 8px" title="Open the analysis panel" onclick="toggleDrawer()">Analyse</button>
+      </div>
+
+      <div class="hud" id="hud" style="display:none"></div>
+      <div class="legend" id="legend" style="display:none"></div>
+      <div class="corner" id="corner">orthographic view</div>
+    </div>
+
+    <!-- ============ ANALYSIS DRAWER ============ -->
+    <div class="drawer" id="drawer">
+      <div class="drawer-head">
+        <button class="tab on" data-tab="xrd" onclick="setTab('xrd')">XRD</button>
+        <button class="tab" data-tab="saed" onclick="setTab('saed')">Diffraction pattern</button>
+        <button class="tab" data-tab="rdf" onclick="setTab('rdf')">RDF</button>
+        <button class="tab" data-tab="sq" onclick="setTab('sq')">Structure factor</button>
+        <button class="tab" data-tab="cell" onclick="setTab('cell')">Cell &amp; density</button>
+        <button class="tab" data-tab="sym" onclick="setTab('sym')">Symmetry</button>
+        <button class="btn sm" style="margin-left:auto" onclick="toggleDrawer()">Close</button>
+      </div>
+      <div class="drawer-body">
+        <div class="pane-ctl" id="pane-ctl"></div>
+        <div class="pane-out" id="pane-out"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- render dialog -->
+<div class="modal-bg" id="render-modal" onclick="if(event.target===this)closeRender()">
+  <div class="modal">
+    <h3>Render an image</h3>
+    <div class="modal-body">
+      <div class="row">
+        <span class="lbl w">View along</span>
+        <select id="rnd-view" class="inp grow">
+          <option value="current">Current view</option>
+          <option value="a">Lattice vector a</option>
+          <option value="b">Lattice vector b</option>
+          <option value="c">Lattice vector c</option>
+          <option value="normal">Normal of the plane in the plane panel</option>
+          <option value="sel">Normal of the plane from the picked atoms</option>
+          <option value="iso">Isometric</option>
+          <option value="x">+X</option><option value="y">+Y</option><option value="z">+Z</option>
+        </select>
+      </div>
+      <div class="row">
+        <span class="lbl w">Reference</span>
+        <select id="rnd-struct" class="inp grow"></select>
+      </div>
+      <div class="row">
+        <span class="lbl w">Size</span>
+        <input type="number" id="rnd-w" class="inp mono" value="1600" min="64" max="8000" step="10">
+        <span class="lbl">×</span>
+        <input type="number" id="rnd-h" class="inp mono" value="1200" min="64" max="8000" step="10">
+      </div>
+      <div class="row">
+        <span class="lbl w">Background</span>
+        <select id="rnd-bg" class="inp grow" onchange="document.getElementById('rnd-bgcolor').style.display=this.value==='custom'?'':'none'">
+          <option value="white">White</option>
+          <option value="transparent">Transparent</option>
+          <option value="custom">Custom colour</option>
+        </select>
+        <input type="color" id="rnd-bgcolor" value="#000000" style="display:none">
+      </div>
+      <div class="row">
+        <span class="lbl w">Format</span>
+        <select id="rnd-fmt" class="inp grow">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+        </select>
+        <label class="check"><input type="checkbox" id="rnd-labels" checked> <span>Keep labels</span></label>
+      </div>
+      <div class="hint mt">A transparent background needs PNG. JPEG always fills the background.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeRender()">Cancel</button>
+      <button class="btn" onclick="doRender('copy')">Copy image</button>
+      <button class="btn pri" onclick="doRender('save')">Save image</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* =========================================================================
+   Crystal Workbench — single file build
+   Sections: 1 element data · 2 helpers · 3 crystallography math
+             4 state & POSCAR · 5 scene · 6 sidebar UI · 7 picking
+             8 analysis · 9 export & init
+   ========================================================================= */
+
+/* ---------------- 1. element data: [Z, mass (u), CPK colour, covalent radius Å] ------------- */
+const EL = {
+ H:[1,1.008,0xffffff,0.31],  He:[2,4.0026,0xd9ffff,0.28], Li:[3,6.94,0xcc80ff,1.28],
+ Be:[4,9.0122,0xc2ff00,0.96],B:[5,10.81,0xffb5b5,0.84],   C:[6,12.011,0x909090,0.76],
+ N:[7,14.007,0x3050f8,0.71], O:[8,15.999,0xff0d0d,0.66],  F:[9,18.998,0x90e050,0.57],
+ Ne:[10,20.180,0xb3e3f5,0.58],Na:[11,22.990,0xab5cf2,1.66],Mg:[12,24.305,0x8aff00,1.41],
+ Al:[13,26.982,0xbfa6a6,1.21],Si:[14,28.085,0xf0c8a0,1.11],P:[15,30.974,0xff8000,1.07],
+ S:[16,32.06,0xffff30,1.05], Cl:[17,35.45,0x1ff01f,1.02],  Ar:[18,39.948,0x80d1e3,1.06],
+ K:[19,39.098,0x8f40d4,2.03],Ca:[20,40.078,0x3dff00,1.76], Sc:[21,44.956,0xe6e6e6,1.70],
+ Ti:[22,47.867,0xbfc2c7,1.60],V:[23,50.942,0xa6a6ab,1.53], Cr:[24,51.996,0x8a99c7,1.39],
+ Mn:[25,54.938,0x9c7ac7,1.39],Fe:[26,55.845,0xe06633,1.32],Co:[27,58.933,0xf090a0,1.26],
+ Ni:[28,58.693,0x50d050,1.24],Cu:[29,63.546,0xc88033,1.32],Zn:[30,65.38,0x7d80b0,1.22],
+ Ga:[31,69.723,0xc28f8f,1.22],Ge:[32,72.63,0x668f8f,1.20], As:[33,74.922,0xbd80e3,1.19],
+ Se:[34,78.971,0xffa100,1.20],Br:[35,79.904,0xa62929,1.20],Kr:[36,83.798,0x5cb8d1,1.16],
+ Rb:[37,85.468,0x702eb0,2.20],Sr:[38,87.62,0x00ff00,1.95], Y:[39,88.906,0x94ffff,1.90],
+ Zr:[40,91.224,0x94e0e0,1.75],Nb:[41,92.906,0x73c2c9,1.64],Mo:[42,95.95,0x54b5b5,1.54],
+ Tc:[43,98,0x3b9e9e,1.47],   Ru:[44,101.07,0x248f8f,1.46],Rh:[45,102.91,0x0a7d8c,1.42],
+ Pd:[46,106.42,0x006985,1.39],Ag:[47,107.87,0xc0c0c0,1.45],Cd:[48,112.41,0xffd98f,1.44],
+ In:[49,114.82,0xa67573,1.42],Sn:[50,118.71,0x668080,1.39],Sb:[51,121.76,0x9e63b5,1.39],
+ Te:[52,127.60,0xd47a00,1.38],I:[53,126.90,0x940094,1.39], Xe:[54,131.29,0x429eb0,1.40],
+ Cs:[55,132.91,0x57178f,2.44],Ba:[56,137.33,0x00c900,2.15],La:[57,138.91,0x70d4ff,2.07],
+ Ce:[58,140.12,0xffffc7,2.04],Nd:[60,144.24,0xc7ffc7,2.01],Sm:[62,150.36,0x8fffc7,1.98],
+ Eu:[63,151.96,0x61ffc7,1.98],Gd:[64,157.25,0x45ffc7,1.96],Dy:[66,162.50,0x1fffc7,1.92],
+ Er:[68,167.26,0x00e675,1.89],Yb:[70,173.05,0x00bf38,1.87],Lu:[71,174.97,0x00ab24,1.87],
+ Hf:[72,178.49,0x4dc2ff,1.75],Ta:[73,180.95,0x4da6ff,1.70],W:[74,183.84,0x2194d6,1.62],
+ Re:[75,186.21,0x267dab,1.51],Os:[76,190.23,0x266696,1.44],Ir:[77,192.22,0x175487,1.41],
+ Pt:[78,195.08,0xd0d0e0,1.36],Au:[79,196.97,0xffd123,1.36],Hg:[80,200.59,0xb8b8d0,1.32],
+ Tl:[81,204.38,0xa6544d,1.45],Pb:[82,207.2,0x575961,1.46], Bi:[83,208.98,0x9e4fb5,1.48],
+ Th:[90,232.04,0x00baff,2.06],U:[92,238.03,0x008fff,1.96]
+};
+function elemData(sym){
+  if (EL[sym]) return EL[sym];
+  const cap = sym.charAt(0).toUpperCase() + sym.slice(1).toLowerCase();
+  if (EL[cap]) return EL[cap];
+  let hash = 0; for (let i=0;i<sym.length;i++) hash = sym.charCodeAt(i) + ((hash<<5)-hash);
+  return [0, 0, (hash & 0xffffff), 1.2];
+}
+const elemZ      = s => elemData(s)[0];
+const elemMass   = s => elemData(s)[1];
+const elemColor  = s => elemData(s)[2];
+const elemRadius = s => elemData(s)[3];
+
+/* ---------------- 2. helpers ---------------- */
+const DEG = 180/Math.PI;
+const V3 = (x,y,z)=>new THREE.Vector3(x,y,z);
+const arr2v = a => new THREE.Vector3(a[0],a[1],a[2]);
+const v2arr = v => [v.x,v.y,v.z];
+const fmt = (x,n=3)=> (Math.abs(x)<5e-10?0:x).toFixed(n);
+const clamp = (x,a,b)=>Math.min(b,Math.max(a,x));
+const byId = id => document.getElementById(id);
+
+let toastTimer = null;
+function toast(msg, bad=false, ms=3200){
+  const t = byId('toast');
+  t.textContent = msg;
+  t.className = 'show' + (bad ? ' bad' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.className = ''; }, ms);
+}
+
+async function copyText(text, what='Data'){
+  try{
+    await navigator.clipboard.writeText(text);
+    toast(what + ' copied to the clipboard.');
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast(what + ' copied to the clipboard.'); }
+    catch(e2){ toast('The browser blocked the clipboard. Use the download button instead.', true); }
+    document.body.removeChild(ta);
+  }
+}
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+const downloadText = (text, filename) => downloadBlob(new Blob([text],{type:'text/plain'}), filename);
+
+async function copyCanvas(canvas, what='Image'){
+  return new Promise(res=>{
+    canvas.toBlob(async blob=>{
+      try{
+        await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+        toast(what + ' copied to the clipboard.');
+      }catch(e){
+        downloadBlob(blob, 'crystal_image.png');
+        toast('The browser blocked image copying, so the file was downloaded instead.');
+      }
+      res();
+    },'image/png');
+  });
+}
+
+function gcd2(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a; }
+function gcdList(list){ return list.reduce((g,x)=>gcd2(g,Math.round(Math.abs(x))),0) || 1; }
+
+/* turn a float triplet into the smallest integer triplet parallel to it */
+function rationalize(v, maxMult=16, tol=0.03){
+  const mx = Math.max(Math.abs(v[0]),Math.abs(v[1]),Math.abs(v[2]));
+  if (mx < 1e-9) return null;
+  const w = v.map(x=>x/mx);
+  for (let m=1;m<=maxMult;m++){
+    const t = w.map(x=>x*m);
+    if (t.every(x=>Math.abs(x-Math.round(x))<tol)){
+      let r = t.map(x=>Math.round(x));
+      if (r.every(x=>x===0)) continue;
+      const g = gcdList(r);
+      if (g>1) r = r.map(x=>x/g);
+      const first = r.find(x=>x!==0);
+      if (first < 0) r = r.map(x=>-x);
+      return r;
+    }
+  }
+  return null;
+}
+
+/* ---------------- 3. crystallography ---------------- */
+
+/* lattice of a structure in world orientation (its rigid rotation applied) */
+function worldLattice(s){
+  return [arr2v(s.latt[0]).applyQuaternion(s.quat),
+          arr2v(s.latt[1]).applyQuaternion(s.quat),
+          arr2v(s.latt[2]).applyQuaternion(s.quat)];
+}
+const localLattice = s => [arr2v(s.latt[0]), arr2v(s.latt[1]), arr2v(s.latt[2])];
+
+function cellVolume(A){ return Math.abs(new THREE.Vector3().crossVectors(A[1],A[2]).dot(A[0])); }
+
+function reciprocal(A){
+  const vol = new THREE.Vector3().crossVectors(A[1],A[2]).dot(A[0]);
+  return [
+    new THREE.Vector3().crossVectors(A[1],A[2]).multiplyScalar(2*Math.PI/vol),
+    new THREE.Vector3().crossVectors(A[2],A[0]).multiplyScalar(2*Math.PI/vol),
+    new THREE.Vector3().crossVectors(A[0],A[1]).multiplyScalar(2*Math.PI/vol)
+  ];
+}
+
+/* G vector of a reflection, |G| = 2 pi / d */
+function gVector(h,k,l,B){
+  return new THREE.Vector3().addScaledVector(B[0],h).addScaledVector(B[1],k).addScaledVector(B[2],l);
+}
+function planeNormal(h,k,l,B){
+  const g = gVector(h,k,l,B);
+  return g.lengthSq() < 1e-12 ? V3(0,0,1) : g.normalize();
+}
+function dSpacing(h,k,l,B){
+  const g = gVector(h,k,l,B).length();
+  return g < 1e-9 ? Infinity : 2*Math.PI/g;
+}
+
+/* real space direction [uvw] (three index) */
+function directionVector(u,v,w,A){
+  const d = new THREE.Vector3().addScaledVector(A[0],u).addScaledVector(A[1],v).addScaledVector(A[2],w);
+  return d.lengthSq() < 1e-12 ? V3(0,0,1) : d.normalize();
+}
+/* hexagonal four index [UVTW] -> three index */
+function direction4(U,V,T,W,A){ return directionVector(2*U+V, 2*V+U, W, A); }
+
+function isHexagonal(A){
+  const l1 = A[0].length(), l2 = A[1].length();
+  const ang = A[0].angleTo(A[1])*DEG;
+  return Math.abs(l1-l2) < 1e-3 && (Math.abs(ang-120)<1 || Math.abs(ang-60)<1);
+}
+
+function latticeParams(A){
+  const a = A[0].length(), b = A[1].length(), c = A[2].length();
+  return { a, b, c,
+    alpha: A[1].angleTo(A[2])*DEG, beta: A[0].angleTo(A[2])*DEG, gamma: A[0].angleTo(A[1])*DEG,
+    volume: cellVolume(A) };
+}
+
+/* Miller indices of a plane whose normal (cartesian, same frame as A) is n.
+   G = h b1 + k b2 + l b3 and G . a_i = 2 pi h_i, so (h,k,l) is parallel to (n.a1, n.a2, n.a3). */
+function millerFromNormal(n, A){
+  return rationalize([n.dot(A[0]), n.dot(A[1]), n.dot(A[2])]);
+}
+/* [uvw] of a real space direction d: d = u a1 + v a2 + w a3 */
+function directionIndices(d, A){
+  const M = new THREE.Matrix4().set(
+    A[0].x, A[1].x, A[2].x, 0,
+    A[0].y, A[1].y, A[2].y, 0,
+    A[0].z, A[1].z, A[2].z, 0,
+    0,0,0,1).invert();
+  const f = d.clone().applyMatrix4(M);
+  return rationalize([f.x,f.y,f.z]);
+}
+
+/* planes perpendicular to (hkl): their normals are perpendicular to G_hkl */
+function perpendicularPlanes(h,k,l,B,maxIndex=4,count=6){
+  const n0 = planeNormal(h,k,l,B);
+  const found = [];
+  for (let a=-maxIndex;a<=maxIndex;a++)
+  for (let b=-maxIndex;b<=maxIndex;b++)
+  for (let c=-maxIndex;c<=maxIndex;c++){
+    if (!a && !b && !c) continue;
+    if (gcdList([a,b,c]) !== 1) continue;             // keep only primitive index triples
+    const g = gVector(a,b,c,B);
+    if (Math.abs(g.clone().normalize().dot(n0)) > 1e-6) continue;
+    const first = [a,b,c].find(x=>x!==0);
+    if (first < 0) continue;                           // (hkl) and (-h-k-l) are the same plane
+    found.push({hkl:[a,b,c], d:2*Math.PI/g.length(), len:g.length()});
+  }
+  found.sort((p,q)=> q.d - p.d);                       // widest spacing (lowest index) first
+  return found.slice(0,count);
+}
+
+/* zone axis: the real space direction parallel to the plane normal */
+function zoneAxisOfPlane(h,k,l,A,B){
+  return directionIndices(planeNormal(h,k,l,B), A);
+}
+
+function millerLabel(hkl, isHex, brackets='()'){
+  if (!hkl) return '—';
+  const t = isHex ? [hkl[0],hkl[1],-(hkl[0]+hkl[1]),hkl[2]] : hkl;
+  const s = t.map(x => x<0 ? Math.abs(x)+'\u0304' : ''+x).join(' ');
+  return brackets[0] + s + brackets[1];
+}
+function dirLabel(uvw, isHex){
+  if (!uvw) return '—';
+  if (!isHex) return '[' + uvw.join(' ') + ']';
+  const [u,v,w] = uvw;
+  let U = (2*u - v)/3, V = (2*v - u)/3, W = w;
+  const r = rationalize([U,V,W]) ;
+  const t = r ? [r[0],r[1],-(r[0]+r[1]),r[2]] : [U,V,-(U+V),W].map(x=>+x.toFixed(2));
+  return '[' + t.join(' ') + ']';
+}
+/* space group fingerprints, generated from the 530 standard settings */
+const SG_TABLE = {"cf28085b":[1,"P1","1","triclinic"],"62f53c26":[2,"P-1","-1","triclinic"],"2a74b8b2":[3,"P2","2","monoclinic"],"2465e122":[3,"P2","2","monoclinic"],"45a5f882":[3,"P2","2","monoclinic"],"bce079e0":[4,"P2_1","2","monoclinic"],"a7dcbd80":[4,"P2_1","2","monoclinic"],"f6745140":[4,"P2_1","2","monoclinic"],"476bfbf8":[5,"C2","2","monoclinic"],"2e3bd908":[5,"C2","2","monoclinic"],"4d6c056a":[5,"C2","2","monoclinic"],"7de670b4":[5,"C2","2","monoclinic"],"fcf21198":[5,"C2","2","monoclinic"],"5a83bc5e":[5,"C2","2","monoclinic"],"7e691af0":[5,"C2","2","monoclinic"],"a35fa9fc":[5,"C2","2","monoclinic"],"a15fa6d6":[5,"C2","2","monoclinic"],"d32697f4":[6,"Pm","m","monoclinic"],"ef839eac":[6,"Pm","m","monoclinic"],"8aff866c":[6,"Pm","m","monoclinic"],"1b027e1e":[7,"Pc","m","monoclinic"],"73c8cb34":[7,"Pc","m","monoclinic"],"5937f65e":[7,"Pc","m","monoclinic"],"4e4b2a56":[7,"Pc","m","monoclinic"],"39534b6c":[7,"Pc","m","monoclinic"],"1287d096":[7,"Pc","m","monoclinic"],"9ff76556":[7,"Pc","m","monoclinic"],"a55a216c":[7,"Pc","m","monoclinic"],"859cca56":[7,"Pc","m","monoclinic"],"9e263200":[8,"Cm","m","monoclinic"],"4ca3bd58":[8,"Cm","m","monoclinic"],"26346bf4":[8,"Cm","m","monoclinic"],"6f142694":[8,"Cm","m","monoclinic"],"0f44d304":[8,"Cm","m","monoclinic"],"5994cfb8":[8,"Cm","m","monoclinic"],"761d6a8c":[8,"Cm","m","monoclinic"],"acfa3944":[8,"Cm","m","monoclinic"],"cf253588":[8,"Cm","m","monoclinic"],"23ff2b08":[9,"Cc","m","monoclinic"],"1c75a8d8":[9,"Cc","m","monoclinic"],"0a457c1c":[9,"Cc","m","monoclinic"],"d25c640c":[9,"Cc","m","monoclinic"],"aacf6150":[9,"Cc","m","monoclinic"],"95a4fac4":[9,"Cc","m","monoclinic"],"9ca83f60":[9,"Cc","m","monoclinic"],"7551282c":[9,"Cc","m","monoclinic"],"72ed0270":[9,"Cc","m","monoclinic"],"cbb379e0":[10,"P2/m","2/m","monoclinic"],"1bb55f48":[10,"P2/m","2/m","monoclinic"],"cd52a228":[10,"P2/m","2/m","monoclinic"],"3947b8b2":[11,"P2_1/m","2/m","monoclinic"],"57ce858a":[11,"P2_1/m","2/m","monoclinic"],"41abae4a":[11,"P2_1/m","2/m","monoclinic"],"cf953e3c":[12,"C2/m","2/m","monoclinic"],"b5325324":[12,"C2/m","2/m","monoclinic"],"402f6858":[12,"C2/m","2/m","monoclinic"],"1f73c124":[12,"C2/m","2/m","monoclinic"],"5a5e8b8c":[12,"C2/m","2/m","monoclinic"],"69da6328":[12,"C2/m","2/m","monoclinic"],"2f67b55c":[12,"C2/m","2/m","monoclinic"],"391acb4c":[12,"C2/m","2/m","monoclinic"],"cdb25460":[12,"C2/m","2/m","monoclinic"],"ba63c856":[13,"P2/c","2/m","monoclinic"],"a90b2068":[13,"P2/c","2/m","monoclinic"],"48f4a21e":[13,"P2/c","2/m","monoclinic"],"8021d8be":[13,"P2/c","2/m","monoclinic"],"25fc4c5c":[13,"P2/c","2/m","monoclinic"],"a88c8532":[13,"P2/c","2/m","monoclinic"],"18441412":[13,"P2/c","2/m","monoclinic"],"3993b44c":[13,"P2/c","2/m","monoclinic"],"879d0936":[13,"P2/c","2/m","monoclinic"],"a56be96c":[14,"P2_1/c","2/m","monoclinic"],"da972e9a":[14,"P2_1/c","2/m","monoclinic"],"e4b9b1b4":[14,"P2_1/c","2/m","monoclinic"],"b41bd314":[14,"P2_1/c","2/m","monoclinic"],"b96c33c6":[14,"P2_1/c","2/m","monoclinic"],"6bc25810":[14,"P2_1/c","2/m","monoclinic"],"7d1c9110":[14,"P2_1/c","2/m","monoclinic"],"6129d076":[14,"P2_1/c","2/m","monoclinic"],"6006ed0c":[14,"P2_1/c","2/m","monoclinic"],"3b56ae54":[15,"C2/c","2/m","monoclinic"],"81b15f84":[15,"C2/c","2/m","monoclinic"],"791f31d0":[15,"C2/c","2/m","monoclinic"],"f5c1046c":[15,"C2/c","2/m","monoclinic"],"57384670":[15,"C2/c","2/m","monoclinic"],"c0102bec":[15,"C2/c","2/m","monoclinic"],"40a01af8":[15,"C2/c","2/m","monoclinic"],"ed8856a4":[15,"C2/c","2/m","monoclinic"],"866fc758":[15,"C2/c","2/m","monoclinic"],"3a5afa42":[16,"P222","222","orthorhombic"],"5deab8c8":[17,"P222_1","222","orthorhombic"],"884aae00":[17,"P2_122","222","orthorhombic"],"1aab6018":[17,"P22_12","222","orthorhombic"],"81aba6ba":[18,"P2_12_12","222","orthorhombic"],"fe9ff4b2":[18,"P22_12_1","222","orthorhombic"],"9f047dea":[18,"P2_122_1","222","orthorhombic"],"84f9e830":[19,"P2_12_12_1","222","orthorhombic"],"c499195a":[20,"C222_1","222","orthorhombic"],"080fb3d2":[20,"A2_122","222","orthorhombic"],"b14be2be":[20,"B22_12","222","orthorhombic"],"c6ed473e":[21,"C222","222","orthorhombic"],"ded1195e":[21,"A222","222","orthorhombic"],"6a035bde":[21,"B222","222","orthorhombic"],"634e2968":[22,"F222","222","orthorhombic"],"ad7d722a":[23,"I222","222","orthorhombic",[24],["I2_12_12_1"]],"624a103e":[25,"Pmm2","mm2","orthorhombic"],"2d2bfc9e":[25,"P2mm","mm2","orthorhombic"],"1137da46":[25,"Pm2m","mm2","orthorhombic"],"97cd5c62":[26,"Pmc2_1","mm2","orthorhombic"],"f1f92e32":[26,"Pcm2_1","mm2","orthorhombic"],"7686940a":[26,"P2_1ma","mm2","orthorhombic"],"836bbaea":[26,"P2_1am","mm2","orthorhombic"],"4b922246":[26,"Pb2_1m","mm2","orthorhombic"],"e5c17652":[26,"Pm2_1b","mm2","orthorhombic"],"ae241b2e":[27,"Pcc2","mm2","orthorhombic"],"c31b4d3e":[27,"P2aa","mm2","orthorhombic"],"cd3354f2":[27,"Pb2b","mm2","orthorhombic"],"731ef500":[28,"Pma2","mm2","orthorhombic"],"082483dc":[28,"Pbm2","mm2","orthorhombic"],"939e9428":[28,"P2mb","mm2","orthorhombic"],"fe3d4810":[28,"P2cm","mm2","orthorhombic"],"44839490":[28,"Pc2m","mm2","orthorhombic"],"39a18540":[28,"Pm2a","mm2","orthorhombic"],"f748a9c4":[29,"Pca2_1","mm2","orthorhombic"],"6810ed28":[29,"Pbc2_1","mm2","orthorhombic"],"e42f2d14":[29,"P2_1ab","mm2","orthorhombic"],"29467acc":[29,"P2_1ca","mm2","orthorhombic"],"8c51fb8c":[29,"Pc2_1b","mm2","orthorhombic"],"56e97be0":[29,"Pb2_1a","mm2","orthorhombic"],"5b25aee4":[30,"Pnc2","mm2","orthorhombic"],"0bdf0350":[30,"Pcn2","mm2","orthorhombic"],"1d1ca4b0":[30,"P2na","mm2","orthorhombic"],"f992a788":[30,"P2an","mm2","orthorhombic"],"ab43e5dc":[30,"Pb2n","mm2","orthorhombic"],"6030a084":[30,"Pn2b","mm2","orthorhombic"],"35b4ffd4":[31,"Pmn2_1","mm2","orthorhombic"],"4e3d1ae0":[31,"Pnm2_1","mm2","orthorhombic"],"bf8c12f4":[31,"P2_1mn","mm2","orthorhombic"],"02507dac":[31,"P2_1nm","mm2","orthorhombic"],"68150f38":[31,"Pn2_1m","mm2","orthorhombic"],"0a25e9dc":[31,"Pm2_1n","mm2","orthorhombic"],"a2f39aaa":[32,"Pba2","mm2","orthorhombic"],"4de8fb36":[32,"P2cb","mm2","orthorhombic"],"6ad43d36":[32,"Pc2a","mm2","orthorhombic"],"6d54064e":[33,"Pna2_1","mm2","orthorhombic"],"72184286":[33,"Pbn2_1","mm2","orthorhombic"],"4b5b3472":[33,"P2_1nb","mm2","orthorhombic"],"d186e2d2":[33,"P2_1cn","mm2","orthorhombic"],"0d09f922":[33,"Pc2_1n","mm2","orthorhombic"],"b011b6ee":[33,"Pn2_1a","mm2","orthorhombic"],"1760ff42":[34,"Pnn2","mm2","orthorhombic"],"d3398616":[34,"P2nn","mm2","orthorhombic"],"58c7edea":[34,"Pn2n","mm2","orthorhombic"],"9057a84e":[35,"Cmm2","mm2","orthorhombic"],"c81f3e7e":[35,"A2mm","mm2","orthorhombic"],"65a656be":[35,"Bm2m","mm2","orthorhombic"],"80eec702":[36,"Cmc2_1","mm2","orthorhombic"],"9d757cc2":[36,"Ccm2_1","mm2","orthorhombic"],"f3b74faa":[36,"A2_1ma","mm2","orthorhombic"],"499d42d2":[36,"A2_1am","mm2","orthorhombic"],"e4b74592":[36,"Bb2_1m","mm2","orthorhombic"],"747c87a2":[36,"Bm2_1b","mm2","orthorhombic"],"8677615e":[37,"Ccc2","mm2","orthorhombic"],"87f78b16":[37,"A2aa","mm2","orthorhombic"],"57e3e936":[37,"Bb2b","mm2","orthorhombic"],"811274e6":[38,"Amm2","mm2","orthorhombic"],"238b3ffe":[38,"Bmm2","mm2","orthorhombic"],"e5dacef6":[38,"B2mm","mm2","orthorhombic"],"ef22d836":[38,"C2mm","mm2","orthorhombic"],"4692fbde":[38,"Cm2m","mm2","orthorhombic"],"051d24ce":[38,"Am2m","mm2","orthorhombic"],"2d306cee":[39,"Aem2","mm2","orthorhombic"],"26549f46":[39,"Bme2","mm2","orthorhombic"],"9bc713fe":[39,"B2em","mm2","orthorhombic"],"314b96ea":[39,"C2me","mm2","orthorhombic"],"385de672":[39,"Cm2e","mm2","orthorhombic"],"0067ee86":[39,"Ae2m","mm2","orthorhombic"],"85edc066":[40,"Ama2","mm2","orthorhombic"],"3b576a4a":[40,"Bbm2","mm2","orthorhombic"],"b122903a":[40,"B2mb","mm2","orthorhombic"],"e5134afe":[40,"C2cm","mm2","orthorhombic"],"22bd6ee6":[40,"Cc2m","mm2","orthorhombic"],"209bad86":[40,"Am2a","mm2","orthorhombic"],"320bb86e":[41,"Aea2","mm2","orthorhombic"],"3368e672":[41,"Bbe2","mm2","orthorhombic"],"3ac882b2":[41,"B2eb","mm2","orthorhombic"],"2e46ae42":[41,"C2ce","mm2","orthorhombic"],"e0119b0a":[41,"Cc2e","mm2","orthorhombic"],"3e0b22fe":[41,"Ae2a","mm2","orthorhombic"],"dd730a58":[42,"Fmm2","mm2","orthorhombic"],"83815f64":[42,"F2mm","mm2","orthorhombic"],"73842234":[42,"Fm2m","mm2","orthorhombic"],"ce77f9fc":[43,"Fdd2","mm2","orthorhombic"],"449f7b40":[43,"F2dd","mm2","orthorhombic"],"d1b19cc4":[43,"Fd2d","mm2","orthorhombic"],"14399da2":[44,"Imm2","mm2","orthorhombic"],"b8ca502a":[44,"I2mm","mm2","orthorhombic"],"c9f32b0a":[44,"Im2m","mm2","orthorhombic"],"d959a1e2":[45,"Iba2","mm2","orthorhombic"],"0a1554d6":[45,"I2cb","mm2","orthorhombic"],"90a19a56":[45,"Ic2a","mm2","orthorhombic"],"6fcb40aa":[46,"Ima2","mm2","orthorhombic"],"31c1605a":[46,"Ibm2","mm2","orthorhombic"],"d30a1b9e":[46,"I2mb","mm2","orthorhombic"],"54020b32":[46,"I2cm","mm2","orthorhombic"],"a05f82d2":[46,"Ic2m","mm2","orthorhombic"],"474e6b9e":[46,"Im2a","mm2","orthorhombic"],"63d1f2d4":[47,"Pmmm","mmm","orthorhombic"],"7238fa9c":[48,"Pnnn","mmm","orthorhombic"],"3ae35df4":[49,"Pccm","mmm","orthorhombic"],"504bf1bc":[49,"Pmaa","mmm","orthorhombic"],"e93b0a54":[49,"Pbmb","mmm","orthorhombic"],"21f61154":[50,"Pban","mmm","orthorhombic"],"397df39c":[50,"Pncb","mmm","orthorhombic"],"e424081c":[50,"Pcna","mmm","orthorhombic"],"17754d98":[51,"Pmma","mmm","orthorhombic"],"fc00edac":[51,"Pmmb","mmm","orthorhombic"],"7697d62c":[51,"Pbmm","mmm","orthorhombic"],"1ac729f8":[51,"Pcmm","mmm","orthorhombic"],"5a25c598":[51,"Pmcm","mmm","orthorhombic"],"8a7424b0":[51,"Pmam","mmm","orthorhombic"],"798f855c":[52,"Pnna","mmm","orthorhombic"],"b1854230":[52,"Pnnb","mmm","orthorhombic"],"79ed63e0":[52,"Pbnn","mmm","orthorhombic"],"07a477dc":[52,"Pcnn","mmm","orthorhombic"],"ea404930":[52,"Pncn","mmm","orthorhombic"],"d8eb4878":[52,"Pnan","mmm","orthorhombic"],"ebd87160":[53,"Pmna","mmm","orthorhombic"],"a0304178":[53,"Pnmb","mmm","orthorhombic"],"90774fb8":[53,"Pbmn","mmm","orthorhombic"],"36443510":[53,"Pcnm","mmm","orthorhombic"],"5cfdf834":[53,"Pncm","mmm","orthorhombic"],"34bbf4ac":[53,"Pman","mmm","orthorhombic"],"b15e8038":[54,"Pcca","mmm","orthorhombic"],"cee970dc":[54,"Pccb","mmm","orthorhombic"],"aa23adb4":[54,"Pbaa","mmm","orthorhombic"],"1f274a00":[54,"Pcaa","mmm","orthorhombic"],"41325ce0":[54,"Pbcb","mmm","orthorhombic"],"57bc48b8":[54,"Pbab","mmm","orthorhombic"],"a2cd6fb8":[55,"Pbam","mmm","orthorhombic"],"1283dda8":[55,"Pmcb","mmm","orthorhombic"],"148b86d4":[55,"Pcma","mmm","orthorhombic"],"8088b250":[56,"Pccn","mmm","orthorhombic"],"e99b4120":[56,"Pnaa","mmm","orthorhombic"],"788dd02c":[56,"Pbnb","mmm","orthorhombic"],"9c758ba0":[57,"Pbcm","mmm","orthorhombic"],"517cb2ac":[57,"Pcam","mmm","orthorhombic"],"b4973674":[57,"Pmca","mmm","orthorhombic"],"071b8d40":[57,"Pmab","mmm","orthorhombic"],"6d77b9a0":[57,"Pbma","mmm","orthorhombic"],"4e9cf078":[57,"Pcmb","mmm","orthorhombic"],"299d2b30":[58,"Pnnm","mmm","orthorhombic"],"4b3ee4a8":[58,"Pmnn","mmm","orthorhombic"],"93b005f4":[58,"Pnmn","mmm","orthorhombic"],"3fd69440":[59,"Pmmn","mmm","orthorhombic"],"c933d8f8":[59,"Pnmm","mmm","orthorhombic"],"1884280c":[59,"Pmnm","mmm","orthorhombic"],"b148d72c":[60,"Pbcn","mmm","orthorhombic"],"8757f778":[60,"Pcan","mmm","orthorhombic"],"7f7ea0b8":[60,"Pnca","mmm","orthorhombic"],"5af4fef4":[60,"Pnab","mmm","orthorhombic"],"bd29f228":[60,"Pbna","mmm","orthorhombic"],"47cdab50":[60,"Pcnb","mmm","orthorhombic"],"f0edc92c":[61,"Pbca","mmm","orthorhombic"],"ea4506f4":[61,"Pcab","mmm","orthorhombic"],"440d25d4":[62,"Pnma","mmm","orthorhombic"],"b9d1a384":[62,"Pmnb","mmm","orthorhombic"],"586f30e4":[62,"Pbnm","mmm","orthorhombic"],"23000df4":[62,"Pcmn","mmm","orthorhombic"],"f28caa84":[62,"Pmcn","mmm","orthorhombic"],"143c982c":[62,"Pnam","mmm","orthorhombic"],"6e0881f0":[63,"Cmcm","mmm","orthorhombic"],"5feb4ab0":[63,"Ccmm","mmm","orthorhombic"],"31851818":[63,"Amma","mmm","orthorhombic"],"e5f4a2d0":[63,"Amam","mmm","orthorhombic"],"016e6450":[63,"Bbmm","mmm","orthorhombic"],"3ac58200":[63,"Bmmb","mmm","orthorhombic"],"e2350594":[64,"Cmce","mmm","orthorhombic"],"fce4dff4":[64,"Ccme","mmm","orthorhombic"],"02fd3aa0":[64,"Aema","mmm","orthorhombic"],"237a78d8":[64,"Aeam","mmm","orthorhombic"],"e57de0c8":[64,"Bbem","mmm","orthorhombic"],"29f3e7a8":[64,"Bmeb","mmm","orthorhombic"],"ecbdcb4c":[65,"Cmmm","mmm","orthorhombic"],"c0ab851c":[65,"Ammm","mmm","orthorhombic"],"2c6b0b7c":[65,"Bmmm","mmm","orthorhombic"],"b3f5d23c":[66,"Cccm","mmm","orthorhombic"],"276f95e4":[66,"Amaa","mmm","orthorhombic"],"614a7d64":[66,"Bbmb","mmm","orthorhombic"],"3191e6c0":[67,"Cmme","mmm","orthorhombic"],"204c58c4":[67,"Aemm","mmm","orthorhombic"],"e7662554":[67,"Bmem","mmm","orthorhombic"],"40c1c7b0":[68,"Ccce","mmm","orthorhombic"],"8885628c":[68,"Aeaa","mmm","orthorhombic"],"9d71b7ec":[68,"Bbeb","mmm","orthorhombic"],"43a460d8":[69,"Fmmm","mmm","orthorhombic"],"87f7a000":[70,"Fddd","mmm","orthorhombic"],"0d384e98":[71,"Immm","mmm","orthorhombic"],"6360e1d8":[72,"Ibam","mmm","orthorhombic"],"83e104e4":[72,"Imcb","mmm","orthorhombic"],"a6c1ad54":[72,"Icma","mmm","orthorhombic"],"5caa4d9c":[73,"Ibca","mmm","orthorhombic"],"adbf10dc":[74,"Imma","mmm","orthorhombic"],"bb04c560":[74,"Ibmm","mmm","orthorhombic"],"78a97650":[74,"Imcm","mmm","orthorhombic"],"6d22ff6e":[75,"P4","4","tetragonal"],"0c63702c":[76,"P4_1","4","tetragonal",[78],["P4_3"]],"80760e42":[77,"P4_2","4","tetragonal"],"5ee486f6":[79,"I4","4","tetragonal"],"b80021ee":[80,"I4_1","4","tetragonal"],"9709616a":[81,"P-4","-4","tetragonal"],"dffc712e":[82,"I-4","-4","tetragonal"],"26e5cf9c":[83,"P4/m","4/m","tetragonal"],"e4577af0":[84,"P4_2/m","4/m","tetragonal"],"e4746300":[85,"P4/n","4/m","tetragonal"],"a3207424":[86,"P4_2/n","4/m","tetragonal"],"211df4a0":[87,"I4/m","4/m","tetragonal"],"e403be24":[88,"I4_1/a","4/m","tetragonal"],"0db802f9":[89,"P422","422","tetragonal"],"7d93dd09":[90,"P42_12","422","tetragonal"],"e8a4a767":[91,"P4_122","422","tetragonal",[95],["P4_322"]],"280c6157":[92,"P4_12_12","422","tetragonal",[96],["P4_32_12"]],"2820a3b1":[93,"P4_222","422","tetragonal"],"9fcd8041":[94,"P4_22_12","422","tetragonal"],"9cd7d358":[97,"I422","422","tetragonal"],"23027228":[98,"I4_122","422","tetragonal"],"5b1aae6f":[99,"P4mm","4mm","tetragonal"],"4ffb77f7":[100,"P4bm","4mm","tetragonal"],"9eda4c7f":[101,"P4_2cm","4mm","tetragonal"],"51e64bd7":[102,"P4_2nm","4mm","tetragonal"],"b47b3f5b":[103,"P4cc","4mm","tetragonal"],"95ccbc23":[104,"P4nc","4mm","tetragonal"],"ad2459eb":[105,"P4_2mc","4mm","tetragonal"],"e35ca0a3":[106,"P4_2bc","4mm","tetragonal"],"7afb84a0":[107,"I4mm","4mm","tetragonal"],"3f5699d0":[108,"I4cm","4mm","tetragonal"],"48faba56":[109,"I4_1md","4mm","tetragonal"],"68e9c606":[110,"I4_1cd","4mm","tetragonal"],"cd1d7e81":[111,"P-42m","-42m","tetragonal"],"aa388fed":[112,"P-42c","-42m","tetragonal"],"efdb1c05":[113,"P-42_1m","-42m","tetragonal"],"dc90cf11":[114,"P-42_1c","-42m","tetragonal"],"c1383d03":[115,"P-4m2","-42m","tetragonal"],"93e930d3":[116,"P-4c2","-42m","tetragonal"],"b9ca0cff":[117,"P-4b2","-42m","tetragonal"],"85f02b77":[118,"P-4n2","-42m","tetragonal"],"7932841c":[119,"I-4m2","-42m","tetragonal"],"1268bb5c":[120,"I-4c2","-42m","tetragonal"],"0cbf35c0":[121,"I-42m","-42m","tetragonal"],"ab00235e":[122,"I-42d","-42m","tetragonal"],"8c69a6bc":[123,"P4/mmm","4/mmm","tetragonal"],"3cde8298":[124,"P4/mcc","4/mmm","tetragonal"],"a481f498":[125,"P4/nbm","4/mmm","tetragonal"],"47a3d244":[126,"P4/nnc","4/mmm","tetragonal"],"e0e56cd4":[127,"P4/mbm","4/mmm","tetragonal"],"38210c50":[128,"P4/mnc","4/mmm","tetragonal"],"846cacd0":[129,"P4/nmm","4/mmm","tetragonal"],"5ffff21c":[130,"P4/ncc","4/mmm","tetragonal"],"49037234":[131,"P4_2/mmc","4/mmm","tetragonal"],"2ec9b4e8":[132,"P4_2/mcm","4/mmm","tetragonal"],"cc3d2da0":[133,"P4_2/nbc","4/mmm","tetragonal"],"77e43e44":[134,"P4_2/nnm","4/mmm","tetragonal"],"f48e443c":[135,"P4_2/mbc","4/mmm","tetragonal"],"0b6948d0":[136,"P4_2/mnm","4/mmm","tetragonal"],"a5f9e048":[137,"P4_2/nmc","4/mmm","tetragonal"],"5f7d61cc":[138,"P4_2/ncm","4/mmm","tetragonal"],"1c4db61c":[139,"I4/mmm","4/mmm","tetragonal"],"fa8e761c":[140,"I4/mcm","4/mmm","tetragonal"],"25341a26":[141,"I4_1/amd","4/mmm","tetragonal"],"74c47676":[142,"I4_1/acd","4/mmm","tetragonal"],"fa005aed":[143,"P3","3","trigonal"],"83106f51":[144,"P3_1","3","trigonal",[145],["P3_2"]],"0cff5a1b":[146,"R3","3","trigonal"],"739bf245":[146,"R3","3","trigonal"],"1b207f00":[147,"P-3","-3","trigonal"],"3bef270c":[148,"R-3","-3","trigonal"],"efa15d10":[148,"R-3","-3","trigonal"],"3e8f46e4":[149,"P312","32","trigonal"],"7bc6d16b":[150,"P321","32","trigonal"],"e113eae8":[151,"P3_112","32","trigonal",[153],["P3_212"]],"5d9a4d5f":[152,"P3_121","32","trigonal",[154],["P3_221"]],"fc60a839":[155,"R32","32","trigonal"],"d38dc5b6":[155,"R32","32","trigonal"],"b5cdc671":[156,"P3m1","3m","trigonal"],"3044c84a":[157,"P31m","3m","trigonal"],"794c20bf":[158,"P3c1","3m","trigonal"],"88e80eec":[159,"P31c","3m","trigonal"],"996205cc":[160,"R3m","3m","trigonal"],"ec3b327c":[160,"R3m","3m","trigonal"],"f3c4614f":[161,"R3c","3m","trigonal"],"cda3adda":[161,"R3c","3m","trigonal"],"ba6a953c":[162,"P-31m","-3m","trigonal"],"ca183ca2":[163,"P-31c","-3m","trigonal"],"180dbee6":[164,"P-3m1","-3m","trigonal"],"af527868":[165,"P-3c1","-3m","trigonal"],"da691521":[166,"R-3m","-3m","trigonal"],"7464b220":[166,"R-3m","-3m","trigonal"],"69973cfe":[167,"R-3c","-3m","trigonal"],"320ec2ba":[167,"R-3c","-3m","trigonal"],"a71dccc6":[168,"P6","6","hexagonal"],"98db96b1":[169,"P6_1","6","hexagonal",[170],["P6_5"]],"8e3d948e":[171,"P6_2","6","hexagonal",[172],["P6_4"]],"b96f3e78":[173,"P6_3","6","hexagonal"],"3640ca20":[174,"P-6","-6","hexagonal"],"22eb0996":[175,"P6/m","6/m","hexagonal"],"859edd88":[176,"P6_3/m","6/m","hexagonal"],"b6db2ad9":[177,"P622","622","hexagonal"],"39d9c022":[178,"P6_122","622","hexagonal",[179],["P6_522"]],"c659cb69":[180,"P6_222","622","hexagonal",[181],["P6_422"]],"0b60452b":[182,"P6_322","622","hexagonal"],"22335bbf":[183,"P6mm","6mm","hexagonal"],"83d41f0b":[184,"P6cc","6mm","hexagonal"],"5bbf450b":[185,"P6_3cm","6mm","hexagonal"],"175599c7":[186,"P6_3mc","6mm","hexagonal"],"eb695197":[187,"P-6m2","-6m2","hexagonal"],"51b6fa5d":[188,"P-6c2","-6m2","hexagonal"],"8db9cf43":[189,"P-62m","-6m2","hexagonal"],"8cd89df5":[190,"P-62c","-6m2","hexagonal"],"db2bbb86":[191,"P6/mmm","6/mmm","hexagonal"],"de681472":[192,"P6/mcc","6/mmm","hexagonal"],"5d12131e":[193,"P6_3/mcm","6/mmm","hexagonal"],"75c6011a":[194,"P6_3/mmc","6/mmm","hexagonal"],"2cc2c15e":[195,"P23","23","cubic"],"6e84f2d8":[196,"F23","23","cubic"],"0502be4e":[197,"I23","23","cubic",[199],["I2_13"]],"bd1f7f94":[198,"P2_13","23","cubic"],"547997fc":[200,"Pm-3","m-3","cubic"],"cea5d2e4":[201,"Pn-3","m-3","cubic"],"d12a61b8":[202,"Fm-3","m-3","cubic"],"d4282b40":[203,"Fd-3","m-3","cubic"],"4d403f44":[204,"Im-3","m-3","cubic"],"89eb4484":[205,"Pa-3","m-3","cubic"],"08b14678":[206,"Ia-3","m-3","cubic"],"3d3624d1":[207,"P432","432","cubic"],"4e403051":[208,"P4_232","432","cubic"],"76cb1fcc":[209,"F432","432","cubic"],"d4682a44":[210,"F4_132","432","cubic"],"6e4427f4":[211,"I432","432","cubic"],"022480bb":[212,"P4_332","432","cubic",[213],["P4_132"]],"f071dd6c":[214,"I4_132","432","cubic"],"76f69d3b":[215,"P-43m","-43m","cubic"],"823700a8":[216,"F-43m","-43m","cubic"],"5abc37ac":[217,"I-43m","-43m","cubic"],"a62d3b87":[218,"P-43n","-43m","cubic"],"e0744730":[219,"F-43c","-43m","cubic"],"5ffc7a5a":[220,"I-43d","-43m","cubic"],"8ade7f8c":[221,"Pm-3m","m-3m","cubic"],"79b96c5c":[222,"Pn-3n","m-3m","cubic"],"d68d7a54":[223,"Pm-3n","m-3m","cubic"],"90d3cd4c":[224,"Pn-3m","m-3m","cubic"],"1fec49bc":[225,"Fm-3m","m-3m","cubic"],"40e9c4f4":[226,"Fm-3c","m-3m","cubic"],"3a0a684c":[227,"Fd-3m","m-3m","cubic"],"77f29eb4":[228,"Fd-3c","m-3m","cubic"],"c228a750":[229,"Im-3m","m-3m","cubic"],"9a40c3aa":[230,"Ia-3d","m-3m","cubic"]};
+const PG_TABLE = {"1.0.0.0.0.0.0.0.0.0":"1","2.1.0.0.0.0.0.0.0.0":"-1","2.0.1.0.0.0.0.0.0.0":"2","2.0.0.0.0.0.1.0.0.0":"m","4.1.1.0.0.0.1.0.0.0":"2/m","4.0.3.0.0.0.0.0.0.0":"222","4.0.1.0.0.0.2.0.0.0":"mm2","8.1.3.0.0.0.3.0.0.0":"mmm","4.0.1.0.2.0.0.0.0.0":"4","4.0.1.0.0.0.0.0.2.0":"-4","8.1.1.0.2.0.1.0.2.0":"4/m","8.0.5.0.2.0.0.0.0.0":"422","8.0.1.0.2.0.4.0.0.0":"4mm","8.0.3.0.0.0.2.0.2.0":"-42m","16.1.5.0.2.0.5.0.2.0":"4/mmm","3.0.0.2.0.0.0.0.0.0":"3","6.1.0.2.0.0.0.2.0.0":"-3","6.0.3.2.0.0.0.0.0.0":"32","6.0.0.2.0.0.3.0.0.0":"3m","12.1.3.2.0.0.3.2.0.0":"-3m","6.0.1.2.0.2.0.0.0.0":"6","6.0.0.2.0.0.1.0.0.2":"-6","12.1.1.2.0.2.1.2.0.2":"6/m","12.0.7.2.0.2.0.0.0.0":"622","12.0.1.2.0.2.6.0.0.0":"6mm","12.0.3.2.0.0.4.0.0.2":"-6m2","24.1.7.2.0.2.7.2.0.2":"6/mmm","12.0.3.8.0.0.0.0.0.0":"23","24.1.3.8.0.0.3.8.0.0":"m-3","24.0.9.8.6.0.0.0.0.0":"432","24.0.3.8.0.0.6.0.6.0":"-43m","48.1.9.8.6.0.9.8.6.0":"m-3m"};
+
+/* =====================================================================
+   Symmetry and space group determination.
+
+   Conventions (column form, same as spglib):
+     cartesian x = L f,  columns of L are the lattice vectors a1 a2 a3
+     metric     G = Lᵀ L,  G_ij = a_i · a_j
+     operation  f' = W f + w,  W integer, det W = ±1
+   A rotation W is a symmetry of the lattice when Wᵀ G W = G, i.e. it
+   maps the lattice onto itself and keeps every length and angle.
+   Tolerances: lengths in Å, angles in degrees, so a 129.5° angle is
+   accepted as 130° once the angle tolerance reaches 0.5°.
+   ===================================================================== */
+
+const M3 = {
+  mul: (A,B) => [0,1,2].map(i=>[0,1,2].map(j=> A[i][0]*B[0][j] + A[i][1]*B[1][j] + A[i][2]*B[2][j])),
+  mulv: (A,v) => [0,1,2].map(i=> A[i][0]*v[0] + A[i][1]*v[1] + A[i][2]*v[2]),
+  T: A => [0,1,2].map(i=>[0,1,2].map(j=>A[j][i])),
+  det: A => A[0][0]*(A[1][1]*A[2][2]-A[1][2]*A[2][1])
+           - A[0][1]*(A[1][0]*A[2][2]-A[1][2]*A[2][0])
+           + A[0][2]*(A[1][0]*A[2][1]-A[1][1]*A[2][0]),
+  inv: A => { const d = M3.det(A);
+    return [[(A[1][1]*A[2][2]-A[1][2]*A[2][1])/d, (A[0][2]*A[2][1]-A[0][1]*A[2][2])/d, (A[0][1]*A[1][2]-A[0][2]*A[1][1])/d],
+            [(A[1][2]*A[2][0]-A[1][0]*A[2][2])/d, (A[0][0]*A[2][2]-A[0][2]*A[2][0])/d, (A[0][2]*A[1][0]-A[0][0]*A[1][2])/d],
+            [(A[1][0]*A[2][1]-A[1][1]*A[2][0])/d, (A[0][1]*A[2][0]-A[0][0]*A[2][1])/d, (A[0][0]*A[1][1]-A[0][1]*A[1][0])/d]]; },
+  I: () => [[1,0,0],[0,1,0],[0,0,1]],
+  trace: A => A[0][0]+A[1][1]+A[2][2],
+  eq: (A,B) => A.every((r,i)=>r.every((x,j)=>Math.abs(x-B[i][j])<1e-6))
+};
+const vsub = (a,b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+const vadd = (a,b) => [a[0]+b[0], a[1]+b[1], a[2]+b[2]];
+const wrap1 = v => v.map(x => { let y = x - Math.floor(x); if (y > 1-1e-8) y = 0; return y; });
+const nearInt = (v,e=1e-4) => v.every(x => Math.abs(x-Math.round(x)) < e);
+
+/* columns of L from the three lattice vectors */
+function lattMatrix(A){ return [[A[0].x,A[1].x,A[2].x],[A[0].y,A[1].y,A[2].y],[A[0].z,A[1].z,A[2].z]]; }
+function metricOf(L){ return M3.mul(M3.T(L), L); }
+function cartLen(L,f){ const c = M3.mulv(L,f); return Math.hypot(c[0],c[1],c[2]); }
+function angleDeg(L,f,g){
+  const a = M3.mulv(L,f), b = M3.mulv(L,g);
+  const na = Math.hypot(...a), nb = Math.hypot(...b);
+  const c = (a[0]*b[0]+a[1]*b[1]+a[2]*b[2])/(na*nb);
+  return Math.acos(Math.max(-1,Math.min(1,c)))*180/Math.PI;
+}
+
+/* ---- lattice vectors of the cell within a coefficient range ---- */
+function latticePoints(range){
+  const out = [];
+  for (let i=-range;i<=range;i++) for (let j=-range;j<=range;j++) for (let k=-range;k<=range;k++)
+    if (i||j||k) out.push([i,j,k]);
+  return out;
+}
+
+/* =====================================================================
+   1. pure translations -> primitive cell
+   ===================================================================== */
+function pureTranslations(atoms, L, tol, index){
+  const byEl = new Map();
+  atoms.forEach((a,i)=>{ if(!byEl.has(a.element)) byEl.set(a.element,[]); byEl.get(a.element).push(i); });
+  let rarest = null;
+  byEl.forEach(list => { if (!rarest || list.length < rarest.length) rarest = list; });
+  const ref = atoms[rarest[0]].direct;
+  const out = [];
+  for (const j of rarest){
+    const t = wrap1(vsub(atoms[j].direct, ref));
+    if (cartLen(L,t) < tol) continue;
+    if (mapsOnto(atoms, M3.I(), t, L, tol, index)) out.push(t);
+  }
+  return out;
+}
+
+/* one spatial index per atom set, reused by every candidate operation */
+const _bucketKey = f => f.map(x=>Math.round(x*24)).join(',');
+function buildIndex(atoms){
+  const buckets = new Map();
+  atoms.forEach(a=>{
+    const f = wrap1(a.direct);
+    for (let dx=-1;dx<=1;dx++) for (let dy=-1;dy<=1;dy++) for (let dz=-1;dz<=1;dz++){
+      const g = [f[0]+dx, f[1]+dy, f[2]+dz];
+      const k = _bucketKey(g);
+      if (!buckets.has(k)) buckets.set(k,[]);
+      buckets.get(k).push({ el:a.element, f:g });
+    }
+  });
+  return buckets;
+}
+
+/* does {W,w} send every atom onto an atom of the same element? */
+function mapsOnto(atoms, W, w, L, tol, index){
+  const buckets = index || buildIndex(atoms);
+  const key = _bucketKey;
+  for (const a of atoms){
+    const img = wrap1(vadd(M3.mulv(W, a.direct), w));
+    let hit = false;
+    outer:
+    for (let dx=-1;dx<=1 && !hit;dx++) for (let dy=-1;dy<=1 && !hit;dy++) for (let dz=-1;dz<=1 && !hit;dz++){
+      const list = buckets.get(key([img[0]+dx,img[1]+dy,img[2]+dz]));
+      if (!list) continue;
+      for (const c of list){
+        if (c.el !== a.element) continue;
+        if (cartLen(L, vsub(c.f,img)) < tol){ hit = true; break outer; }
+      }
+    }
+    if (!hit) return false;
+  }
+  return true;
+}
+
+/* build a primitive basis from the pure translations */
+function primitiveOf(A, atoms, tol){
+  const L = lattMatrix(A);
+  const T = pureTranslations(atoms, L, tol, buildIndex(atoms));
+  if (!T.length) return { M: M3.I(), latt: A, atoms, L };
+
+  const cand = [[1,0,0],[0,1,0],[0,0,1], ...T, ...T.map(t=>t.map(x=>-x))];
+  // add sums so that combinations such as (½,½,0)+(0,½,½) are available
+  T.forEach(t1 => T.forEach(t2 => cand.push(wrap1(vadd(t1,t2)))));
+  const uniq = [];
+  cand.forEach(c=>{ if (cartLen(L,c) > 1e-6 && !uniq.some(u=>cartLen(L,vsub(u,c))<1e-6)) uniq.push(c); });
+  uniq.sort((a,b)=>cartLen(L,a)-cartLen(L,b));
+
+  let best = null;
+  for (let i=0;i<uniq.length;i++) for (let j=i+1;j<uniq.length;j++) for (let k=j+1;k<uniq.length;k++){
+    const M = M3.T([uniq[i],uniq[j],uniq[k]]);          // columns are the candidate vectors
+    const d = M3.det(M);
+    if (Math.abs(d) < 1e-6) continue;
+    const Minv = M3.inv(M);
+    // every candidate translation must be an integer combination of the chosen three
+    if (!uniq.every(u => nearInt(M3.mulv(Minv,u)))) continue;
+    if (!best || Math.abs(d) < Math.abs(best.d) - 1e-9) best = { M: d>0 ? M : M3.T([uniq[i],uniq[j],uniq[k].map(x=>-x)]), d: Math.abs(d) };
+    if (best && Math.abs(best.d) < 1e-9) break;
+  }
+  if (!best) return { M: M3.I(), latt: A, atoms, L };
+
+  const M = best.M, Minv = M3.inv(M);
+  const Lp = M3.mul(L, M);
+  const lattP = [0,1,2].map(i => V3(Lp[0][i], Lp[1][i], Lp[2][i]));
+  const seen = [], patoms = [];
+  atoms.forEach(a=>{
+    const f = wrap1(M3.mulv(Minv, a.direct));
+    if (seen.some(s => s.el===a.element && cartLen(Lp, vsub(s.f,f)) < tol)) return;
+    seen.push({ el:a.element, f });
+    patoms.push({ element:a.element, direct:f });
+  });
+  return { M, latt: lattP, atoms: patoms, L: Lp };
+}
+
+/* =====================================================================
+   2. symmetry operations of a cell
+   ===================================================================== */
+function latticeRotations(L, tolLen, tolAng){
+  const G = metricOf(L);
+  const lens = [0,1,2].map(i=>Math.sqrt(G[i][i]));
+  const pts = latticePoints(3);
+  const cands = [0,1,2].map(i => pts.filter(p => Math.abs(cartLen(L,p) - lens[i]) < tolLen));
+  const angs = [[0,1],[0,2],[1,2]].map(([i,j]) => angleDeg(L, unit(i), unit(j)));
+  const out = [];
+  for (const c0 of cands[0]) for (const c1 of cands[1]){
+    if (Math.abs(angleDeg(L,c0,c1) - angs[0]) > tolAng) continue;
+    for (const c2 of cands[2]){
+      if (Math.abs(angleDeg(L,c0,c2) - angs[1]) > tolAng) continue;
+      if (Math.abs(angleDeg(L,c1,c2) - angs[2]) > tolAng) continue;
+      const W = M3.T([c0,c1,c2]);
+      if (Math.abs(Math.abs(M3.det(W)) - 1) > 1e-6) continue;
+      out.push(W);
+    }
+  }
+  return out;
+}
+const unit = i => [i===0?1:0, i===1?1:0, i===2?1:0];
+
+function symmetryOps(L, atoms, tolLen, tolAng){
+  const rots = latticeRotations(L, tolLen, tolAng);
+  const index = buildIndex(atoms);
+  const byEl = new Map();
+  atoms.forEach(a=>{ if(!byEl.has(a.element)) byEl.set(a.element,[]); byEl.get(a.element).push(a); });
+  let rarest = null;
+  byEl.forEach(list => { if (!rarest || list.length < rarest.length) rarest = list; });
+  const ref = rarest[0];
+  const ops = [];
+  for (const W of rots){
+    const Wr = M3.mulv(W, ref.direct);
+    for (const cand of rarest){
+      const w = wrap1(vsub(cand.direct, Wr));
+      if (!mapsOnto(atoms, W, w, L, tolLen, index)) continue;
+      if (!ops.some(o => M3.eq(o.W,W) && cartLen(L, vsub(o.w,w)) < tolLen)) ops.push({ W, w });
+    }
+  }
+  return ops;
+}
+
+/* =====================================================================
+   3. crystal system and point group from the rotation parts
+   ===================================================================== */
+function opType(W){
+  const d = Math.round(M3.det(W)), t = Math.round(M3.trace(W));
+  const table = { '1,3':1, '1,-1':2, '1,0':3, '1,1':4, '1,2':6,
+                  '-1,-3':-1, '-1,1':-2, '-1,0':-3, '-1,-1':-4, '-1,-2':-6 };
+  return table[d+','+t] ?? 0;      // 1 identity, 2/3/4/6 rotations, -1 inversion, -2 mirror, -4/-3/-6 rotoinversions
+}
+/* axis of a rotation (or normal of a mirror) as a primitive integer vector */
+function opAxis(W){
+  const t = opType(W);
+  if (t === 1 || t === -1) return [0,0,0];
+  const R = (t < 0) ? W.map(r=>r.map(x=>-x)) : W;      // proper part
+  const n = Math.abs(t);                                  // 2, 3, 4 or 6
+  // sum over the cyclic group projects onto the invariant axis
+  let P = [[0,0,0],[0,0,0],[0,0,0]], Rk = M3.I();
+  for (let k=0;k<n;k++){ P = P.map((r,i)=>r.map((x,j)=>x+Rk[i][j])); Rk = M3.mul(Rk,R); }
+  let v = null;
+  for (const e of [[1,0,0],[0,1,0],[0,0,1]]){
+    const u = M3.mulv(P,e);
+    if (Math.hypot(...u) > 1e-6){ v = u; break; }
+  }
+  if (!v) return [0,0,0];
+  return primitiveInt(v);
+}
+function primitiveInt(v){
+  let u = v.slice();
+  if (nearInt(u,1e-6)) u = u.map(Math.round);
+  else { const s = Math.max(...u.map(x=>Math.abs(x))); u = u.map(x=>Math.round(x/s*12)); }
+  const g = gcdList(u);
+  u = u.map(x=>Math.round(x/g));
+  const first = u.find(x=>x!==0) || 1;
+  return first < 0 ? u.map(x=>-x) : u;
+}
+
+function pointGroupInfo(rots){
+  const types = rots.map(opType);
+  const count = t => types.filter(x=>x===t).length;
+  const axes = t => {
+    const seen = [];
+    rots.forEach((W,i)=>{ if (types[i]!==t) return;
+      const a = opAxis(W).join(',');
+      if (!seen.includes(a)) seen.push(a); });
+    return seen.length;
+  };
+  const n3 = axes(3), has6 = count(6)+count(-6) > 0, has3 = count(3)+count(-3) > 0;
+  const has4 = count(4)+count(-4) > 0, n2 = axes(2), nm = axes(-2);
+  let system;
+  if (n3 >= 4) system = 'cubic';
+  else if (has6) system = 'hexagonal';
+  else if (has3) system = 'trigonal';
+  else if (has4) system = 'tetragonal';
+  else if (n2 + nm >= 3 || (n2 >= 3)) system = 'orthorhombic';
+  else if (n2 + nm >= 1) system = 'monoclinic';
+  else system = 'triclinic';
+  const sig = [rots.length, count(-1), count(2), count(3), count(4), count(6),
+               count(-2), count(-3), count(-4), count(-6)].join('.');
+  return { system, order: rots.length, signature: sig,
+           symbol: (typeof PG_TABLE !== 'undefined' && PG_TABLE[sig]) || null,
+           centrosymmetric: count(-1) > 0 };
+}
+
+/* =====================================================================
+   4. conventional cell
+   ===================================================================== */
+function conventionalCell(L, rots, system, tolLen, tolAng){
+  const pts = latticePoints(3);
+  pts.sort((a,b)=>cartLen(L,a)-cartLen(L,b));
+  const short = pts.slice(0, 90);
+  const ang = (u,v)=>angleDeg(L,u,v);
+  const len = u=>cartLen(L,u);
+  /* the tolerance is a strain: a length mismatch that is acceptable for the
+     short primitive vectors has to be scaled up for the longer conventional ones */
+  const meanPrim = ([0,1,2].reduce((t,i)=>t+cartLen(L,unit(i)),0))/3;
+  const rel = tolLen/meanPrim;
+  const ok = (x,y)=>Math.abs(x-y) < Math.max(tolLen, rel*Math.max(x,y));
+  /* a conventional cell has to be left invariant by every rotation we found */
+  const invariant = M => { const Mi = M3.inv(M);
+    return rots.every(W => M3.mul(Mi, M3.mul(W, M)).every(r=>nearInt(r,1e-4))); };
+  const okA = (x,y)=>Math.abs(x-y) < tolAng;
+  const Vp = Math.abs(M3.det(L));
+  let best = null;
+  const consider = (u,v,w) => {
+    const M = M3.T([u,v,w]);
+    const d = M3.det(M);
+    if (d < 0.5) return;                            // right handed and non degenerate
+    if (best && d > best.d + 1e-9) return;
+    if (!invariant(M)) return;
+    if (!best || d < best.d - 1e-9) best = { M, d };
+  };
+  if (system === 'triclinic'){ best = { M: M3.I(), d: 1 }; }
+  else if (system === 'monoclinic'){
+    // unique axis b along a two fold axis or a mirror normal
+    const axesList = [];
+    rots.forEach(W=>{ const t = opType(W); if (t===2 || t===-2){ const a = opAxis(W); if (!axesList.some(x=>x.join()===a.join())) axesList.push(a); } });
+    for (const b of axesList){
+      const bl = short.filter(p => nearInt(cross3(p,b).map(x=>x*0)) && parallel(p,b)).sort((x,y)=>len(x)-len(y));
+      const bb = bl[0] || b;
+      const perp = short.filter(p => okA(ang(p,bb), 90));
+      for (let i=0;i<perp.length;i++) for (let j=0;j<perp.length;j++){
+        if (i===j) continue;
+        const M = M3.T([perp[i], bb, perp[j]]);
+        const d = M3.det(M);
+        if (d < 0.5 || (best && d > best.d + 1e-9)) continue;
+        if (!invariant(M)) continue;
+        if (!best || d < best.d - 1e-9 ||
+            (Math.abs(d-best.d)<1e-9 && len(perp[i])+len(perp[j]) < len(bestCols(best)[0])+len(bestCols(best)[2])))
+          best = { M, d };
+      }
+    }
+  } else {
+    for (let i=0;i<short.length;i++){
+      const u = short[i];
+      for (let j=0;j<short.length;j++){
+        const v = short[j];
+        if (system==='cubic'      && !(ok(len(v),len(u)) && okA(ang(u,v),90))) continue;
+        if (system==='tetragonal' && !(ok(len(v),len(u)) && okA(ang(u,v),90))) continue;
+        if (system==='orthorhombic' && !okA(ang(u,v),90)) continue;
+        if ((system==='hexagonal'||system==='trigonal') && !(ok(len(v),len(u)) && okA(ang(u,v),120))) continue;
+        for (let k=0;k<short.length;k++){
+          const w = short[k];
+          if (!okA(ang(u,w),90) || !okA(ang(v,w),90)) continue;
+          if (system==='cubic' && !ok(len(w),len(u))) continue;
+          consider(u,v,w);
+        }
+      }
+    }
+  }
+  if (!best) return null;
+  const M = best.M;
+  const Lc = M3.mul(L, M);
+  return { M, L: Lc, n: Math.round(Math.abs(M3.det(M))) };
+}
+const bestCols = b => [0,1,2].map(i=>[b.M[0][i],b.M[1][i],b.M[2][i]]);
+const cross3 = (a,b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+const parallel = (a,b) => Math.hypot(...cross3(a,b)) < 1e-8;
+
+/* centering translations: primitive lattice points inside the conventional cell */
+function centeringVectors(M){
+  const Minv = M3.inv(M);
+  const out = [[0,0,0]];
+  for (let i=-2;i<=2;i++) for (let j=-2;j<=2;j++) for (let k=-2;k<=2;k++){
+    const t = wrap1(M3.mulv(Minv,[i,j,k]).map(x=>Math.round(x*24)/24));
+    if (!out.some(o => Math.hypot(...vsub(o,t)) < 1e-6)) out.push(t);
+  }
+  return out;
+}
+function centeringSymbol(cent){
+  const has = v => cent.some(c => Math.hypot(...vsub(c,v)) < 1e-4);
+  if (cent.length === 1) return 'P';
+  if (cent.length === 2){
+    if (has([0.5,0.5,0.5])) return 'I';
+    if (has([0,0.5,0.5])) return 'A';
+    if (has([0.5,0,0.5])) return 'B';
+    if (has([0.5,0.5,0])) return 'C';
+  }
+  if (cent.length === 3) return 'R';
+  if (cent.length === 4) return 'F';
+  return '?';
+}
+
+/* =====================================================================
+   5. origin independent fingerprint
+   ===================================================================== */
+function intrinsicTranslation(W, w){
+  let n = 1, P = M3.I();
+  while (!M3.eq(P = M3.mul(P,W), M3.I()) && n < 12) n++;
+  n = n + 0;                                     // P now identity after n multiplications
+  let acc = [0,0,0], Rk = M3.I();
+  for (let k=0;k<n;k++){ acc = vadd(acc, M3.mulv(Rk,w)); Rk = M3.mul(Rk,W); }
+  return acc.map(x=>x/n);
+}
+/* The intrinsic (screw or glide) part is fixed only up to the projection of a
+   lattice translation onto the invariant subspace of W:  w -> w + t changes it
+   by (1/n) sum_k W^k t.  Reduce over that set and keep the smallest
+   representative so the token is the same whichever coset rep was listed. */
+const _orbitCache = new Map();
+function intrinsicOrbit(W){
+  const key = W.map(r=>r.join(',')).join('|');
+  if (_orbitCache.has(key)) return _orbitCache.get(key);
+  let n = 1, P = M3.I();
+  while (!M3.eq(P = M3.mul(P,W), M3.I()) && n < 12) n++;
+  const set = [], seen = new Set();
+  for (let i=-2;i<=2;i++) for (let j=-2;j<=2;j++) for (let k=-2;k<=2;k++){
+    let acc = [0,0,0], Rk = M3.I();
+    for (let m=0;m<n;m++){ acc = vadd(acc, M3.mulv(Rk,[i,j,k])); Rk = M3.mul(Rk,W); }
+    const v = acc.map(x=>{ let q = Math.round(x/n*12)%12; if (q<0) q+=12; return q; });
+    const s = v.join(',');
+    if (!seen.has(s)){ seen.add(s); set.push(v); }
+  }
+  _orbitCache.set(key, set);
+  return set;
+}
+function canonicalIntrinsic(W, w){
+  const wi = wrap1(intrinsicTranslation(W, w)).map(x=>{ let v = Math.round(x*12)%12; if (v<0) v+=12; return v; });
+  let best = null;
+  for (const p of intrinsicOrbit(W)){
+    const c = [0,1,2].map(i=>((wi[i]-p[i])%12+12)%12);
+    const key = c.map(x=>String(x).padStart(2,'0')).join(',');
+    if (best === null || key < best) best = key;
+  }
+  return best;
+}
+function fingerprint(ops){
+  const toks = ops.map(o=>{
+    const d = Math.round(M3.det(o.W)), t = Math.round(M3.trace(o.W));
+    return `${d}|${t}|${opAxis(o.W).join(',')}|${canonicalIntrinsic(o.W, o.w)}`;
+  });
+  toks.sort();
+  return toks.join(';');
+}
+function fnv(str){
+  let h = 0x811c9dc5;
+  for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h>>>0).toString(16).padStart(8,'0');
+}
+
+/* signed permutations with det +1, used to absorb a different axis setting */
+function settingMatrices(){
+  const perms = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]];
+  const out = [];
+  for (const p of perms) for (let s=0;s<8;s++){
+    const sg = [ (s&1)?-1:1, (s&2)?-1:1, (s&4)?-1:1 ];
+    const Q = [[0,0,0],[0,0,0],[0,0,0]];
+    for (let i=0;i<3;i++) Q[p[i]][i] = sg[i];
+    if (Math.abs(M3.det(Q) - 1) < 1e-9) out.push(Q);
+  }
+  return out;
+}
+
+/* =====================================================================
+   6. the analysis entry point
+   ===================================================================== */
+function analyzeSymmetry(s, tolLen = 0.1, tolAng = 1.0){
+  const A = localLattice(s);
+  const atoms = s.atoms.map(a=>({ element:a.element, direct:a.direct.slice() }));
+  const prim = primitiveOf(A, atoms, tolLen);
+  const ops  = symmetryOps(prim.L, prim.atoms, tolLen, tolAng);
+  const rots = [];
+  ops.forEach(o=>{ if (!rots.some(R=>M3.eq(R,o.W))) rots.push(o.W); });
+  const pg = pointGroupInfo(rots);
+  const conv = conventionalCell(prim.L, rots, pg.system, tolLen, tolAng);
+
+  const res = {
+    tolLen, tolAng,
+    nAtoms: s.atoms.length,
+    primitiveAtoms: prim.atoms.length,
+    nOps: ops.length,
+    system: pg.system, pointGroup: pg.symbol, pointGroupOrder: pg.order,
+    centrosymmetric: pg.centrosymmetric,
+    primitiveParams: latticeParams(prim.latt),
+    ops, opsLabels: ops.map(o=>opLabel(o)),
+    number: null, symbol: null, centering: null, conventionalParams: null,
+    alternatives: [], altSymbols: []
+  };
+  if (!conv) return res;
+
+  const Minv = M3.inv(conv.M);
+  const cent = centeringVectors(conv.M);
+  res.centering = centeringSymbol(cent);
+  const lattC = [0,1,2].map(i=>V3(conv.L[0][i], conv.L[1][i], conv.L[2][i]));
+  res.conventionalParams = latticeParams(lattC);
+  res.conventionalAtoms = Math.round(prim.atoms.length * conv.n);
+
+  const convOps = [];
+  ops.forEach(o=>{
+    const W = M3.mul(Minv, M3.mul(o.W, conv.M));
+    if (!W.every(r=>nearInt(r,1e-4))) return;
+    const Wi = W.map(r=>r.map(Math.round));
+    const w0 = M3.mulv(Minv, o.w);
+    cent.forEach(t => convOps.push({ W: Wi, w: wrap1(vadd(w0,t)) }));
+  });
+  res.nOpsConventional = convOps.length;
+
+  if (typeof SG_TABLE !== 'undefined' && convOps.length){
+    const tryOps = Q => {
+      const Qi = M3.inv(Q);
+      const mapped = convOps.map(o=>({ W: M3.mul(Qi, M3.mul(o.W,Q)).map(r=>r.map(x=>Math.round(x))),
+                                       w: M3.mulv(Qi, o.w) }));
+      return SG_TABLE[fnv(fingerprint(mapped))];
+    };
+    let hit = SG_TABLE[fnv(fingerprint(convOps))];
+    if (!hit) for (const Q of settingMatrices()){ hit = tryOps(Q); if (hit) break; }
+    if (hit){
+      res.number = hit[0]; res.symbol = hit[1];
+      if (!res.pointGroup) res.pointGroup = hit[2];
+      /* a few pairs (I222 / I2_12_12_1, the enantiomorphic screw pairs) have
+         exactly the same set of operations and differ only in where the axes
+         sit or in handedness, so both are reported */
+      if (hit[4]){ res.alternatives = hit[4]; res.altSymbols = hit[5]; }
+    }
+  }
+  return res;
+}
+
+function opLabel(o){
+  const t = opType(o.W), ax = opAxis(o.W);
+  const names = { 1:'identity', 2:'2 fold', 3:'3 fold', 4:'4 fold', 6:'6 fold',
+                  '-1':'inversion', '-2':'mirror', '-3':'-3', '-4':'-4', '-6':'-6' };
+  const wi = wrap1(intrinsicTranslation(o.W,o.w));
+  const frac = x => { const r = Math.round(x*12); return r===0 ? '0' : `${r}/12`; };
+  const glide = wi.some(x=>Math.abs(x)>1e-4)
+    ? (t===-2 ? ` glide (${wi.map(frac).join(' ')})` : ` screw (${wi.map(frac).join(' ')})`) : '';
+  const axs = (t===1||t===-1) ? '' : ` about [${ax.join(' ')}]`;
+  return `${names[t] || 'op'}${axs}${glide}`;
+}
+/* ---------------- 4. state, POSCAR input, workspace ---------------- */
+let structures = [];
+let activeAlignSrc = null, activeAlignTgt = null;
+let selection = [];            // picked atoms
+let pickMode = false;
+let showAxes = false;
+let idCounter = 0;
+
+const palette = ['#2f6fd0','#d4622a','#2f9e6b','#8a4fbf','#c0392b','#0f8ea8','#7a6a1f','#b03a86'];
+
+function newStructure(name, latt, atoms){
+  const A = latt.map(arr2v);
+  const hex = isHexagonal(A);
+  const col = palette[structures.length % palette.length];
+  return {
+    id: 'S' + (++idCounter),
+    name, latt, atoms, isHex: hex,
+    supercell: [1,1,1],
+    visible: true, showAtoms: true, showCell: true, showBonds: false,
+    showFFT: false, fftQmax: 6, rendered: [],
+    colorMode: 'element', atomColor: col, bondColor: '#5a6472',
+    radiusScale: 0.30, bondMode: 'auto', bondCutoff: 2.6, bondTol: 1.15,
+    plane: { show:false, h:1, k:1, l:1, dist:0, thickness:4, color:col, slabCut:false },
+    alignConfig: { ph:0, pk:0, pl:1, pt:0, du:1, dv:0, dw:0, dt:-1 },
+    pos: V3(0,0,0), quat: new THREE.Quaternion(),
+    anim: null, group: null
+  };
+}
+
+/* ---- POSCAR ---- */
+function parsePoscar(text, fallbackName='structure'){
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+  if (lines.length < 7) throw new Error('The file is too short to be a POSCAR.');
+
+  const name = lines[0] || fallbackName;
+  let scale = parseFloat(lines[1]);
+  if (!isFinite(scale)) throw new Error('Line 2 should be the scale factor.');
+
+  const readVec = str => {
+    const v = str.split(/\s+/).slice(0,3).map(Number);
+    if (v.length !== 3 || v.some(x=>!isFinite(x))) throw new Error('Bad lattice vector: ' + str);
+    return v;
+  };
+  let rawA = [readVec(lines[2]), readVec(lines[3]), readVec(lines[4])];
+
+  if (scale < 0){                       // negative scale means "give the cell this volume"
+    const V0 = cellVolume(rawA.map(arr2v));
+    scale = Math.cbrt(Math.abs(scale)/V0);
+  }
+  const latt = rawA.map(v => v.map(x => x*scale));
+  if (Math.abs(cellVolume(latt.map(arr2v))) < 1e-8)
+    throw new Error('The three lattice vectors are coplanar, so the cell has no volume.');
+
+  let i = 5, elements = null;
+  if (isNaN(parseFloat(lines[i].split(/\s+/)[0]))){
+    elements = lines[i].split(/\s+/); i++;
+  }
+  const counts = lines[i].split(/\s+/).map(Number).filter(x=>isFinite(x) && x>0);
+  i++;
+  if (!counts.length) throw new Error('No atom counts found.');
+
+  if (!elements){                       // VASP 4 style: element names sometimes sit on the comment line
+    const c = lines[0].split(/\s+/).filter(t=>/^[A-Za-z]{1,2}$/.test(t));
+    elements = (c.length === counts.length) ? c : counts.map((_,k)=>'X'+(k+1));
+  }
+
+  if (lines[i] && /^[sS]/.test(lines[i])) i++;            // selective dynamics
+  const mode = (lines[i]||'d').toLowerCase(); i++;
+  const cartesian = mode.startsWith('c') || mode.startsWith('k');
+
+  const Av = latt.map(arr2v);
+  const Minv = new THREE.Matrix4().set(
+    Av[0].x, Av[1].x, Av[2].x, 0,
+    Av[0].y, Av[1].y, Av[2].y, 0,
+    Av[0].z, Av[1].z, Av[2].z, 0,
+    0,0,0,1).invert();
+
+  const atoms = [];
+  for (let t=0;t<counts.length;t++){
+    for (let j=0;j<counts[t];j++){
+      if (i >= lines.length) throw new Error('The file ends before all atoms are listed.');
+      const c = lines[i].split(/\s+/).slice(0,3).map(Number);
+      if (c.some(x=>!isFinite(x))) throw new Error('Bad coordinate line: ' + lines[i]);
+      let direct;
+      if (cartesian){
+        const p = V3(c[0]*scale, c[1]*scale, c[2]*scale).applyMatrix4(Minv);
+        direct = [p.x,p.y,p.z];
+      } else direct = c;
+      atoms.push({ element: elements[t], direct });
+      i++;
+    }
+  }
+  if (!atoms.length) throw new Error('No atoms were read.');
+  return { name, latt, atoms };
+}
+
+function addStructure(parsed){
+  const s = newStructure(parsed.name, parsed.latt, parsed.atoms);
+  structures.push(s);
+  if (structures.length === 1){ activeAlignSrc = s.id; activeAlignTgt = s.id; }
+  else if (structures.length === 2){ activeAlignSrc = structures[1].id; activeAlignTgt = structures[0].id; }
+  updateUI(); rebuildScene();
+  if (structures.length === 1) resetView();
+  toast(`${s.name}: ${s.atoms.length} atoms, ${s.isHex ? 'hexagonal' : 'general'} cell.`);
+  return s;
+}
+
+function addPoscarFromInput(){
+  const text = byId('poscar-input').value;
+  if (!text.trim()) return toast('Paste POSCAR text first, or use the File button.', true);
+  try { addStructure(parsePoscar(text)); byId('poscar-input').value = ''; }
+  catch(e){ toast('Could not read that POSCAR: ' + e.message, true, 6000); }
+}
+
+function loadPoscarFiles(ev){
+  const files = [...ev.target.files];
+  files.forEach(f=>{
+    const r = new FileReader();
+    r.onload = e => {
+      try { const p = parsePoscar(e.target.result, f.name); p.name = p.name || f.name; addStructure(p); }
+      catch(err){ toast(`${f.name}: ${err.message}`, true, 6000); }
+    };
+    r.readAsText(f);
+  });
+  ev.target.value = '';
+}
+
+/* ---- built in examples ---- */
+const EXAMPLES = {
+  si:`Silicon diamond cubic
+5.431
+1.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 1.0
+Si
+8
+Direct
+0.00 0.00 0.00
+0.00 0.50 0.50
+0.50 0.00 0.50
+0.50 0.50 0.00
+0.25 0.25 0.25
+0.25 0.75 0.75
+0.75 0.25 0.75
+0.75 0.75 0.25`,
+  w:`Tungsten bcc
+3.165
+1.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 1.0
+W
+2
+Direct
+0.0 0.0 0.0
+0.5 0.5 0.5`,
+  cu:`Copper fcc
+3.615
+1.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 1.0
+Cu
+4
+Direct
+0.0 0.0 0.0
+0.0 0.5 0.5
+0.5 0.0 0.5
+0.5 0.5 0.0`,
+  mg:`Magnesium hcp
+1.0
+3.209000 0.000000 0.000000
+-1.604500 2.778963 0.000000
+0.000000 0.000000 5.211000
+Mg
+2
+Direct
+0.333333 0.666667 0.250000
+0.666667 0.333333 0.750000`,
+  nacl:`Rock salt NaCl
+5.640
+1.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 1.0
+Na Cl
+4 4
+Direct
+0.0 0.0 0.0
+0.0 0.5 0.5
+0.5 0.0 0.5
+0.5 0.5 0.0
+0.5 0.5 0.5
+0.5 0.0 0.0
+0.0 0.5 0.0
+0.0 0.0 0.5`,
+  ice:`Ice Ih oxygen sublattice
+1.0
+4.511000 0.000000 0.000000
+-2.255500 3.906180 0.000000
+0.000000 0.000000 7.346000
+O
+4
+Direct
+0.333333 0.666667 0.062500
+0.666667 0.333333 0.562500
+0.333333 0.666667 0.437500
+0.666667 0.333333 0.937500`
+};
+function loadExample(){
+  const key = byId('example-sel').value;
+  try { addStructure(parsePoscar(EXAMPLES[key])); }
+  catch(e){ toast('Example failed to load: ' + e.message, true); }
+}
+
+/* ---- workspace ---- */
+function saveWorkspace(){
+  const data = {
+    format: 'crystal-workbench', version: 2,
+    structures: structures.map(s=>({
+      id:s.id, name:s.name, latt:s.latt, atoms:s.atoms, isHex:s.isHex,
+      supercell:s.supercell, visible:s.visible, showAtoms:s.showAtoms, showCell:s.showCell,
+      showBonds:s.showBonds, colorMode:s.colorMode, atomColor:s.atomColor, bondColor:s.bondColor,
+      radiusScale:s.radiusScale, bondMode:s.bondMode, bondCutoff:s.bondCutoff, bondTol:s.bondTol,
+      showFFT:s.showFFT, fftQmax:s.fftQmax,
+      plane:s.plane, alignConfig:s.alignConfig,
+      pos:v2arr(s.pos), quat:[s.quat.x,s.quat.y,s.quat.z,s.quat.w]
+    })),
+    activeAlignSrc, activeAlignTgt
+  };
+  downloadBlob(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}),
+               `crystal_workspace_${new Date().toISOString().slice(0,10)}.json`);
+  toast('Workspace saved.');
+}
+
+function loadWorkspace(ev){
+  const file = ev.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try{
+      const data = JSON.parse(e.target.result);
+      const list = Array.isArray(data) ? data : data.structures;
+      if (!Array.isArray(list)) throw new Error('unexpected file contents');
+      structures = list.map(s=>{
+        const base = newStructure(s.name || 'structure',
+                                  s.latt || [s.a1, s.a2, s.a3],
+                                  s.atoms || []);
+        Object.assign(base, {
+          id: s.id || base.id,
+          supercell: s.supercell || [1,1,1],
+          visible: s.visible !== false, showAtoms: s.showAtoms !== false,
+          showCell: s.showCell !== false, showBonds: !!s.showBonds,
+          showFFT: !!s.showFFT, fftQmax: s.fftQmax ?? 6,
+          colorMode: s.colorMode || 'element',
+          atomColor: s.atomColor || base.atomColor, bondColor: s.bondColor || base.bondColor,
+          radiusScale: s.radiusScale ?? 0.30, bondMode: s.bondMode || 'auto',
+          bondCutoff: s.bondCutoff ?? 2.6, bondTol: s.bondTol ?? 1.15,
+          plane: Object.assign(base.plane, s.plane || {}),
+          alignConfig: Object.assign(base.alignConfig, s.alignConfig || {}),
+          pos: s.pos ? arr2v(s.pos) : (s.offset ? V3(s.offset.x,s.offset.y,s.offset.z) : V3(0,0,0)),
+          quat: s.quat ? new THREE.Quaternion(s.quat[0],s.quat[1],s.quat[2],s.quat[3]) : new THREE.Quaternion()
+        });
+        return base;
+      });
+      idCounter = structures.length;
+      selection = [];
+      activeAlignSrc = data.activeAlignSrc || (structures[0] && structures[0].id);
+      activeAlignTgt = data.activeAlignTgt || (structures[1] || structures[0] || {}).id;
+      updateUI(); rebuildScene(); resetView();
+      toast(`Loaded ${structures.length} structure${structures.length===1?'':'s'}.`);
+    }catch(err){ toast('That workspace file could not be read: ' + err.message, true, 6000); }
+  };
+  r.readAsText(file);
+  ev.target.value = '';
+}
+/* ---------------- 5. scene ---------------- */
+const wrapper   = byId('canvas-wrapper');
+const container = byId('canvas-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+
+const FRUSTUM = 26;
+let vw = container.clientWidth || 800, vh = container.clientHeight || 600;
+const camera = new THREE.OrthographicCamera(
+  -FRUSTUM*vw/vh/2, FRUSTUM*vw/vh/2, FRUSTUM/2, -FRUSTUM/2, -5000, 5000);
+camera.position.set(18,14,22);
+
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, preserveDrawingBuffer:true });
+renderer.setSize(vw, vh);
+renderer.setPixelRatio(window.devicePixelRatio || 1);
+renderer.localClippingEnabled = true;
+container.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.12;
+controls.screenSpacePanning = true;
+controls.mouseButtons = { LEFT:THREE.MOUSE.PAN, MIDDLE:THREE.MOUSE.ROTATE, RIGHT:THREE.MOUSE.ROTATE };
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.78));
+const key = new THREE.DirectionalLight(0xffffff, 0.55); key.position.set(1,1.4,1.2);
+const fill = new THREE.DirectionalLight(0xffffff, 0.28); fill.position.set(-1,-0.6,-1);
+scene.add(key); scene.add(fill);
+
+const modelRoot = new THREE.Group();      // structures
+const overlayRoot = new THREE.Group();    // selection, measurements, axes
+scene.add(modelRoot); scene.add(overlayRoot);
+
+function onResize(){
+  vw = container.clientWidth; vh = container.clientHeight;
+  if (!vw || !vh) return;
+  const a = vw/vh;
+  camera.left = -FRUSTUM*a/2; camera.right = FRUSTUM*a/2;
+  camera.top = FRUSTUM/2; camera.bottom = -FRUSTUM/2;
+  camera.updateProjectionMatrix();
+  renderer.setSize(vw, vh);
+}
+window.addEventListener('resize', onResize);
+
+/* ---- camera helpers ---- */
+function viewSpan(){ return FRUSTUM / camera.zoom; }
+function panView(dx,dy){
+  const step = viewSpan()*0.08;
+  const x = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0).multiplyScalar(dx*step);
+  const y = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1).multiplyScalar(dy*step);
+  const off = x.add(y);
+  camera.position.add(off); controls.target.add(off); controls.update();
+}
+function rotateView(dTheta,dPhi){
+  const off = camera.position.clone().sub(controls.target);
+  off.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(camera.up, -dTheta*0.16));
+  const xAxis = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0);
+  off.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(xAxis, dPhi*0.16));
+  camera.position.copy(controls.target).add(off);
+  camera.lookAt(controls.target); controls.update();
+}
+function rollView(dir){
+  const look = controls.target.clone().sub(camera.position).normalize();
+  camera.up.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(look, dir*0.16));
+  camera.lookAt(controls.target); controls.update();
+}
+function zoomView(f){ camera.zoom = clamp(camera.zoom*f, 0.02, 200); camera.updateProjectionMatrix(); }
+
+function sceneBounds(){
+  const box = new THREE.Box3();
+  let any = false;
+  structures.forEach(s=>{ if (s.visible && s.group){ box.expandByObject(s.group); any = true; } });
+  if (!any) box.setFromCenterAndSize(V3(0,0,0), V3(10,10,10));
+  return box;
+}
+function fitView(dir){
+  const box = sceneBounds();
+  const center = box.getCenter(new THREE.Vector3());
+  const radius = Math.max(box.getSize(new THREE.Vector3()).length()/2, 2);
+  const d = (dir || camera.position.clone().sub(controls.target)).clone();
+  if (d.lengthSq() < 1e-9) d.set(18,14,22);
+  d.normalize().multiplyScalar(radius*4 + 20);
+  camera.position.copy(center).add(d);
+  controls.target.copy(center);
+  const a = Math.max(vw/vh, 0.2);
+  camera.zoom = Math.min(FRUSTUM, FRUSTUM*a) / (2.3*radius);
+  camera.lookAt(center);
+  camera.updateProjectionMatrix();
+  controls.update();
+}
+function resetView(){ camera.up.set(0,1,0); fitView(V3(1,0.75,1.2)); }
+
+function viewAlong(vec, upHint){
+  const box = sceneBounds();
+  const center = box.getCenter(new THREE.Vector3());
+  const n = vec.clone().normalize();
+  let up = upHint ? upHint.clone() : V3(0,0,1);
+  if (Math.abs(n.dot(up.normalize())) > 0.97) up = V3(0,1,0);
+  if (Math.abs(n.dot(up.normalize())) > 0.97) up = V3(1,0,0);
+  camera.up.copy(up);
+  fitView(n);
+  camera.lookAt(center);
+  controls.update();
+}
+
+/* ---- labels ---- */
+function makeLabel(text, colorCss='#12161b'){
+  const c = document.createElement('canvas');
+  const ctx = c.getContext('2d');
+  const fs = 46;
+  ctx.font = `600 ${fs}px -apple-system,Segoe UI,Helvetica,Arial,sans-serif`;
+  const w = Math.ceil(ctx.measureText(text).width) + 30;
+  c.width = w; c.height = fs + 24;
+  const g = c.getContext('2d');
+  g.font = `600 ${fs}px -apple-system,Segoe UI,Helvetica,Arial,sans-serif`;
+  g.fillStyle = 'rgba(255,255,255,0.92)';
+  if (g.roundRect){ g.beginPath(); g.roundRect(0,0,c.width,c.height,12); g.fill(); }
+  else g.fillRect(0,0,c.width,c.height);
+  g.strokeStyle = colorCss; g.lineWidth = 3;
+  if (g.roundRect){ g.beginPath(); g.roundRect(1.5,1.5,c.width-3,c.height-3,12); g.stroke(); }
+  g.fillStyle = colorCss; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(text, c.width/2, c.height/2 + 2);
+  const tex = new THREE.CanvasTexture(c);
+  tex.minFilter = THREE.LinearFilter;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, depthTest:false, transparent:true }));
+  const scale = viewSpan()/26;
+  sp.scale.set(c.width/95*scale, c.height/95*scale, 1);
+  sp.renderOrder = 999;
+  sp.userData.isLabel = true;
+  return sp;
+}
+
+/* ---- disposal ---- */
+function disposeGroup(obj){
+  obj.traverse(o=>{
+    if (o.geometry) o.geometry.dispose();
+    if (o.material){
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      mats.forEach(m=>{ if (m.map) m.map.dispose(); m.dispose(); });
+    }
+  });
+  while (obj.children.length) obj.remove(obj.children[0]);
+}
+
+/* ---- atom expansion for one structure (local frame) ---- */
+function expandAtoms(s){
+  const A = localLattice(s);
+  const out = [];
+  for (let i=0;i<s.supercell[0];i++)
+  for (let j=0;j<s.supercell[1];j++)
+  for (let k=0;k<s.supercell[2];k++){
+    s.atoms.forEach((at, ai)=>{
+      const p = new THREE.Vector3()
+        .addScaledVector(A[0], at.direct[0]+i)
+        .addScaledVector(A[1], at.direct[1]+j)
+        .addScaledVector(A[2], at.direct[2]+k);
+      out.push({ element: at.element, pos: p, cell:[i,j,k], atomIndex: ai });
+    });
+  }
+  return out;
+}
+function supercellCenterLocal(s){
+  const A = localLattice(s);
+  return new THREE.Vector3()
+    .addScaledVector(A[0], s.supercell[0]/2)
+    .addScaledVector(A[1], s.supercell[1]/2)
+    .addScaledVector(A[2], s.supercell[2]/2);
+}
+function structureCenterWorld(s){
+  return supercellCenterLocal(s).applyQuaternion(s.quat).add(s.pos);
+}
+function toWorld(s, localVec){ return localVec.clone().applyQuaternion(s.quat).add(s.pos); }
+
+/* ---- neighbour list bonds ---- */
+function findBonds(list, s){
+  const fixed = s.bondMode === 'cutoff';
+  let maxCut = fixed ? s.bondCutoff
+    : 2*Math.max(...list.map(a=>elemRadius(a.element)))*s.bondTol;
+  if (!(maxCut > 0.05)) return [];
+  const bonds = [], cell = maxCut, grid = new Map();
+  const keyOf = (x,y,z)=>x+','+y+','+z;
+  list.forEach((a,idx)=>{
+    const k = keyOf(Math.floor(a.pos.x/cell), Math.floor(a.pos.y/cell), Math.floor(a.pos.z/cell));
+    if (!grid.has(k)) grid.set(k, []);
+    grid.get(k).push(idx);
+  });
+  const LIMIT = 120000;
+  for (let idx=0; idx<list.length; idx++){
+    const a = list[idx];
+    const cx = Math.floor(a.pos.x/cell), cy = Math.floor(a.pos.y/cell), cz = Math.floor(a.pos.z/cell);
+    for (let dx=-1;dx<=1;dx++) for (let dy=-1;dy<=1;dy++) for (let dz=-1;dz<=1;dz++){
+      const nb = grid.get(keyOf(cx+dx,cy+dy,cz+dz));
+      if (!nb) continue;
+      for (const jdx of nb){
+        if (jdx <= idx) continue;
+        const b = list[jdx];
+        const cut = fixed ? s.bondCutoff : (elemRadius(a.element)+elemRadius(b.element))*s.bondTol;
+        const d2 = a.pos.distanceToSquared(b.pos);
+        if (d2 <= cut*cut && d2 > 1e-6) bonds.push([idx,jdx]);
+        if (bonds.length > LIMIT) return bonds;
+      }
+    }
+  }
+  return bonds;
+}
+
+/* ---- reciprocal space (FFT) spots, bounded ---- */
+function buildReciprocal(s, group, centerLocal){
+  const B = reciprocal(localLattice(s));
+  const qmax = s.fftQmax || 6;
+  const R = 11;                                  // fixed world radius so the pattern never runs away
+  const k = R/qmax;
+  const nmax = i => Math.min(24, Math.ceil(qmax/Math.max(B[i].length(), 1e-6)));
+  const [n0,n1,n2] = [nmax(0), nmax(1), nmax(2)];
+  const spots = [];
+  let Imax = 0;
+  for (let h=-n0;h<=n0;h++) for (let kk=-n1;kk<=n1;kk++) for (let l=-n2;l<=n2;l++){
+    const G = gVector(h,kk,l,B);
+    const q = G.length();
+    if (q > qmax) continue;
+    let re=0, im=0;
+    s.atoms.forEach(a=>{
+      const ph = 2*Math.PI*(h*a.direct[0] + kk*a.direct[1] + l*a.direct[2]);
+      const f = elemZ(a.element) || 1;
+      re += f*Math.cos(ph); im += f*Math.sin(ph);
+    });
+    const I = re*re + im*im;
+    if (I < 1e-3) continue;
+    Imax = Math.max(Imax, I);
+    spots.push({ p: G.multiplyScalar(k), I });
+  }
+  if (!spots.length) return;
+  const geo = new THREE.SphereGeometry(1, 12, 12);
+  const mat = new THREE.MeshPhongMaterial({ color: s.atomColor, shininess: 30 });
+  const mesh = new THREE.InstancedMesh(geo, mat, spots.length);
+  const d = new THREE.Object3D();
+  spots.forEach((sp,i)=>{
+    d.position.copy(sp.p).add(centerLocal);
+    d.scale.setScalar(clamp(0.10 + 0.55*Math.pow(sp.I/Imax, 0.35), 0.10, 0.7));
+    d.updateMatrix(); mesh.setMatrixAt(i, d.matrix);
+  });
+  mesh.userData.noPick = true;
+  group.add(mesh);
+
+  ['b₁','b₂','b₃'].forEach((nm,i)=>{
+    const dir = B[i].clone().normalize();
+    const len = Math.min(B[i].length()*k, R);
+    group.add(new THREE.ArrowHelper(dir, centerLocal, len, 0x8a929d, len*0.12, len*0.07));
+    const lab = makeLabel(nm, '#6a7380');
+    lab.position.copy(centerLocal).addScaledVector(dir, len*1.12);
+    group.add(lab);
+  });
+  const cap = makeLabel(`reciprocal space, |q| ≤ ${qmax} Å⁻¹`, '#6a7380');
+  cap.position.copy(centerLocal).add(V3(0, -R*1.15, 0));
+  group.add(cap);
+}
+
+/* ---- main rebuild ---- */
+function rebuildScene(){
+  disposeGroup(modelRoot);
+
+  structures.forEach(s=>{
+    if (!s.visible){ s.group = null; return; }
+    const group = new THREE.Group();
+    group.position.copy(s.pos);
+    group.quaternion.copy(s.anim ? s.animCurrent || s.quat : s.quat);
+    modelRoot.add(group);
+    group.updateMatrixWorld(true);
+    s.group = group;
+
+    const A = localLattice(s);
+    const B = reciprocal(A);
+    const centerLocal = supercellCenterLocal(s);
+    const animating = !!s.anim;
+
+    /* clipping planes for the slab, converted to world space */
+    let clip = [];
+    if (s.plane.slabCut && (s.plane.h||s.plane.k||s.plane.l)){
+      const n = planeNormal(s.plane.h, s.plane.k, s.plane.l, B);
+      clip = [ new THREE.Plane(n.clone(), -s.plane.dist),
+               new THREE.Plane(n.clone().negate(), s.plane.dist + s.plane.thickness) ]
+             .map(p=>p.applyMatrix4(group.matrixWorld));
+    }
+
+    if (s.showFFT){
+      if (!animating) buildReciprocal(s, group, centerLocal);
+    } else {
+      const list = expandAtoms(s);
+      s.rendered = list;
+      if (list.length > 250000){
+        toast(`${s.name} would draw ${list.length} atoms. Reduce the supercell.`, true, 6000);
+        return;
+      }
+      const seg = list.length > 20000 ? [8,6] : list.length > 4000 ? [12,8] : [18,14];
+
+      /* atoms, one instanced mesh per element so radii and colours are right */
+      if (s.showAtoms){
+        const byEl = new Map();
+        list.forEach((a,i)=>{ if(!byEl.has(a.element)) byEl.set(a.element, []); byEl.get(a.element).push(i); });
+        byEl.forEach((idxs, el)=>{
+          const r = Math.max(0.12, elemRadius(el)*s.radiusScale*1.6);
+          const geo = new THREE.SphereGeometry(r, seg[0], seg[1]);
+          const col = s.colorMode === 'element' ? elemColor(el) : new THREE.Color(s.atomColor).getHex();
+          const mat = new THREE.MeshPhongMaterial({ color: col, shininess: 45, clippingPlanes: clip, clipShadows:true });
+          const mesh = new THREE.InstancedMesh(geo, mat, idxs.length);
+          const d = new THREE.Object3D();
+          idxs.forEach((li,i)=>{ d.position.copy(list[li].pos); d.updateMatrix(); mesh.setMatrixAt(i, d.matrix); });
+          mesh.userData = { structId: s.id, refs: idxs };
+          group.add(mesh);
+        });
+      }
+
+      /* bonds */
+      if (s.showBonds){
+        const bonds = findBonds(list, s);
+        if (bonds.length){
+          const cyl = new THREE.CylinderGeometry(0.075, 0.075, 1, 8);
+          cyl.rotateX(Math.PI/2);
+          const mat = new THREE.MeshPhongMaterial({ color: s.bondColor, clippingPlanes: clip });
+          const mesh = new THREE.InstancedMesh(cyl, mat, bonds.length);
+          const d = new THREE.Object3D();
+          bonds.forEach((bd,i)=>{
+            const a = list[bd[0]].pos, b = list[bd[1]].pos;
+            d.position.copy(a).lerp(b, 0.5);
+            d.scale.set(1,1,a.distanceTo(b));
+            d.lookAt(b); d.updateMatrix();
+            mesh.setMatrixAt(i, d.matrix);
+          });
+          mesh.userData.noPick = true;
+          group.add(mesh);
+        }
+      }
+
+      /* cell box */
+      if (s.showCell){
+        const V = [A[0].clone().multiplyScalar(s.supercell[0]),
+                   A[1].clone().multiplyScalar(s.supercell[1]),
+                   A[2].clone().multiplyScalar(s.supercell[2])];
+        const c = [V3(0,0,0), V[0], V[1], V[0].clone().add(V[1]),
+                   V[2], V[0].clone().add(V[2]), V[1].clone().add(V[2]),
+                   V[0].clone().add(V[1]).add(V[2])];
+        const E = [[0,1],[0,2],[0,4],[1,3],[1,5],[2,3],[2,6],[3,7],[4,5],[4,6],[5,7],[6,7]];
+        const pts = [];
+        E.forEach(e=>{ pts.push(c[e[0]], c[e[1]]); });
+        const mat = new THREE.LineBasicMaterial({ color: s.atomColor, transparent:true, opacity:0.75, clippingPlanes: clip });
+        const lines = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), mat);
+        lines.userData.noPick = true;
+        group.add(lines);
+      }
+    }
+
+    /* Miller plane patch */
+    if (!animating && s.plane.show && (s.plane.h||s.plane.k||s.plane.l)){
+      const n = planeNormal(s.plane.h, s.plane.k, s.plane.l, B);
+      const size = Math.max(A[0].length()*s.supercell[0], A[1].length()*s.supercell[1], A[2].length()*s.supercell[2])*2.2;
+      const geo = new THREE.PlaneGeometry(size, size);
+      const boxClip = boxPlanes(A, s.supercell).map(p=>p.applyMatrix4(group.matrixWorld));
+      const mat = new THREE.MeshBasicMaterial({
+        color: s.plane.color, transparent:true, opacity:0.3, side:THREE.DoubleSide,
+        depthWrite:false, clippingPlanes: boxClip });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.quaternion.setFromUnitVectors(V3(0,0,1), n);
+      const proj = n.dot(centerLocal) - s.plane.dist;
+      mesh.position.copy(centerLocal).addScaledVector(n, -proj);
+      mesh.userData.noPick = true;
+      group.add(mesh);
+
+      const lab = makeLabel(`${s.name} ${millerLabel([s.plane.h,s.plane.k,s.plane.l], s.isHex)}`, s.plane.color);
+      lab.position.copy(mesh.position).addScaledVector(n, 0.6);
+      group.add(lab);
+    }
+
+    /* alignment arrows */
+    if (!s.showFFT && (s.id === activeAlignSrc || s.id === activeAlignTgt) && structures.length > 1){
+      const isSrc = s.id === activeAlignSrc;
+      const cfg = s.alignConfig;
+      const n = planeNormal(cfg.ph, cfg.pk, cfg.pl, B);
+      const d = s.isHex ? direction4(cfg.du, cfg.dv, cfg.dt, cfg.dw, A)
+                        : directionVector(cfg.du, cfg.dv, cfg.dw, A);
+      const L = Math.max(6, viewSpan()*0.28);
+      const cn = isSrc ? 0xc0392b : 0x1c8a52, cd = isSrc ? 0x8a4fbf : 0x0f8ea8;
+      group.add(new THREE.ArrowHelper(n, centerLocal, L, cn, L*0.13, L*0.07));
+      group.add(new THREE.ArrowHelper(d, centerLocal, L, cd, L*0.13, L*0.07));
+      const l1 = makeLabel(`${s.name} ${millerLabel([cfg.ph,cfg.pk,cfg.pl], s.isHex)}`, isSrc?'#c0392b':'#1c8a52');
+      l1.position.copy(centerLocal).addScaledVector(n, L*1.08); group.add(l1);
+      const l2 = makeLabel(`${s.name} ${s.isHex ? '['+[cfg.du,cfg.dv,cfg.dt,cfg.dw].join(' ')+']' : '['+[cfg.du,cfg.dv,cfg.dw].join(' ')+']'}`, isSrc?'#8a4fbf':'#0f8ea8');
+      l2.position.copy(centerLocal).addScaledVector(d, L*1.08); group.add(l2);
+    }
+  });
+
+  pruneSelection();
+  rebuildOverlay();
+  updateLegend();
+}
+
+/* six planes bounding the supercell box, used to clip the Miller plane patch */
+function boxPlanes(A, sc){
+  const V = [A[0].clone().multiplyScalar(sc[0]), A[1].clone().multiplyScalar(sc[1]), A[2].clone().multiplyScalar(sc[2])];
+  const out = [];
+  for (let i=0;i<3;i++){
+    const n = new THREE.Vector3().crossVectors(V[(i+1)%3], V[(i+2)%3]).normalize();
+    if (n.dot(V[i]) < 0) n.negate();
+    out.push(new THREE.Plane(n.clone(), 0));
+    out.push(new THREE.Plane(n.clone().negate(), n.dot(V[i])));
+  }
+  return out;
+}
+
+/* ---- overlay: axes, selection, measurements ---- */
+function rebuildOverlay(){
+  disposeGroup(overlayRoot);
+
+  if (showAxes){
+    const box = sceneBounds();
+    const o = box.min.clone().addScalar(-1.2);
+    const L = Math.max(box.getSize(new THREE.Vector3()).length()*0.18, 3);
+    [[V3(1,0,0),0xc0392b,'x'],[V3(0,1,0),0x1c8a52,'y'],[V3(0,0,1),0x2f6fd0,'z']].forEach(([d,c,t])=>{
+      overlayRoot.add(new THREE.ArrowHelper(d, o, L, c, L*0.16, L*0.09));
+      const lab = makeLabel(t, '#'+c.toString(16).padStart(6,'0'));
+      lab.position.copy(o).addScaledVector(d, L*1.15);
+      overlayRoot.add(lab);
+    });
+  }
+
+  if (!selection.length) return;
+  const pts = selection.map(selWorldPos);
+
+  pts.forEach((p,i)=>{
+    const ring = new THREE.Mesh(
+      new THREE.SphereGeometry(selectionRadius(selection[i])*1.45, 16, 12),
+      new THREE.MeshBasicMaterial({ color:0xe07b12, wireframe:true, transparent:true, opacity:0.95 }));
+    ring.position.copy(p);
+    overlayRoot.add(ring);
+    const lab = makeLabel(`${i+1}  ${selection[i].element}`, '#e07b12');
+    lab.position.copy(p).add(V3(0, selectionRadius(selection[i])*2.6, 0));
+    overlayRoot.add(lab);
+  });
+
+  if (pts.length >= 2){
+    for (let i=0;i<pts.length-1;i++){
+      const geo = new THREE.BufferGeometry().setFromPoints([pts[i], pts[i+1]]);
+      const line = new THREE.Line(geo, new THREE.LineDashedMaterial({ color:0xe07b12, dashSize:0.35, gapSize:0.2 }));
+      line.computeLineDistances();
+      overlayRoot.add(line);
+      const mid = pts[i].clone().lerp(pts[i+1], 0.5);
+      const lab = makeLabel(`${fmt(pts[i].distanceTo(pts[i+1]),3)} Å`, '#b05f00');
+      lab.position.copy(mid);
+      overlayRoot.add(lab);
+    }
+  }
+
+  if (pts.length === 3){
+    const tri = new THREE.BufferGeometry().setFromPoints([pts[0],pts[1],pts[2]]);
+    tri.setIndex([0,1,2]);
+    tri.computeVertexNormals();
+    overlayRoot.add(new THREE.Mesh(tri, new THREE.MeshBasicMaterial({
+      color:0xe07b12, transparent:true, opacity:0.18, side:THREE.DoubleSide, depthWrite:false })));
+    const n = new THREE.Vector3().crossVectors(
+      pts[1].clone().sub(pts[0]), pts[2].clone().sub(pts[0]));
+    if (n.lengthSq() > 1e-8){
+      const c = pts[0].clone().add(pts[1]).add(pts[2]).multiplyScalar(1/3);
+      const L = Math.max(3, pts[0].distanceTo(pts[1])*1.4);
+      overlayRoot.add(new THREE.ArrowHelper(n.normalize(), c, L, 0xe07b12, L*0.16, L*0.09));
+    }
+  }
+}
+
+function selectionRadius(sel){
+  const s = structures.find(x=>x.id===sel.structId);
+  return Math.max(0.12, elemRadius(sel.element)*(s ? s.radiusScale : 0.3)*1.6);
+}
+function selWorldPos(sel){
+  const s = structures.find(x=>x.id===sel.structId);
+  return s ? toWorld(s, sel.local) : sel.local.clone();
+}
+
+/* ---- animation loop ---- */
+let loopErrorReported = false;
+function animate(){
+  requestAnimationFrame(animate);
+  try { stepAnimations(); } catch(err){
+    structures.forEach(s=>{ if (s.anim){ s.quat.copy(s.anim.to); s.anim = null; s.animCurrent = null; } });
+    if (!loopErrorReported){ loopErrorReported = true; toast('Animation stopped: '+err.message, true, 6000); }
+    console.error(err);
+    try { rebuildScene(); } catch(e2){ console.error(e2); }
+  }
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+function stepAnimations(){
+  let done = false;
+  structures.forEach(s=>{
+    if (s.anim && s.group){
+      s.anim.t = Math.min(1, s.anim.t + 0.02);
+      // r128's slerpQuaternions() returns undefined, so copy + slerp explicitly
+      const q = new THREE.Quaternion().copy(s.anim.from).slerp(s.anim.to, easeInOut(s.anim.t));
+      s.animCurrent = q;
+      s.group.quaternion.copy(q);
+      if (s.anim.t >= 1){ s.quat.copy(s.anim.to); s.anim = null; s.animCurrent = null; done = true; }
+    }
+  });
+  if (done){ rebuildScene(); refreshSelectionReadout(); }
+}
+const easeInOut = t => t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+
+function toggleAxes(){
+  showAxes = !showAxes;
+  byId('axes-btn').classList.toggle('on', showAxes);
+  rebuildOverlay();
+}
+/* ---------------- 6. sidebar UI ---------------- */
+const S = id => structures.find(x=>x.id===id);
+
+function updateUI(){
+  const list = byId('structures-list');
+  list.innerHTML = '';
+  if (!structures.length){
+    list.innerHTML = '<div class="empty">No structures yet. Paste a POSCAR above or add one of the examples.</div>';
+  }
+  structures.forEach(s=>{
+    const el = document.createElement('div');
+    el.className = 'card';
+    const elems = [...new Set(s.atoms.map(a=>a.element))];
+    const nAtoms = s.atoms.length * s.supercell[0]*s.supercell[1]*s.supercell[2];
+    el.innerHTML = `
+      <div class="card-head">
+        <span class="swatch" style="background:${s.atomColor}"></span>
+        <input value="${escapeAttr(s.name)}" onchange="setField('${s.id}','name',this.value)">
+        <span class="tag">${s.isHex ? 'hex' : 'cell'}</span>
+        <button class="btn sm danger" title="Remove" onclick="removeStructure('${s.id}')">✕</button>
+      </div>
+      <div class="row">
+        <span class="lbl w">Supercell</span>
+        <input type="number" class="inp mono sm" min="1" max="30" value="${s.supercell[0]}" onchange="setSupercell('${s.id}',0,this.value)">
+        <input type="number" class="inp mono sm" min="1" max="30" value="${s.supercell[1]}" onchange="setSupercell('${s.id}',1,this.value)">
+        <input type="number" class="inp mono sm" min="1" max="30" value="${s.supercell[2]}" onchange="setSupercell('${s.id}',2,this.value)">
+      </div>
+      <div class="row">
+        <span class="lbl w">Colour</span>
+        <select class="inp sm grow" onchange="setField('${s.id}','colorMode',this.value)">
+          <option value="element" ${s.colorMode==='element'?'selected':''}>By element</option>
+          <option value="uniform" ${s.colorMode==='uniform'?'selected':''}>One colour</option>
+        </select>
+        <input type="color" value="${s.atomColor}" onchange="setField('${s.id}','atomColor',this.value)" title="Structure colour, also used for the cell edges">
+        <input type="color" value="${s.bondColor}" onchange="setField('${s.id}','bondColor',this.value)" title="Bond colour">
+      </div>
+      <div class="row">
+        <span class="lbl w">Atom size</span>
+        <input type="range" min="0.08" max="0.8" step="0.02" value="${s.radiusScale}" oninput="setField('${s.id}','radiusScale',parseFloat(this.value))">
+      </div>
+      <div class="row" style="flex-wrap:wrap;gap:10px">
+        <label class="check"><input type="checkbox" ${s.visible?'checked':''} onchange="setField('${s.id}','visible',this.checked)"><span>Show</span></label>
+        <label class="check"><input type="checkbox" ${s.showAtoms?'checked':''} onchange="setField('${s.id}','showAtoms',this.checked)"><span>Atoms</span></label>
+        <label class="check"><input type="checkbox" ${s.showBonds?'checked':''} onchange="setField('${s.id}','showBonds',this.checked)"><span>Bonds</span></label>
+        <label class="check"><input type="checkbox" ${s.showCell?'checked':''} onchange="setField('${s.id}','showCell',this.checked)"><span>Cell</span></label>
+      </div>
+      ${s.showBonds ? `
+      <div class="row">
+        <select class="inp sm" style="flex:1.1" onchange="setField('${s.id}','bondMode',this.value)">
+          <option value="auto" ${s.bondMode==='auto'?'selected':''}>Covalent radii</option>
+          <option value="cutoff" ${s.bondMode==='cutoff'?'selected':''}>Fixed cutoff</option>
+        </select>
+        ${s.bondMode==='auto'
+          ? `<span class="lbl">×</span><input type="number" class="inp mono sm" style="flex:.7" step="0.05" min="0.8" max="2" value="${s.bondTol}" onchange="setField('${s.id}','bondTol',parseFloat(this.value))">`
+          : `<input type="number" class="inp mono sm" style="flex:.7" step="0.1" min="0.5" max="12" value="${s.bondCutoff}" onchange="setField('${s.id}','bondCutoff',parseFloat(this.value))"><span class="lbl">Å</span>`}
+      </div>` : ''}
+      <div class="row">
+        <label class="check"><input type="checkbox" ${s.showFFT?'checked':''} onchange="setField('${s.id}','showFFT',this.checked)"><span>Reciprocal lattice instead of the model</span></label>
+      </div>
+      ${s.showFFT ? `
+      <div class="row">
+        <span class="lbl w">q limit</span>
+        <input type="range" min="1" max="20" step="0.5" value="${s.fftQmax}" oninput="setField('${s.id}','fftQmax',parseFloat(this.value))">
+        <span class="mono" style="font-size:11px">${s.fftQmax} Å⁻¹</span>
+      </div>` : ''}
+      <div class="hint">${elems.join(', ')} · ${nAtoms} atoms drawn</div>
+    `;
+    list.appendChild(el);
+  });
+
+  ['plane-struct-sel','move-struct-sel','export-struct-sel','rnd-struct','an-struct'].forEach(id=>{
+    const sel = byId(id); if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = structures.map(s=>`<option value="${s.id}">${escapeAttr(s.name)}</option>`).join('');
+    if (structures.some(s=>s.id===prev)) sel.value = prev;
+  });
+
+  renderPlanePanel();
+  renderMovePanel();
+  renderAlignPanel();
+  refreshSelectionReadout();
+}
+function escapeAttr(t){ return String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function setField(id, field, value){
+  const s = S(id); if (!s) return;
+  s[field] = value;
+  if (field === 'visible' && !value) selection = selection.filter(x=>x.structId!==id);
+  if (field === 'name'){ updateUI(); }
+  rebuildScene();
+  if (field === 'showBonds' || field === 'bondMode' || field === 'showFFT') updateUI();
+}
+function setSupercell(id, axis, v){
+  const s = S(id); if (!s) return;
+  s.supercell[axis] = clamp(parseInt(v)||1, 1, 30);
+  selection = selection.filter(x=>x.structId!==id);
+  updateUI(); rebuildScene();
+}
+function removeStructure(id){
+  structures = structures.filter(s=>s.id!==id);
+  selection = selection.filter(x=>x.structId!==id);
+  if (activeAlignSrc===id) activeAlignSrc = structures[0] ? structures[0].id : null;
+  if (activeAlignTgt===id) activeAlignTgt = structures[0] ? structures[0].id : null;
+  updateUI(); rebuildScene();
+}
+
+/* ---- Miller plane panel ---- */
+function renderPlanePanel(){
+  const box = byId('plane-panel-content');
+  const s = S(byId('plane-struct-sel').value);
+  if (!s){ box.innerHTML = '<div class="empty">Add a structure first.</div>'; return; }
+  const A = localLattice(s), B = reciprocal(A);
+  const p = s.plane;
+  const dsp = dSpacing(p.h, p.k, p.l, B);
+  const span = Math.max(A[0].length()*s.supercell[0], A[1].length()*s.supercell[1], A[2].length()*s.supercell[2]);
+  const iField = s.isHex
+    ? `<input class="inp mono sm" value="${-(p.h+p.k)}" readonly title="i is fixed by h and k">` : '';
+
+  box.innerHTML = `
+    <div class="row">
+      <span class="lbl w">Indices</span>
+      <input type="number" id="p-h" class="inp mono sm" value="${p.h}" onchange="updatePlane('${s.id}')">
+      <input type="number" id="p-k" class="inp mono sm" value="${p.k}" onchange="updatePlane('${s.id}')">
+      ${iField}
+      <input type="number" id="p-l" class="inp mono sm" value="${p.l}" onchange="updatePlane('${s.id}')">
+    </div>
+    <div class="row">
+      <label class="check"><input type="checkbox" id="p-show" ${p.show?'checked':''} onchange="updatePlane('${s.id}')"><span>Draw plane</span></label>
+      <input type="color" value="${p.color}" onchange="setPlaneColor('${s.id}',this.value)">
+      <button class="btn sm grow" onclick="viewAlongPlane('${s.id}')">Look down it</button>
+    </div>
+    <div class="row">
+      <label class="check"><input type="checkbox" id="p-slab" ${p.slabCut?'checked':''} onchange="updatePlane('${s.id}')"><span>Cut a slab</span></label>
+    </div>
+    <div class="row">
+      <span class="lbl w">Offset</span>
+      <input type="range" id="p-dist" min="${-span.toFixed(1)}" max="${span.toFixed(1)}" step="0.05" value="${p.dist}" oninput="updatePlane('${s.id}')">
+      <span class="mono" style="font-size:11px;width:46px;text-align:right">${fmt(p.dist,2)} Å</span>
+    </div>
+    <div class="row">
+      <span class="lbl w">Thickness</span>
+      <input type="range" id="p-thick" min="0.2" max="${(span*1.2).toFixed(1)}" step="0.1" value="${p.thickness}" oninput="updatePlane('${s.id}')">
+      <span class="mono" style="font-size:11px;width:46px;text-align:right">${fmt(p.thickness,2)} Å</span>
+    </div>
+    <div class="divider"></div>
+    <div class="kv">
+      <div>Interplanar spacing</div><div>${isFinite(dsp)?fmt(dsp,4)+' Å':'—'}</div>
+      <div>Zone axis</div><div>${dirLabel(zoneAxisOfPlane(p.h,p.k,p.l,A,B), s.isHex)}</div>
+    </div>
+    <div class="hint mt" style="margin-bottom:4px">Perpendicular planes</div>
+    <div class="mono" style="font-size:11.5px;line-height:1.6">${perpListHtml(p.h,p.k,p.l,B,s.isHex)}</div>
+    <button class="btn sm wide" style="margin-top:7px" onclick="copyPlaneReport('${s.id}')">Copy plane report</button>
+  `;
+}
+function perpListHtml(h,k,l,B,hex){
+  const n = clamp(parseInt(byId('perp-count')?.value)||6,1,20);
+  const mx = clamp(parseInt(byId('perp-max')?.value)||4,1,8);
+  const list = perpendicularPlanes(h,k,l,B,mx,n);
+  if (!list.length) return '<span class="hint">none found within that index range</span>';
+  return list.map(p=>`${millerLabel(p.hkl,hex)} <span style="color:var(--muted)">d = ${fmt(p.d,3)} Å</span>`).join('<br>');
+}
+function updatePlane(id){
+  const s = S(id);
+  s.plane.h = parseInt(byId('p-h').value)||0;
+  s.plane.k = parseInt(byId('p-k').value)||0;
+  s.plane.l = parseInt(byId('p-l').value)||0;
+  if (!s.plane.h && !s.plane.k && !s.plane.l) s.plane.l = 1;
+  s.plane.dist = parseFloat(byId('p-dist').value);
+  s.plane.thickness = parseFloat(byId('p-thick').value);
+  s.plane.show = byId('p-show').checked;
+  s.plane.slabCut = byId('p-slab').checked;
+  renderPlanePanel(); rebuildScene();
+}
+function setPlaneColor(id,v){ S(id).plane.color = v; rebuildScene(); }
+function viewAlongPlane(id){
+  const s = S(id);
+  if (!s) return;
+  if (!(s.plane.h||s.plane.k||s.plane.l)) return toast('(0 0 0) is not a plane. Give at least one non-zero index.', true);
+  const B = reciprocal(worldLattice(s));
+  viewAlong(planeNormal(s.plane.h, s.plane.k, s.plane.l, B));
+  toast('Looking along the plane normal.');
+}
+function copyPlaneReport(id){
+  const s = S(id);
+  if (!s) return;
+  const A = localLattice(s), B = reciprocal(A), p = s.plane;
+  const perp = perpendicularPlanes(p.h,p.k,p.l,B,
+      clamp(parseInt(byId('perp-max').value)||4,1,8),
+      clamp(parseInt(byId('perp-count').value)||6,1,20));
+  const lines = [
+    `Structure      ${s.name}`,
+    `Plane          ${millerLabel([p.h,p.k,p.l], s.isHex)}`,
+    `d spacing      ${fmt(dSpacing(p.h,p.k,p.l,B),4)} A`,
+    `Zone axis      ${dirLabel(zoneAxisOfPlane(p.h,p.k,p.l,A,B), s.isHex)}`,
+    '',
+    'Perpendicular planes',
+    ...perp.map(q=>`  ${millerLabel(q.hkl, s.isHex)}   d = ${fmt(q.d,4)} A`)
+  ];
+  copyText(lines.join('\n'), 'Plane report');
+}
+
+/* ---- move panel ---- */
+function renderMovePanel(){
+  const box = byId('move-panel-content');
+  const s = S(byId('move-struct-sel').value);
+  if (!s){ box.innerHTML = '<div class="empty">Add a structure first.</div>'; return; }
+  const e = new THREE.Euler().setFromQuaternion(s.quat,'XYZ');
+  box.innerHTML = `
+    <div class="hint" style="margin-bottom:7px">Nudge or place this crystal on its own. Alignment is not touched.</div>
+    <div class="row"><span class="lbl w">Step</span>
+      <input type="number" id="mv-step" class="inp mono sm" value="0.5" step="0.1" min="0.01">
+      <span class="lbl">Å</span>
+      <input type="number" id="mv-astep" class="inp mono sm" value="5" step="1" min="0.1">
+      <span class="lbl">deg</span>
+    </div>
+    <div class="grid3" style="margin-bottom:6px">
+      ${['x','y','z'].map(ax=>`
+        <div style="text-align:center">
+          <div class="lbl">${ax.toUpperCase()}</div>
+          <div style="display:flex;gap:3px;margin-top:2px">
+            <button class="btn sm grow" onclick="nudge('${s.id}','${ax}',-1)">−</button>
+            <button class="btn sm grow" onclick="nudge('${s.id}','${ax}',1)">+</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="grid3" style="margin-bottom:8px">
+      ${['x','y','z'].map(ax=>`
+        <div style="text-align:center">
+          <div class="lbl">rot ${ax.toUpperCase()}</div>
+          <div style="display:flex;gap:3px;margin-top:2px">
+            <button class="btn sm grow" onclick="spin('${s.id}','${ax}',-1)">↺</button>
+            <button class="btn sm grow" onclick="spin('${s.id}','${ax}',1)">↻</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="row"><span class="lbl w">Position Å</span>
+      <input type="number" id="mv-x" class="inp mono sm" step="0.1" value="${fmt(s.pos.x,3)}" onchange="setPos('${s.id}')">
+      <input type="number" id="mv-y" class="inp mono sm" step="0.1" value="${fmt(s.pos.y,3)}" onchange="setPos('${s.id}')">
+      <input type="number" id="mv-z" class="inp mono sm" step="0.1" value="${fmt(s.pos.z,3)}" onchange="setPos('${s.id}')">
+    </div>
+    <div class="row"><span class="lbl w">Rotation °</span>
+      <input type="number" id="mv-rx" class="inp mono sm" step="1" value="${fmt(e.x*DEG,2)}" onchange="setRot('${s.id}')">
+      <input type="number" id="mv-ry" class="inp mono sm" step="1" value="${fmt(e.y*DEG,2)}" onchange="setRot('${s.id}')">
+      <input type="number" id="mv-rz" class="inp mono sm" step="1" value="${fmt(e.z*DEG,2)}" onchange="setRot('${s.id}')">
+    </div>
+    <div class="row">
+      <button class="btn sm grow" onclick="centreStructure('${s.id}')">Centre on origin</button>
+      <button class="btn sm grow" onclick="resetTransform('${s.id}')">Reset placement</button>
+    </div>
+  `;
+}
+function nudge(id, axis, dir){
+  const s = S(id);
+  const step = (parseFloat(byId('mv-step').value)||0.5)*dir;
+  s.pos[axis] += step;
+  renderMovePanel(); rebuildScene(); refreshSelectionReadout();
+}
+function spin(id, axis, dir){
+  const s = S(id);
+  const ang = (parseFloat(byId('mv-astep').value)||5)*dir/DEG;
+  const ax = axis==='x'?V3(1,0,0):axis==='y'?V3(0,1,0):V3(0,0,1);
+  const q = new THREE.Quaternion().setFromAxisAngle(ax, ang);
+  const c = structureCenterWorld(s);
+  s.quat.premultiply(q);
+  const c2 = structureCenterWorld(s);
+  s.pos.add(c.sub(c2));                        // spin about the crystal's own centre
+  renderMovePanel(); rebuildScene(); refreshSelectionReadout();
+}
+function setPos(id){
+  const s = S(id);
+  s.pos.set(parseFloat(byId('mv-x').value)||0, parseFloat(byId('mv-y').value)||0, parseFloat(byId('mv-z').value)||0);
+  rebuildScene(); refreshSelectionReadout();
+}
+function setRot(id){
+  const s = S(id);
+  s.quat.setFromEuler(new THREE.Euler(
+    (parseFloat(byId('mv-rx').value)||0)/DEG,
+    (parseFloat(byId('mv-ry').value)||0)/DEG,
+    (parseFloat(byId('mv-rz').value)||0)/DEG, 'XYZ'));
+  rebuildScene(); refreshSelectionReadout();
+}
+function centreStructure(id){
+  const s = S(id);
+  s.pos.sub(structureCenterWorld(s));
+  renderMovePanel(); rebuildScene(); refreshSelectionReadout();
+}
+function resetTransform(id){
+  const s = S(id);
+  s.pos.set(0,0,0); s.quat.identity(); s.anim = null;
+  renderMovePanel(); rebuildScene(); refreshSelectionReadout();
+  toast(`${s.name} put back to its original placement.`);
+}
+
+/* ---- align panel ---- */
+function renderAlignPanel(){
+  const build = (role) => {
+    const holder = byId(`align-${role}-panel`);
+    if (!structures.length){ holder.innerHTML = '<div class="hint">Add two structures to align them.</div>'; return; }
+    let id = role==='src' ? activeAlignSrc : activeAlignTgt;
+    if (!S(id)) id = structures[0].id;
+    if (role==='src') activeAlignSrc = id; else activeAlignTgt = id;
+    const s = S(id), c = s.alignConfig;
+    const tPlane = s.isHex ? `<input class="inp mono sm" value="${-(c.ph+c.pk)}" readonly>` : '';
+    const tDir   = s.isHex ? `<input type="number" id="${role}-dt" class="inp mono sm" value="${c.dt}" onchange="setAlign('${role}','dt',this.value)">` : '';
+    holder.innerHTML = `
+      <div class="lbl" style="margin-bottom:5px;color:${role==='src'?'#c0392b':'#1c8a52'};font-weight:600">
+        ${role==='src' ? 'Source, this one rotates' : 'Target, stays put'}</div>
+      <select class="inp sm" style="margin-bottom:6px" onchange="${role==='src'?'activeAlignSrc':'activeAlignTgt'}=this.value;renderAlignPanel();rebuildScene()">
+        ${structures.map(x=>`<option value="${x.id}" ${x.id===s.id?'selected':''}>${escapeAttr(x.name)}</option>`).join('')}
+      </select>
+      <div class="row"><span class="lbl" style="width:34px">Plane</span>
+        <input type="number" id="${role}-ph" class="inp mono sm" value="${c.ph}" onchange="setAlign('${role}','ph',this.value)">
+        <input type="number" id="${role}-pk" class="inp mono sm" value="${c.pk}" onchange="setAlign('${role}','pk',this.value)">
+        ${tPlane}
+        <input type="number" id="${role}-pl" class="inp mono sm" value="${c.pl}" onchange="setAlign('${role}','pl',this.value)">
+      </div>
+      <div class="row" style="margin-bottom:0"><span class="lbl" style="width:34px">Dir</span>
+        <input type="number" id="${role}-du" class="inp mono sm" value="${c.du}" onchange="setAlign('${role}','du',this.value)">
+        <input type="number" id="${role}-dv" class="inp mono sm" value="${c.dv}" onchange="setAlign('${role}','dv',this.value)">
+        ${tDir}
+        <input type="number" id="${role}-dw" class="inp mono sm" value="${c.dw}" onchange="setAlign('${role}','dw',this.value)">
+      </div>`;
+  };
+  build('src'); build('tgt');
+}
+function setAlign(role, field, val){
+  const s = S(role==='src' ? activeAlignSrc : activeAlignTgt);
+  if (!s) return;
+  s.alignConfig[field] = parseInt(val)||0;
+  if (s.isHex && (field==='ph'||field==='pk')) s.alignConfig.pt = -(s.alignConfig.ph + s.alignConfig.pk);
+  renderAlignPanel(); rebuildScene();
+}
+
+function applyAlignment(){
+  const src = S(activeAlignSrc), tgt = S(activeAlignTgt);
+  if (!src || !tgt) return toast('Pick a source and a target first.', true);
+  if (src.id === tgt.id) return toast('Source and target must be different structures.', true);
+
+  const Asrc = worldLattice(src), Atgt = worldLattice(tgt);
+  const Bsrc = reciprocal(Asrc), Btgt = reciprocal(Atgt);
+  const cs = src.alignConfig, ct = tgt.alignConfig;
+
+  const nS = planeNormal(cs.ph, cs.pk, cs.pl, Bsrc);
+  const nT = planeNormal(ct.ph, ct.pk, ct.pl, Btgt);
+  const dS = src.isHex ? direction4(cs.du,cs.dv,cs.dt,cs.dw,Asrc) : directionVector(cs.du,cs.dv,cs.dw,Asrc);
+  const dT = tgt.isHex ? direction4(ct.du,ct.dv,ct.dt,ct.dw,Atgt) : directionVector(ct.du,ct.dv,ct.dw,Atgt);
+
+  if (Math.abs(dT.dot(nT)) > 0.999) return toast('The target direction lies along its plane normal, so the twist is undefined.', true);
+
+  const q1 = new THREE.Quaternion().setFromUnitVectors(nS, nT);
+  const dS1 = dS.clone().applyQuaternion(q1);
+  if (Math.abs(dS1.dot(nT)) > 0.999) return toast('The source direction lies along its plane normal, so the twist is undefined.', true);
+
+  const pS = dS1.clone().addScaledVector(nT, -dS1.dot(nT)).normalize();
+  const pT = dT.clone().addScaledVector(nT, -dT.dot(nT)).normalize();
+  let ang = pS.angleTo(pT);
+  if (new THREE.Vector3().crossVectors(pS,pT).dot(nT) < 0) ang = -ang;
+  let q = new THREE.Quaternion().setFromAxisAngle(nT, ang).multiply(q1);
+
+  const twist = parseFloat(byId('align-offset-norm').value)||0;
+  const tilt  = parseFloat(byId('align-offset-dir').value)||0;
+  if (twist) q = new THREE.Quaternion().setFromAxisAngle(nT, twist/DEG).multiply(q);
+  if (tilt)  q = new THREE.Quaternion().setFromAxisAngle(dT, tilt/DEG).multiply(q);
+
+  const target = q.clone().multiply(src.quat);
+  src.anim = { from: src.quat.clone(), to: target, t: 0 };
+  const e = new THREE.Euler().setFromQuaternion(q,'XYZ');
+  toast(`${src.name} rotated by ${fmt(e.x*DEG,1)}°, ${fmt(e.y*DEG,1)}°, ${fmt(e.z*DEG,1)}° about x, y, z.`, false, 5000);
+}
+
+/* ---- legend ---- */
+function updateLegend(){
+  const box = byId('legend');
+  const els = new Set();
+  structures.forEach(s=>{ if (s.visible && s.colorMode==='element' && !s.showFFT) s.atoms.forEach(a=>els.add(a.element)); });
+  if (!els.size){ box.style.display='none'; return; }
+  box.style.display = 'flex';
+  box.innerHTML = [...els].slice(0,14).map(e=>{
+    const c = '#'+elemColor(e).toString(16).padStart(6,'0');
+    return `<span><i class="swatch" style="background:${c};display:inline-block"></i>${e}</span>`;
+  }).join('');
+}
+/* ---------------- 7. picking and measurement ---------------- */
+const raycaster = new THREE.Raycaster();
+let downPos = null, downTime = 0;
+
+renderer.domElement.addEventListener('pointerdown', e=>{
+  downPos = { x:e.clientX, y:e.clientY }; downTime = performance.now();
+});
+renderer.domElement.addEventListener('pointerup', e=>{
+  if (!pickMode || !downPos) return;
+  const moved = Math.hypot(e.clientX-downPos.x, e.clientY-downPos.y);
+  if (moved > 5 || performance.now()-downTime > 500) return;      // that was a drag, not a click
+  pickAt(e);
+});
+
+function pickAt(ev){
+  const rect = renderer.domElement.getBoundingClientRect();
+  const ndc = new THREE.Vector2(
+    ((ev.clientX-rect.left)/rect.width)*2 - 1,
+    -((ev.clientY-rect.top)/rect.height)*2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  const hits = raycaster.intersectObjects(modelRoot.children, true);
+  for (const hit of hits){
+    const ud = hit.object.userData;
+    if (!ud || !ud.structId || hit.instanceId === undefined || hit.instanceId === null) continue;
+    const s = S(ud.structId); if (!s || !s.rendered) continue;
+    const item = s.rendered[ud.refs[hit.instanceId]];
+    if (!item) continue;
+    toggleSelection(s, item);
+    return;
+  }
+  if (ev.shiftKey) return;
+  clearSelection();
+}
+
+function toggleSelection(s, item){
+  const same = selection.findIndex(x =>
+    x.structId === s.id && x.local.distanceToSquared(item.pos) < 1e-8);
+  if (same >= 0) selection.splice(same,1);
+  else {
+    selection.push({
+      structId: s.id, element: item.element, local: item.pos.clone(),
+      cell: item.cell.slice(), atomIndex: item.atomIndex,
+      direct: s.atoms[item.atomIndex].direct.slice()
+    });
+    if (selection.length > 4) selection.shift();
+  }
+  rebuildOverlay();
+  refreshSelectionReadout();
+}
+function clearSelection(){
+  if (!selection.length) return;
+  selection = [];
+  rebuildOverlay();
+  refreshSelectionReadout();
+}
+function setPickMode(on){
+  pickMode = on;
+  byId('pick-toggle').checked = on;
+  byId('pick-btn').classList.toggle('on', on);
+  renderer.domElement.style.cursor = on ? 'crosshair' : '';
+  toast(on ? 'Picking is on. A short click selects an atom, dragging still pans.' : 'Picking is off.');
+}
+
+/* ---- geometry of the current selection ---- */
+function pruneSelection(){
+  const before = selection.length;
+  selection = selection.filter(x=>{
+    const s = S(x.structId);
+    if (!s || !s.visible || s.showFFT || !s.rendered) return false;
+    return s.rendered.some(a => a.pos.distanceToSquared(x.local) < 1e-8);
+  });
+  if (selection.length !== before) refreshSelectionReadout();
+}
+
+function selectionGeometry(){
+  const p = selection.map(selWorldPos);
+  const out = { points: p, distances: [], angle: null, dihedral: null, plane: null };
+  for (let i=0;i<p.length-1;i++) out.distances.push(p[i].distanceTo(p[i+1]));
+  if (p.length >= 3){
+    const v1 = p[0].clone().sub(p[1]), v2 = p[2].clone().sub(p[1]);
+    out.angle = v1.angleTo(v2)*DEG;
+  }
+  if (p.length === 4){
+    const b1 = p[1].clone().sub(p[0]), b2 = p[2].clone().sub(p[1]), b3 = p[3].clone().sub(p[2]);
+    const n1 = new THREE.Vector3().crossVectors(b1,b2), n2 = new THREE.Vector3().crossVectors(b2,b3);
+    const m = new THREE.Vector3().crossVectors(n1, b2.clone().normalize());
+    out.dihedral = Math.atan2(m.dot(n2), n1.dot(n2))*DEG;
+  }
+  if (p.length >= 3) out.plane = planeFromSelection();
+  return out;
+}
+
+/* Miller indices of the plane through three (or more) picked atoms */
+function planeFromSelection(){
+  if (selection.length < 3) return null;
+  const ids = new Set(selection.slice(0,3).map(x=>x.structId));
+  if (ids.size > 1) return { mixed:true };
+  const s = S(selection[0].structId);
+  const [p1,p2,p3] = selection.slice(0,3).map(x=>x.local);      // structure's own frame
+  const n = new THREE.Vector3().crossVectors(p2.clone().sub(p1), p3.clone().sub(p1));
+  if (n.lengthSq() < 1e-10) return { collinear:true };
+  n.normalize();
+  const A = localLattice(s), B = reciprocal(A);
+  const hkl = millerFromNormal(n, A);
+  if (!hkl) return { irrational:true, normal:n, struct:s };
+  return {
+    struct: s, hkl, normal: n,
+    d: dSpacing(hkl[0],hkl[1],hkl[2],B),
+    zone: zoneAxisOfPlane(hkl[0],hkl[1],hkl[2],A,B),
+    perp: perpendicularPlanes(hkl[0],hkl[1],hkl[2],B,
+            clamp(parseInt(byId('perp-max')?.value)||4,1,8),
+            clamp(parseInt(byId('perp-count')?.value)||6,1,20)),
+    offset: n.dot(p1)                                            // distance of this plane from the cell origin
+  };
+}
+
+/* ---- readouts ---- */
+function refreshSelectionReadout(){
+  const side = byId('selection-out'), hud = byId('hud');
+  if (!selection.length){
+    side.innerHTML = 'Nothing selected. One atom shows its position, two give a bond length, three give the bond angle and the Miller plane, four give a dihedral angle.';
+    hud.style.display = 'none';
+    return;
+  }
+  const g = selectionGeometry();
+  const rows = [];
+
+  selection.forEach((sel,i)=>{
+    const w = g.points[i];
+    rows.push([`${i+1}. ${sel.element} <span class="k">in ${escapeAttr(S(sel.structId)?.name||'?')}</span>`,
+               `${fmt(w.x,2)}, ${fmt(w.y,2)}, ${fmt(w.z,2)}`]);
+  });
+  if (selection.length === 1){
+    const d = selection[0].direct;
+    rows.push(['fractional', `${fmt(d[0],4)}, ${fmt(d[1],4)}, ${fmt(d[2],4)}`]);
+    rows.push(['cell', `${selection[0].cell.join(', ')}`]);
+  }
+  g.distances.forEach((d,i)=> rows.push([`length ${i+1}–${i+2}`, `${fmt(d,4)} Å`]));
+  if (g.points.length >= 3) rows.push([`angle 1–2–3`, `${fmt(g.angle,3)}°`]);
+  if (g.points.length === 4) rows.push([`dihedral 1–2–3–4`, `${fmt(g.dihedral,3)}°`]);
+  if (g.points.length === 3 && g.distances.length === 2)
+    rows.push(['length 1–3', `${fmt(g.points[0].distanceTo(g.points[2]),4)} Å`]);
+
+  const p = g.plane;
+  let planeHtml = '';
+  if (p && p.mixed) planeHtml = '<div class="hint mt">Those atoms belong to different structures, so there is no single Miller plane.</div>';
+  else if (p && p.collinear) planeHtml = '<div class="hint mt">The three atoms are in a line, so they do not define a plane.</div>';
+  else if (p && p.irrational) planeHtml = '<div class="hint mt">That plane is not a low index lattice plane. Pick atoms closer together or on a flatter facet.</div>';
+  else if (p){
+    planeHtml = `
+      <div class="divider"></div>
+      <div class="kv">
+        <div>Plane through 1–2–3</div><div>${millerLabel(p.hkl, p.struct.isHex)}</div>
+        <div>Spacing d</div><div>${fmt(p.d,4)} Å</div>
+        <div>Zone axis</div><div>${dirLabel(p.zone, p.struct.isHex)}</div>
+        <div>Offset from origin</div><div>${fmt(p.offset,3)} Å</div>
+      </div>
+      <div class="hint mt" style="margin-bottom:3px">Perpendicular planes</div>
+      <div class="mono" style="font-size:11.5px;line-height:1.55">
+        ${p.perp.map(q=>`${millerLabel(q.hkl,p.struct.isHex)} <span style="color:var(--muted)">d = ${fmt(q.d,3)} Å</span>`).join('<br>') || '<span class="hint">none within that index range</span>'}
+      </div>
+      <div class="row" style="margin-top:7px">
+        <button class="btn sm grow" onclick="usePickedPlane()">Draw this plane</button>
+        <button class="btn sm grow" onclick="viewAlong(pickedNormalWorld())">Look down it</button>
+      </div>`;
+  }
+
+  side.innerHTML =
+    `<table style="width:100%;border-collapse:collapse;font-size:11.5px">
+      ${rows.map(r=>`<tr><td style="color:var(--muted);padding:1px 0">${r[0]}</td>
+        <td class="mono" style="text-align:right;padding:1px 0">${r[1]}</td></tr>`).join('')}
+    </table>${planeHtml}`;
+
+  hud.style.display = '';
+  hud.innerHTML = `<h4>Selection</h4><table>${
+    rows.slice(0,7).map(r=>`<tr><td class="k">${r[0]}</td><td class="v">${r[1]}</td></tr>`).join('')
+  }${p && p.hkl ? `<tr><td class="k">plane</td><td class="v">${millerLabel(p.hkl,p.struct.isHex)}</td></tr>` : ''}</table>`;
+}
+
+function pickedNormalWorld(){
+  const p = planeFromSelection();
+  if (!p || !p.normal) return camera.position.clone().sub(controls.target);
+  return p.normal.clone().applyQuaternion(p.struct.quat);
+}
+function usePickedPlane(){
+  const p = planeFromSelection();
+  if (!p || !p.hkl) return toast('Pick three atoms of one structure first.', true);
+  const s = p.struct;
+  s.plane.h = p.hkl[0]; s.plane.k = p.hkl[1]; s.plane.l = p.hkl[2];
+  s.plane.dist = p.offset; s.plane.show = true;
+  byId('plane-struct-sel').value = s.id;
+  const sec = byId('plane-struct-sel').closest('details'); if (sec) sec.open = true;
+  renderPlanePanel(); rebuildScene();
+  toast(`Drawing ${millerLabel(p.hkl, s.isHex)} on ${s.name}.`);
+}
+
+function copySelectionReport(){
+  if (!selection.length) return toast('Nothing is selected yet.', true);
+  const g = selectionGeometry();
+  const L = ['Crystal Workbench selection report', ''];
+  selection.forEach((sel,i)=>{
+    const w = g.points[i], s = S(sel.structId);
+    L.push(`atom ${i+1}  ${sel.element}  structure ${s?s.name:'?'}  cell ${sel.cell.join(' ')}`);
+    L.push(`         fractional ${sel.direct.map(x=>fmt(x,5)).join(' ')}`);
+    L.push(`         cartesian  ${fmt(w.x,4)} ${fmt(w.y,4)} ${fmt(w.z,4)} A`);
+  });
+  L.push('');
+  g.distances.forEach((d,i)=>L.push(`bond length ${i+1}-${i+2}   ${fmt(d,5)} A`));
+  if (g.points.length>=3) L.push(`bond angle 1-2-3      ${fmt(g.angle,4)} deg`);
+  if (g.points.length===4) L.push(`dihedral 1-2-3-4      ${fmt(g.dihedral,4)} deg`);
+  const p = g.plane;
+  if (p && p.hkl){
+    L.push('', `plane through atoms 1-3   ${millerLabel(p.hkl, p.struct.isHex)}`);
+    L.push(`d spacing                 ${fmt(p.d,5)} A`);
+    L.push(`zone axis                 ${dirLabel(p.zone, p.struct.isHex)}`);
+    L.push('perpendicular planes');
+    p.perp.forEach(q=>L.push(`   ${millerLabel(q.hkl,p.struct.isHex)}   d = ${fmt(q.d,5)} A`));
+  }
+  copyText(L.join('\n'), 'Selection report');
+}
+/* ---------------- 8. analysis ---------------- */
+
+/* scattering power of one atom. "Z" is the kinematic electron count,
+   "unit" weights every atom equally (useful for looking at pure geometry). */
+function scatteringPower(el, mode){ return mode === 'unit' ? 1 : (elemZ(el) || 1); }
+
+/* ---- powder XRD ---- */
+function computeXRD(s, o){
+  const A = localLattice(s), B = reciprocal(A);
+  const lam = o.lambda, tmin = o.tmin, tmax = o.tmax;
+  const qmax = 4*Math.PI*Math.sin(Math.min(tmax,179.9)/2/DEG)/lam;
+  const lim = i => Math.min(o.maxIndex, Math.ceil(qmax/B[i].length()) + 1);
+  const [H,K,L] = [lim(0), lim(1), lim(2)];
+
+  const raw = [];
+  for (let h=-H;h<=H;h++) for (let k=-K;k<=K;k++) for (let l=-L;l<=L;l++){
+    if (!h && !k && !l) continue;
+    const q = gVector(h,k,l,B).length();
+    if (q > qmax || q < 1e-6) continue;
+    const sinT = q*lam/(4*Math.PI);
+    if (sinT >= 1) continue;
+    const th = Math.asin(sinT), tt = 2*th*DEG;
+    if (tt < tmin || tt > tmax) continue;
+
+    let re = 0, im = 0;
+    for (const at of s.atoms){
+      const ph = 2*Math.PI*(h*at.direct[0] + k*at.direct[1] + l*at.direct[2]);
+      const f = scatteringPower(at.element, o.scatter);
+      re += f*Math.cos(ph); im += f*Math.sin(ph);
+    }
+    let I = re*re + im*im;
+    if (I < 1e-6) continue;
+    const sOverLam = sinT/lam;
+    if (o.B > 0) I *= Math.exp(-2*o.B*sOverLam*sOverLam);
+    if (o.lp) I *= (1 + Math.cos(2*th)*Math.cos(2*th)) / (Math.sin(th)*Math.sin(th)*Math.cos(th));
+    raw.push({ tt, d: 2*Math.PI/q, hkl:[h,k,l], I });
+  }
+
+  raw.sort((a,b)=>a.tt-b.tt);
+  const peaks = [];
+  for (const r of raw){
+    const last = peaks[peaks.length-1];
+    if (last && Math.abs(last.tt - r.tt) < 0.02){
+      last.I += r.I; last.mult++;
+      if (rank(r.hkl) > rank(last.hkl)) last.hkl = r.hkl;
+    } else peaks.push({ tt:r.tt, d:r.d, hkl:r.hkl, I:r.I, mult:1 });
+  }
+  function rank(v){ return (v[0]>=0?1:0)+(v[1]>=0?1:0)+(v[2]>=0?1:0) - 0.001*(Math.abs(v[0])+Math.abs(v[1])+Math.abs(v[2])); }
+
+  const Imax = peaks.reduce((m,p)=>Math.max(m,p.I), 0) || 1;
+  peaks.forEach(p=>{ p.I = 100*p.I/Imax; });
+  const kept = peaks.filter(p=>p.I >= (o.minI ?? 0.01));
+
+  /* pseudo Voigt profile, half Gaussian half Lorentzian */
+  const N = 1400, x = new Array(N), y = new Array(N).fill(0);
+  const fw = Math.max(o.fwhm, 1e-3), sg = fw/2.3548, hw = fw/2;
+  for (let i=0;i<N;i++) x[i] = tmin + (tmax-tmin)*i/(N-1);
+  for (const p of kept){
+    for (let i=0;i<N;i++){
+      const dx = x[i]-p.tt;
+      if (Math.abs(dx) > 12*fw) continue;
+      const G = Math.exp(-0.5*(dx/sg)*(dx/sg));
+      const Lz = 1/(1 + (dx/hw)*(dx/hw));
+      y[i] += p.I*(0.5*G + 0.5*Lz);
+    }
+  }
+  const ymax = Math.max(...y, 1e-9);
+  return { peaks: kept, curve:{ x, y: y.map(v=>100*v/ymax) }, lambda: lam };
+}
+
+/* ---- single crystal diffraction pattern for a zone axis ---- */
+function computeSAED(s, o){
+  const A = localLattice(s), B = reciprocal(A);
+  const [u,v,w] = [o.u, o.v, o.w];
+  if (!u && !v && !w) return { spots: [], error: 'The zone axis cannot be [0 0 0].' };
+  const z = directionVector(u,v,w,A);
+  let e1 = Math.abs(z.z) < 0.9 ? V3(0,0,1) : V3(1,0,0);
+  e1 = e1.addScaledVector(z, -e1.dot(z)).normalize();
+  const e2 = new THREE.Vector3().crossVectors(z, e1).normalize();
+
+  const M = o.maxIndex, spots = [];
+  for (let h=-M;h<=M;h++) for (let k=-M;k<=M;k++) for (let l=-M;l<=M;l++){
+    if (h*u + k*v + l*w !== o.laue) continue;         // Weiss zone law, Laue zone o.laue
+    if (!h && !k && !l) continue;
+    const G = gVector(h,k,l,B);
+    const q = G.length();
+    if (q > o.qmax) continue;
+    let re=0, im=0;
+    for (const at of s.atoms){
+      const ph = 2*Math.PI*(h*at.direct[0] + k*at.direct[1] + l*at.direct[2]);
+      const f = scatteringPower(at.element, o.scatter);
+      re += f*Math.cos(ph); im += f*Math.sin(ph);
+    }
+    const I = re*re + im*im;
+    if (I < 1e-6) continue;
+    spots.push({ x: G.dot(e1), y: G.dot(e2), q, I, hkl:[h,k,l], d: 2*Math.PI/q });
+  }
+  const Imax = spots.reduce((m,p)=>Math.max(m,p.I),0) || 1;
+  spots.forEach(p=>{ p.I = 100*p.I/Imax; });
+  const kept = spots.filter(p=>p.I >= o.minI);
+  if (o.laue === 0) kept.push({ x:0, y:0, q:0, I:100, hkl:[0,0,0], d:Infinity, direct:true });
+  return { spots: kept, zone:[u,v,w] };
+}
+
+/* ---- radial distribution function, periodic ---- */
+function computeRDF(s, o){
+  const A = localLattice(s);
+  const V = cellVolume(A);
+  const cart = s.atoms.map(a =>
+    new THREE.Vector3()
+      .addScaledVector(A[0], a.direct[0])
+      .addScaledVector(A[1], a.direct[1])
+      .addScaledVector(A[2], a.direct[2]));
+  const els = s.atoms.map(a=>a.element);
+
+  const width = i => V / new THREE.Vector3().crossVectors(A[(i+1)%3], A[(i+2)%3]).length();
+  const n = [0,1,2].map(i => Math.ceil(o.rmax / width(i)));
+  const images = [];
+  for (let i=-n[0];i<=n[0];i++) for (let j=-n[1];j<=n[1];j++) for (let k=-n[2];k<=n[2];k++)
+    images.push(new THREE.Vector3()
+      .addScaledVector(A[0], i).addScaledVector(A[1], j).addScaledVector(A[2], k));
+
+  const isA = i => o.a === 'all' || els[i] === o.a;
+  const isB = i => o.b === 'all' || els[i] === o.b;
+  const NA = els.filter((_,i)=>isA(i)).length;
+  const NB = els.filter((_,i)=>isB(i)).length;
+  if (!NA || !NB) return { error: 'No atoms match that element pair.' };
+
+  const nb = Math.ceil(o.rmax/o.dr);
+  const hist = new Float64Array(nb);
+  const work = NA*NB*images.length;
+  if (work > 4e7) return { error: 'That would need too many pairs. Lower r max or use a smaller cell.' };
+
+  for (let i=0;i<cart.length;i++){
+    if (!isA(i)) continue;
+    for (let j=0;j<cart.length;j++){
+      if (!isB(j)) continue;
+      const dx = cart[j].x-cart[i].x, dy = cart[j].y-cart[i].y, dz = cart[j].z-cart[i].z;
+      for (const im of images){
+        const x = dx+im.x, y = dy+im.y, z = dz+im.z;
+        const r2 = x*x+y*y+z*z;
+        if (r2 < 1e-8 || r2 > o.rmax*o.rmax) continue;
+        hist[Math.floor(Math.sqrt(r2)/o.dr)]++;
+      }
+    }
+  }
+
+  const rhoB = NB/V;
+  const r = [], g = [], nOf = [];
+  let cum = 0;
+  for (let b=0;b<nb;b++){
+    const r0 = b*o.dr, r1 = r0+o.dr, rc = r0 + o.dr/2;
+    const shell = (4/3)*Math.PI*(r1*r1*r1 - r0*r0*r0);
+    r.push(rc);
+    g.push(hist[b]/(NA*rhoB*shell));
+    cum += hist[b]/NA;
+    nOf.push(cum);
+  }
+  return { r, g, n: nOf, rho: cart.length/V, rhoB, NA, NB, volume: V };
+}
+
+/* ---- structure factor from g(r) ---- */
+function computeSq(rdf, o){
+  if (rdf.error) return rdf;
+  const { r, g, rho } = rdf;
+  const dr = r.length > 1 ? r[1]-r[0] : 0.02;
+  const Rmax = r[r.length-1] + dr/2;
+  const q = [], S = [];
+  const nq = o.nq || 400;
+  for (let i=0;i<nq;i++){
+    const qq = o.qmin + (o.qmax-o.qmin)*i/(nq-1);
+    let sum = 0;
+    for (let b=0;b<r.length;b++){
+      const rb = r[b];
+      const win = o.lorch ? (rb>0 ? Math.sin(Math.PI*rb/Rmax)/(Math.PI*rb/Rmax) : 1) : 1;
+      sum += rb*rb*(g[b]-1)*(qq*rb > 1e-8 ? Math.sin(qq*rb)/(qq*rb) : 1)*win*dr;
+    }
+    q.push(qq);
+    S.push(1 + 4*Math.PI*rho*sum);
+  }
+  return { q, S };
+}
+
+/* ---- cell metrics and density ---- */
+function computeCell(s){
+  const A = localLattice(s);
+  const p = latticeParams(A);
+  const counts = {};
+  s.atoms.forEach(a=>{ counts[a.element] = (counts[a.element]||0)+1; });
+  let mass = 0, unknown = [];
+  Object.entries(counts).forEach(([el,c])=>{
+    const m = elemMass(el);
+    if (!m) unknown.push(el); else mass += m*c;
+  });
+  const N = s.atoms.length;
+  const sc = s.supercell[0]*s.supercell[1]*s.supercell[2];
+  return {
+    params: p, counts, N, mass, unknown,
+    density: mass ? mass/p.volume*1.66053907 : null,       // u/Å³ -> g/cm³
+    numberDensity: N/p.volume,
+    formula: Object.entries(counts).map(([e,c])=>e+(c>1?c:'')).join(''),
+    supercellAtoms: N*sc,
+    supercellVolume: p.volume*sc
+  };
+}
+/* ---------------- 8b. analysis panel ---------------- */
+const P = {
+  tab: 'xrd', structId: null, result: {}, compare: false, compareIds: [],
+  sym:  { tolLen:0.1, tolAng:1.0, scan:false, showOps:false },
+  xrd:  { lambda:1.5406, tmin:10, tmax:120, maxIndex:8, fwhm:0.15, B:0, lp:true, scatter:'Z', minI:0.05, table:false },
+  saed: { u:0, v:0, w:1, maxIndex:6, laue:0, qmax:8, minI:0.5, scatter:'Z', labels:true },
+  rdf:  { rmax:10, dr:0.02, a:'all', b:'all', showN:false },
+  sq:   { qmin:0.3, qmax:14, nq:400, rmax:12, dr:0.02, lorch:true }
+};
+const LAMBDAS = { 'Cu Kα 1.5406':1.5406, 'Mo Kα 0.7107':0.7107, 'Co Kα 1.7890':1.7890,
+                  'Cr Kα 2.2897':2.2897, 'Fe Kα 1.9373':1.9373, 'Ag Kα 0.5594':0.5594 };
+
+function toggleDrawer(force){
+  const d = byId('drawer');
+  const open = force !== undefined ? force : !d.classList.contains('open');
+  d.classList.toggle('open', open);
+  if (open) renderPane();
+  setTimeout(()=>{ onResize(); redraw(); }, 220);
+}
+function setTab(t){
+  P.tab = t;
+  [...document.querySelectorAll('.tab')].forEach(b=>b.classList.toggle('on', b.dataset.tab===t));
+  renderPane();
+}
+function currentStruct(){
+  let s = S(P.structId);
+  if (!s) s = structures[0];
+  if (s) P.structId = s.id;
+  return s;
+}
+
+const CMP_COLORS = ['#1a63d8','#c0392b','#0f8ea8','#8a4fbf','#e07b12','#2e8b57','#b8860b','#d6336c'];
+function cmpColor(i){ return CMP_COLORS[i % CMP_COLORS.length]; }
+
+/* structures the current tab should work on: one, or several when comparing */
+function targets(){
+  if (!P.compare) { const s = currentStruct(); return s ? [s] : []; }
+  const list = P.compareIds.map(id=>S(id)).filter(Boolean);
+  return list.length ? list : (currentStruct() ? [currentStruct()] : []);
+}
+function toggleCompareId(id, on){
+  P.compareIds = P.compareIds.filter(x=>x!==id);
+  if (on) P.compareIds.push(id);
+  renderPane();
+}
+function setCompare(on){
+  P.compare = on;
+  if (on && !P.compareIds.length) P.compareIds = structures.slice(0,2).map(s=>s.id);
+  P.result[P.tab] = null;
+  renderPane();
+}
+function structRow(){
+  const cmp = `<label class="check" style="margin-bottom:6px"><input type="checkbox" ${P.compare?'checked':''}
+      onchange="setCompare(this.checked)"><span>Compare several structures</span></label>`;
+  if (!P.compare)
+    return `<div class="row"><span class="lbl w">Structure</span>
+      <select class="inp grow" onchange="P.structId=this.value;renderPane()">
+        ${structures.map(s=>`<option value="${s.id}" ${s.id===P.structId?'selected':''}>${escapeAttr(s.name)}</option>`).join('')}
+      </select></div>` + cmp;
+  const list = structures.map((s,i)=>{
+    const on = P.compareIds.includes(s.id);
+    const k = P.compareIds.indexOf(s.id);
+    return `<label class="check" style="margin-bottom:4px"><input type="checkbox" ${on?'checked':''}
+      onchange="toggleCompareId('${s.id}',this.checked)">
+      <span><i class="swatch" style="display:inline-block;background:${on?cmpColor(k):'#d8dde4'}"></i>${escapeAttr(s.name)}</span></label>`;
+  }).join('');
+  return `<div class="lbl" style="margin-bottom:4px">Structures to overlay</div>${list}${cmp}`;
+}
+function num(path, label, step, min, max, unit){
+  const [t,k] = path.split('.');
+  return `<div class="row"><span class="lbl w">${label}</span>
+    <input type="number" class="inp mono sm" value="${P[t][k]}" step="${step}" ${min!==undefined?`min="${min}"`:''} ${max!==undefined?`max="${max}"`:''}
+      onchange="P.${path}=parseFloat(this.value)">${unit?`<span class="lbl">${unit}</span>`:''}</div>`;
+}
+function chk(path, label){
+  const [t,k] = path.split('.');
+  return `<label class="check" style="margin-bottom:6px"><input type="checkbox" ${P[t][k]?'checked':''}
+    onchange="P.${path}=this.checked"><span>${label}</span></label>`;
+}
+
+function renderPane(){
+  const ctl = byId('pane-ctl'), out = byId('pane-out');
+  const s = currentStruct();
+  if (!s){ ctl.innerHTML = '<div class="empty">Add a structure first.</div>'; out.innerHTML = ''; return; }
+  ({ xrd:paneXRD, saed:paneSAED, rdf:paneRDF, sq:paneSQ, cell:paneCELL, sym:paneSYM }[P.tab])(s, ctl, out);
+}
+
+/* ---- XRD ---- */
+function paneXRD(s, ctl, out){
+  ctl.innerHTML = structRow() + `
+    <div class="row"><span class="lbl w">Radiation</span>
+      <select class="inp grow" onchange="P.xrd.lambda=parseFloat(this.value);renderPane()">
+        ${Object.entries(LAMBDAS).map(([k,v])=>`<option value="${v}" ${Math.abs(v-P.xrd.lambda)<1e-9?'selected':''}>${k}</option>`).join('')}
+        <option value="${P.xrd.lambda}" ${!Object.values(LAMBDAS).some(v=>Math.abs(v-P.xrd.lambda)<1e-9)?'selected':''}>custom</option>
+      </select></div>
+    ${num('xrd.lambda','λ',0.0001,0.1,10,'Å')}
+    ${num('xrd.tmin','2θ from',1,0,179,'°')}
+    ${num('xrd.tmax','2θ to',1,1,179,'°')}
+    ${num('xrd.fwhm','Peak width',0.01,0.01,5,'°')}
+    ${num('xrd.B','Debye–Waller B',0.1,0,10,'Å²')}
+    ${num('xrd.maxIndex','Max index',1,1,14)}
+    <div class="row"><span class="lbl w">Scattering</span>
+      <select class="inp grow" onchange="P.xrd.scatter=this.value">
+        <option value="Z" ${P.xrd.scatter==='Z'?'selected':''}>f = Z</option>
+        <option value="unit" ${P.xrd.scatter==='unit'?'selected':''}>f = 1, geometry only</option>
+      </select></div>
+    ${chk('xrd.lp','Lorentz–polarisation factor')}
+    ${chk('xrd.table','Show the peak table')}
+    <button class="btn pri wide" onclick="runXRD()">Calculate</button>
+    <div class="hint mt">Peak positions and systematic absences are exact. Intensities use f = Z, so they are indicative rather than Rietveld quality.</div>`;
+  out.innerHTML = outputShell('xrd', 'Calculate to see the powder pattern.');
+  if (P.result.xrd) drawXRD();
+}
+function runXRD(){
+  const list = targets(); if (!list.length) return;
+  const t0 = performance.now();
+  const runs = list.map(s=>{ const r = computeXRD(s, P.xrd); r.name = s.name; r.id = s.id; return r; });
+  P.result.xrd = Object.assign({}, runs[0], { runs });
+  renderPane();
+  toast(`${runs.map(r=>r.peaks.length).join(' / ')} reflections in ${Math.round(performance.now()-t0)} ms.`);
+}
+function drawXRD(){
+  const res = P.result.xrd; if (!res) return;
+  const runs = res.runs || [res];
+  if (P.xrd.table){
+    byId('plot-host').innerHTML = `<div class="scroll"><table class="tbl">
+      <thead><tr>${runs.length>1?'<th>structure</th>':''}<th>h k l</th><th>2θ °</th><th>d Å</th><th>I rel</th><th>mult</th></tr></thead>
+      <tbody>${runs.map(r=>r.peaks.slice().sort((a,b)=>b.I-a.I).map(p=>
+        `<tr>${runs.length>1?`<td>${escapeAttr(r.name)}</td>`:''}<td>${p.hkl.join(' ')}</td><td>${fmt(p.tt,3)}</td><td>${fmt(p.d,4)}</td><td>${fmt(p.I,2)}</td><td>${p.mult}</td></tr>`).join('')).join('')}
+      </tbody></table></div>`;
+    return;
+  }
+  const series = [];
+  runs.forEach((r,i)=>{
+    series.push({ x:r.curve.x, y:r.curve.y, type:'line', color:cmpColor(i),
+                  name: runs.length>1 ? r.name : undefined });
+    if (runs.length === 1)
+      series.push({ x:r.peaks.map(p=>p.tt), y:r.peaks.map(p=>p.I), type:'stick', color:'#c0392b' });
+  });
+  drawPlot(plotCanvas(), {
+    xlabel:'2θ (degrees)', ylabel:'intensity (relative)', series,
+    xmin:P.xrd.tmin, xmax:P.xrd.tmax, ymin:0,
+    note:`λ = ${runs[0].lambda} Å · ${runs.map(r=>r.peaks.length).join(' / ')} reflections`
+  });
+}
+
+/* ---- diffraction pattern ---- */
+function paneSAED(s, ctl, out){
+  ctl.innerHTML = structRow() + `
+    <div class="row"><span class="lbl w">Zone axis</span>
+      <input type="number" class="inp mono sm" value="${P.saed.u}" onchange="P.saed.u=parseInt(this.value)||0">
+      <input type="number" class="inp mono sm" value="${P.saed.v}" onchange="P.saed.v=parseInt(this.value)||0">
+      <input type="number" class="inp mono sm" value="${P.saed.w}" onchange="P.saed.w=parseInt(this.value)||0">
+    </div>
+    <div class="row"><button class="btn sm grow" onclick="zoneFromView()">Use the current view</button>
+      <button class="btn sm grow" onclick="zoneFromSelection()">Use picked plane</button></div>
+    ${num('saed.qmax','q limit',0.5,1,30,'Å⁻¹')}
+    ${num('saed.maxIndex','Max index',1,1,14)}
+    ${num('saed.laue','Laue zone',1,-4,4)}
+    ${num('saed.minI','Cut off below',0.1,0,50,'%')}
+    ${chk('saed.labels','Label the spots')}
+    <button class="btn pri wide" onclick="runSAED()">Calculate</button>
+    <div class="hint mt">Spots satisfy hu + kv + lw = Laue zone, so zone 0 is the usual pattern through the direct beam.</div>`;
+  out.innerHTML = outputShell('saed', 'Calculate to see the spot pattern.');
+  if (P.result.saed) drawSAED();
+}
+function runSAED(){
+  const list = targets(); if (!list.length) return;
+  const runs = list.map(s=>{ const r = computeSAED(s, P.saed); r.name = s.name; r.id = s.id;
+                             r.isHex = s.isHex; return r; });
+  P.result.saed = Object.assign({}, runs[0], { runs });
+  renderPane();
+  const err = runs.find(r=>r.error);
+  if (err) toast(`${err.name}: ${err.error}`, true);
+  else toast(`${runs.map(r=>r.spots.length).join(' / ')} spots on the ${dirLabel([P.saed.u,P.saed.v,P.saed.w], list[0].isHex)} zone.`);
+}
+function zoneFromView(){
+  const s = currentStruct(); if (!s) return;
+  const dir = camera.position.clone().sub(controls.target).applyQuaternion(s.quat.clone().invert());
+  const uvw = directionIndices(dir, localLattice(s));
+  if (!uvw) return toast('That view direction is not a simple lattice direction.', true);
+  P.saed.u = uvw[0]; P.saed.v = uvw[1]; P.saed.w = uvw[2];
+  renderPane();
+  toast(`Zone axis set to ${dirLabel(uvw, s.isHex)}.`);
+}
+function zoneFromSelection(){
+  const p = planeFromSelection();
+  if (!p || !p.zone) return toast('Pick three atoms of one structure first.', true);
+  P.structId = p.struct.id;
+  P.saed.u = p.zone[0]; P.saed.v = p.zone[1]; P.saed.w = p.zone[2];
+  renderPane();
+  toast(`Zone axis set to ${dirLabel(p.zone, p.struct.isHex)}.`);
+}
+function drawSAED(){
+  const r = P.result.saed; if (!r) return;
+  const runs = r.runs || [r];
+  const all = runs.flatMap(x=>x.spots||[]);
+  const cv = plotCanvas();
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w*dpr; cv.height = h*dpr;
+  const g = cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+  g.fillStyle = '#fff'; g.fillRect(0,0,w,h);
+  if ((r.error && !(r.runs||[]).some(x=>x.spots&&x.spots.length)) || !all.length){
+    g.fillStyle = '#6a7380'; g.font = '13px sans-serif'; g.textAlign='center';
+    g.fillText(r.error || 'No spots satisfy those settings.', w/2, h/2);
+    return;
+  }
+  const qm = Math.max(...all.map(s=>s.q), 1)*1.12;
+  const k = Math.min(w,h)/2/qm*0.92;
+  const cx = w/2, cy = h/2;
+  g.strokeStyle = '#eceef1'; g.beginPath();
+  g.moveTo(cx-w/2,cy); g.lineTo(cx+w/2,cy); g.moveTo(cx,0); g.lineTo(cx,h); g.stroke();
+
+  runs.forEach((run,ri)=>{
+    const col = runs.length>1 ? cmpColor(ri) : '#1a63d8';
+    (run.spots||[]).forEach(sp=>{
+      const x = cx + sp.x*k, y = cy - sp.y*k;
+      const rad = sp.direct ? 5.5 : clamp(1.6 + 4.4*Math.pow(sp.I/100, 0.45), 1.4, 7);
+      g.beginPath(); g.arc(x,y,rad,0,2*Math.PI);
+      if (runs.length>1 && ri>0){ g.strokeStyle = col; g.lineWidth = 1.6; g.stroke(); }
+      else { g.fillStyle = sp.direct ? '#12161b' : col; g.fill(); }
+    });
+    if (P.saed.labels && ri === 0){
+      g.font = '10px ui-monospace,monospace'; g.fillStyle = '#6a7380'; g.textAlign = 'center';
+      (run.spots||[]).filter(s=>!s.direct && s.I > 8).slice(0,90).forEach(sp=>{
+        g.fillText(sp.hkl.join(' '), cx + sp.x*k, cy - sp.y*k - 8);
+      });
+    }
+  });
+  if (runs.length > 1){
+    g.textAlign = 'left'; g.font = '11px sans-serif';
+    runs.forEach((run,ri)=>{
+      g.fillStyle = cmpColor(ri);
+      g.fillText(`${ri===0?'●':'○'} ${run.name}`, 14, 32 + ri*14);
+    });
+  }
+  /* scale bar */
+  g.strokeStyle = '#12161b'; g.lineWidth = 1.5;
+  g.beginPath(); g.moveTo(14, h-16); g.lineTo(14+k, h-16); g.stroke();
+  g.fillStyle = '#12161b'; g.font = '11px sans-serif'; g.textAlign = 'left';
+  g.fillText('1 Å⁻¹', 14, h-22);
+  g.fillText(`${runs.length>1?runs.length+' structures':r.name} · zone ${dirLabel(r.zone, currentStruct()?.isHex)} · Laue ${P.saed.laue}`, 14, 16);
+}
+
+/* ---- RDF ---- */
+function paneRDF(s, ctl, out){
+  const els = ['all', ...new Set(s.atoms.map(a=>a.element))];
+  const sel = (k) => `<select class="inp sm grow" onchange="P.rdf.${k}=this.value">
+    ${els.map(e=>`<option value="${e}" ${P.rdf[k]===e?'selected':''}>${e}</option>`).join('')}</select>`;
+  ctl.innerHTML = structRow() + `
+    ${num('rdf.rmax','r max',0.5,1,40,'Å')}
+    ${num('rdf.dr','Bin width',0.01,0.005,0.5,'Å')}
+    <div class="row"><span class="lbl w">Pair</span>${sel('a')}<span class="lbl">→</span>${sel('b')}</div>
+    ${chk('rdf.showN','Show the running coordination number')}
+    <button class="btn pri wide" onclick="runRDF()">Calculate</button>
+    <div class="hint mt">The unit cell is repeated periodically, so g(r) is for the ideal crystal, not the drawn supercell.</div>`;
+  out.innerHTML = outputShell('rdf', 'Calculate to see g(r).');
+  if (P.result.rdf) drawRDF();
+}
+function runRDF(){
+  const list = targets(); if (!list.length) return;
+  const t0 = performance.now();
+  const runs = [];
+  for (const s of list){
+    const opts = Object.assign({}, P.rdf);
+    /* a pair chosen for one structure may not exist in another, fall back to all */
+    const els = new Set(s.atoms.map(a=>a.element));
+    if (opts.a !== 'all' && !els.has(opts.a)) opts.a = 'all';
+    if (opts.b !== 'all' && !els.has(opts.b)) opts.b = 'all';
+    const r = computeRDF(s, opts);
+    if (r.error){ toast(`${s.name}: ${r.error}`, true); continue; }
+    r.name = s.name; r.id = s.id; r.pair = `${opts.a} → ${opts.b}`;
+    runs.push(r);
+  }
+  if (!runs.length) return;
+  P.result.rdf = Object.assign({}, runs[0], { runs });
+  renderPane();
+  toast(`g(r) for ${runs.length} structure${runs.length>1?'s':''} in ${Math.round(performance.now()-t0)} ms.`);
+}
+function drawRDF(){
+  const res = P.result.rdf; if (!res) return;
+  const runs = res.runs || [res];
+  const series = [];
+  runs.forEach((r,i)=>{
+    series.push({ x:r.r, y:r.g, type:'line', color:cmpColor(i),
+                  name: runs.length>1 ? `${r.name} (${r.pair||''})` : 'g(r)' });
+    if (P.rdf.showN){
+      const scale = Math.max(...r.g)/Math.max(...r.n, 1e-9);
+      series.push({ x:r.r, y:r.n.map(v=>v*scale), type:'line', color:runs.length>1?cmpColor(i):'#e07b12',
+                    dash:true, name:`${runs.length>1?r.name+' ':''}coordination × ${fmt(scale,3)}` });
+    }
+  });
+  drawPlot(plotCanvas(), { xlabel:'r (Å)', ylabel:'g(r)', series, xmin:0, ymin:0,
+    note: runs.length>1 ? `${runs.length} structures overlaid`
+                        : `${P.rdf.a} → ${P.rdf.b} · number density ${fmt(runs[0].rho,4)} Å⁻³` });
+}
+
+/* ---- S(q) ---- */
+function paneSQ(s, ctl, out){
+  ctl.innerHTML = structRow() + `
+    ${num('sq.qmin','q from',0.1,0.01,50,'Å⁻¹')}
+    ${num('sq.qmax','q to',0.5,0.5,60,'Å⁻¹')}
+    ${num('sq.nq','Points',50,20,4000)}
+    ${num('sq.rmax','r max for the transform',0.5,2,40,'Å')}
+    ${num('sq.dr','Bin width',0.01,0.005,0.5,'Å')}
+    ${chk('sq.lorch','Lorch window, damps truncation ripples')}
+    <button class="btn pri wide" onclick="runSQ()">Calculate</button>
+    <div class="hint mt">S(q) = 1 + 4πρ ∫ r²[g(r) − 1] sin(qr)/(qr) dr, taken from the g(r) of this structure.</div>`;
+  out.innerHTML = outputShell('sq', 'Calculate to see S(q).');
+  if (P.result.sq) drawSQ();
+}
+function runSQ(){
+  const list = targets(); if (!list.length) return;
+  const runs = [];
+  for (const s of list){
+    const rdf = computeRDF(s, { rmax:P.sq.rmax, dr:P.sq.dr, a:'all', b:'all' });
+    if (rdf.error){ toast(`${s.name}: ${rdf.error}`, true); continue; }
+    const r = computeSq(rdf, P.sq);
+    r.name = s.name; r.id = s.id; r.rho = rdf.rho;
+    runs.push(r);
+  }
+  if (!runs.length) return;
+  P.result.sq = Object.assign({}, runs[0], { runs });
+  renderPane();
+  toast(`Structure factor for ${runs.length} structure${runs.length>1?'s':''}.`);
+}
+function drawSQ(){
+  const res = P.result.sq; if (!res) return;
+  const runs = res.runs || [res];
+  drawPlot(plotCanvas(), { xlabel:'q (Å⁻¹)', ylabel:'S(q)',
+    series: runs.map((r,i)=>({ x:r.q, y:r.S, type:'line', color:cmpColor(i),
+                               name: runs.length>1 ? r.name : undefined })),
+    note: runs.length>1 ? `${runs.length} structures overlaid${P.sq.lorch?' · Lorch window':''}`
+                        : `${runs[0].name} · ρ = ${fmt(runs[0].rho,4)} Å⁻³${P.sq.lorch?' · Lorch window':''}` });
+}
+
+/* ---- cell and density ---- */
+function paneCELL(s, ctl, out){
+  ctl.innerHTML = structRow() + `
+    <button class="btn pri wide" onclick="renderPane()">Refresh</button>
+    <div class="hint mt">Density comes from the unit cell contents and the cell volume, so it does not change with the supercell.</div>
+    <button class="btn wide" style="margin-top:8px" onclick="copyCell()">Copy report</button>`;
+  if (P.compare && targets().length > 1) return cellCompare(out);
+  const c = computeCell(s);
+  const p = c.params;
+  out.innerHTML = `<div class="scroll" style="padding:12px">
+    <div class="kv" style="max-width:520px">
+      <div>Formula in the cell</div><div>${c.formula}</div>
+      <div>a, b, c</div><div>${fmt(p.a,4)}, ${fmt(p.b,4)}, ${fmt(p.c,4)} Å</div>
+      <div>α, β, γ</div><div>${fmt(p.alpha,3)}, ${fmt(p.beta,3)}, ${fmt(p.gamma,3)}°</div>
+      <div>Cell volume</div><div>${fmt(p.volume,4)} Å³</div>
+      <div>Atoms per cell</div><div>${c.N}</div>
+      <div>Mass per cell</div><div>${fmt(c.mass,4)} u</div>
+      <div>Density</div><div>${c.density ? fmt(c.density,4)+' g cm⁻³' : 'unknown masses'}</div>
+      <div>Number density</div><div>${fmt(c.numberDensity,5)} Å⁻³ = ${fmt(c.numberDensity*1000,2)} nm⁻³</div>
+      <div>Supercell drawn</div><div>${s.supercell.join(' × ')} = ${c.supercellAtoms} atoms, ${fmt(c.supercellVolume,1)} Å³</div>
+      <div>Lattice type</div><div>${s.isHex ? 'hexagonal, four index notation' : 'general'}</div>
+    </div>
+    <div class="divider"></div>
+    <table class="tbl" style="max-width:520px">
+      <thead><tr><th>element</th><th>count</th><th>Z</th><th>mass u</th><th>mass %</th></tr></thead>
+      <tbody>${Object.entries(c.counts).map(([e,n])=>{
+        const m = elemMass(e)*n;
+        return `<tr><td>${e}</td><td>${n}</td><td>${elemZ(e)||'?'}</td><td>${fmt(m,3)}</td><td>${c.mass?fmt(100*m/c.mass,2):'—'}</td></tr>`;
+      }).join('')}</tbody></table>
+    ${c.unknown.length ? `<div class="hint mt">No mass on file for ${c.unknown.join(', ')}, so the density leaves those atoms out.</div>` : ''}
+  </div>`;
+}
+function cellCompare(out){
+  const list = targets();
+  const rows = list.map(s=>({ s, c: computeCell(s), sym: (P.sym.withCell ? null : null) }));
+  const line = (label, get) => `<tr><th style="text-align:left">${label}</th>${rows.map(r=>`<td>${get(r)}</td>`).join('')}</tr>`;
+  out.innerHTML = `<div class="scroll" style="padding:12px"><table class="tbl">
+    <thead><tr><th></th>${rows.map((r,i)=>`<th><i class="swatch" style="display:inline-block;background:${cmpColor(i)}"></i>${escapeAttr(r.s.name)}</th>`).join('')}</tr></thead>
+    <tbody>
+      ${line('Formula', r=>r.c.formula)}
+      ${line('a, b, c (Å)', r=>`${fmt(r.c.params.a,4)}, ${fmt(r.c.params.b,4)}, ${fmt(r.c.params.c,4)}`)}
+      ${line('α, β, γ (°)', r=>`${fmt(r.c.params.alpha,2)}, ${fmt(r.c.params.beta,2)}, ${fmt(r.c.params.gamma,2)}`)}
+      ${line('Volume (Å³)', r=>fmt(r.c.params.volume,3))}
+      ${line('Atoms per cell', r=>r.c.N)}
+      ${line('Mass per cell (u)', r=>fmt(r.c.mass,3))}
+      ${line('Density (g cm⁻³)', r=>r.c.density ? fmt(r.c.density,4) : '—')}
+      ${line('Number density (Å⁻³)', r=>fmt(r.c.numberDensity,5))}
+    </tbody></table>
+    <div class="hint mt">Ratios against the first structure: ${rows.slice(1).map(r=>
+      `${escapeAttr(r.s.name)} V/V₀ = ${fmt(r.c.params.volume/rows[0].c.params.volume,4)}`).join(' · ') || '—'}</div>
+  </div>`;
+}
+
+function copyCell(){
+  const s = currentStruct(); if (!s) return;
+  const c = computeCell(s), p = c.params;
+  copyText([
+    `Structure        ${s.name}`,
+    `Formula          ${c.formula}`,
+    `a b c            ${fmt(p.a,5)} ${fmt(p.b,5)} ${fmt(p.c,5)} A`,
+    `alpha beta gamma ${fmt(p.alpha,4)} ${fmt(p.beta,4)} ${fmt(p.gamma,4)} deg`,
+    `Volume           ${fmt(p.volume,5)} A^3`,
+    `Atoms per cell   ${c.N}`,
+    `Mass per cell    ${fmt(c.mass,5)} u`,
+    `Density          ${c.density ? fmt(c.density,5)+' g/cm3' : 'unknown'}`,
+    `Number density   ${fmt(c.numberDensity,6)} A^-3`
+  ].join('\n'), 'Cell report');
+}
+
+/* ---- symmetry and space group ---- */
+function paneSYM(s, ctl, out){
+  ctl.innerHTML = structRow() + `
+    ${num('sym.tolLen','Length tolerance',0.01,0.0001,2,'Å')}
+    ${num('sym.tolAng','Angle tolerance',0.1,0.001,15,'°')}
+    <div class="row">
+      <button class="btn sm grow" onclick="P.sym.tolLen=0.01;P.sym.tolAng=0.1;runSYM()">strict</button>
+      <button class="btn sm grow" onclick="P.sym.tolLen=0.1;P.sym.tolAng=1;runSYM()">normal</button>
+      <button class="btn sm grow" onclick="P.sym.tolLen=0.5;P.sym.tolAng=5;runSYM()">loose</button>
+    </div>
+    ${chk('sym.scan','Scan a range of tolerances')}
+    ${chk('sym.showOps','List every symmetry operation')}
+    <button class="btn pri wide" onclick="runSYM()">Find the symmetry</button>
+    <button class="btn wide" style="margin-top:8px" onclick="copySym()">Copy report</button>
+    <div class="hint mt">A cell is treated as symmetric when every length matches within the length tolerance
+      and every angle within the angle tolerance, so at 1° an angle of 129.5° counts as 130° and at 0.1° it does not.</div>`;
+  out.innerHTML = `<div id="plot-host" style="flex:1;display:flex;min-height:0">
+      <div class="empty" style="flex:1;display:flex;align-items:center;justify-content:center">Run the search to see the space group.</div>
+    </div>
+    <div class="out-bar"><button class="btn sm" onclick="copySym()">Copy report</button>
+      <span class="readout" id="plot-readout"></span></div>`;
+  if (P.result.sym) drawSYM();
+}
+function runSYM(){
+  const list = targets(); if (!list.length) return;
+  const t0 = performance.now();
+  const runs = list.map(s=>{
+    const r = analyzeSymmetry(s, P.sym.tolLen, P.sym.tolAng);
+    r.name = s.name; r.id = s.id;
+    if (P.sym.scan) r.scan = SYM_SCAN.map(t=>{
+      const q = analyzeSymmetry(s, t[0], t[1]);
+      return { tolLen:t[0], tolAng:t[1], number:q.number, symbol:q.symbol,
+               system:q.system, pointGroup:q.pointGroup, nOps:q.nOpsConventional || q.nOps };
+    });
+    return r;
+  });
+  P.result.sym = { runs };
+  renderPane();
+  toast(`${runs.map(r=>r.symbol || r.system).join(' / ')} in ${Math.round(performance.now()-t0)} ms.`);
+}
+const SYM_SCAN = [[0.005,0.05],[0.01,0.1],[0.05,0.5],[0.1,1],[0.3,3],[0.5,5]];
+
+function symCard(r){
+  const alt = (r.alternatives||[]).length
+    ? `<div class="hint mt">Cannot be separated from ${r.altSymbols.map((sy,i)=>`${sy} (#${r.alternatives[i]})`).join(' or ')}
+       by the operation set alone: those groups share the same operations and differ only in where the axes sit or in handedness.</div>` : '';
+  const cp = r.conventionalParams, pp = r.primitiveParams;
+  const scan = r.scan ? `<div class="divider"></div>
+    <table class="tbl" style="max-width:560px">
+      <thead><tr><th>length tol Å</th><th>angle tol °</th><th>space group</th><th>point group</th><th>ops</th></tr></thead>
+      <tbody>${r.scan.map(x=>`<tr><td>${x.tolLen}</td><td>${x.tolAng}</td>
+        <td>${x.symbol ? `${x.symbol} (#${x.number})` : '—'}</td><td>${x.pointGroup||'—'}</td><td>${x.nOps||''}</td></tr>`).join('')}</tbody>
+    </table>` : '';
+  const ops = P.sym.showOps ? `<div class="divider"></div>
+    <div class="lbl">Operations of the primitive cell</div>
+    <table class="tbl" style="max-width:560px"><thead><tr><th>#</th><th>operation</th><th>W</th><th>w</th></tr></thead>
+    <tbody>${r.ops.map((o,i)=>`<tr><td>${i+1}</td><td>${r.opsLabels[i]}</td>
+      <td class="mono">${o.W.map(row=>row.join(' ')).join(' | ')}</td>
+      <td class="mono">${o.w.map(x=>fmt(x,3)).join(' ')}</td></tr>`).join('')}</tbody></table>` : '';
+  return `<div style="margin-bottom:14px">
+    <div style="font-size:20px;font-weight:600;margin-bottom:2px">${r.symbol ? `${r.symbol} · #${r.number}` : 'space group not identified'}</div>
+    <div class="lbl" style="margin-bottom:8px">${escapeAttr(r.name)}</div>
+    <div class="kv" style="max-width:560px">
+      <div>Crystal system</div><div>${r.system}</div>
+      <div>Point group</div><div>${r.pointGroup || '—'}, order ${r.pointGroupOrder}</div>
+      <div>Centring</div><div>${r.centering || '—'}</div>
+      <div>Centrosymmetric</div><div>${r.centrosymmetric ? 'yes' : 'no'}</div>
+      <div>Operations</div><div>${r.nOps} in the primitive cell${r.nOpsConventional?`, ${r.nOpsConventional} in the conventional cell`:''}</div>
+      <div>Atoms</div><div>${r.nAtoms} given, ${r.primitiveAtoms} in the primitive cell${r.conventionalAtoms?`, ${r.conventionalAtoms} in the conventional cell`:''}</div>
+      <div>Primitive cell</div><div>${fmt(pp.a,4)}, ${fmt(pp.b,4)}, ${fmt(pp.c,4)} Å · ${fmt(pp.alpha,2)}, ${fmt(pp.beta,2)}, ${fmt(pp.gamma,2)}° · ${fmt(pp.volume,3)} Å³</div>
+      ${cp?`<div>Conventional cell</div><div>${fmt(cp.a,4)}, ${fmt(cp.b,4)}, ${fmt(cp.c,4)} Å · ${fmt(cp.alpha,2)}, ${fmt(cp.beta,2)}, ${fmt(cp.gamma,2)}° · ${fmt(cp.volume,3)} Å³</div>`:''}
+      <div>Tolerance used</div><div>${r.tolLen} Å, ${r.tolAng}°</div>
+    </div>${alt}${scan}${ops}</div>`;
+}
+function drawSYM(){
+  const runs = (P.result.sym||{}).runs || [];
+  byId('plot-host').innerHTML = `<div class="scroll" style="padding:12px">${runs.map(symCard).join('<div class="divider"></div>')}</div>`;
+}
+function copySym(){
+  const runs = (P.result.sym||{}).runs || [];
+  if (!runs.length) return toast('Run the symmetry search first.', true);
+  const lines = [];
+  runs.forEach(r=>{
+    const cp = r.conventionalParams, pp = r.primitiveParams;
+    lines.push(`Structure        ${r.name}`,
+      `Space group      ${r.symbol ? r.symbol + '  #' + r.number : 'not identified'}`,
+      ...(r.alternatives||[]).length ? [`Indistinguishable from  ${r.altSymbols.map((s,i)=>s+' #'+r.alternatives[i]).join(', ')}`] : [],
+      `Crystal system   ${r.system}`,
+      `Point group      ${r.pointGroup || '-'} (order ${r.pointGroupOrder})`,
+      `Centring         ${r.centering || '-'}`,
+      `Centrosymmetric  ${r.centrosymmetric ? 'yes' : 'no'}`,
+      `Operations       ${r.nOps} primitive, ${r.nOpsConventional||'-'} conventional`,
+      `Primitive cell   ${fmt(pp.a,5)} ${fmt(pp.b,5)} ${fmt(pp.c,5)} A  ${fmt(pp.alpha,3)} ${fmt(pp.beta,3)} ${fmt(pp.gamma,3)} deg  V ${fmt(pp.volume,4)} A^3`,
+      ...(cp ? [`Conventional     ${fmt(cp.a,5)} ${fmt(cp.b,5)} ${fmt(cp.c,5)} A  ${fmt(cp.alpha,3)} ${fmt(cp.beta,3)} ${fmt(cp.gamma,3)} deg  V ${fmt(cp.volume,4)} A^3`] : []),
+      `Tolerance        ${r.tolLen} A, ${r.tolAng} deg`);
+    if (r.scan){ lines.push('Tolerance scan   tol_A  tol_deg  space_group  point_group');
+      r.scan.forEach(x=>lines.push(`                 ${x.tolLen}  ${x.tolAng}  ${x.symbol?x.symbol+' #'+x.number:'-'}  ${x.pointGroup||'-'}`)); }
+    if (P.sym.showOps) r.ops.forEach((o,i)=>lines.push(
+      `  op ${String(i+1).padStart(2)}  ${r.opsLabels[i].padEnd(34)} W ${o.W.map(row=>row.join(' ')).join(' | ')}  w ${o.w.map(x=>fmt(x,4)).join(' ')}`));
+    lines.push('');
+  });
+  copyText(lines.join('\n'), 'Symmetry report');
+}
+
+/* ---- shared output shell, plotting ---- */
+function outputShell(tab, placeholder){
+  return `<div id="plot-host" style="flex:1;display:flex;min-height:0">
+      ${P.result[tab] ? '<canvas id="plot-canvas"></canvas>' : `<div class="empty" style="flex:1;display:flex;align-items:center;justify-content:center">${placeholder}</div>`}
+    </div>
+    <div class="out-bar">
+      <button class="btn sm" onclick="copyPlotData()">Copy data</button>
+      ${tab==='xrd' ? '<button class="btn sm" onclick="copyPeaks()">Copy peak list</button>' : ''}
+      <button class="btn sm" onclick="copyPlotImage()">Copy image</button>
+      <button class="btn sm" onclick="savePlot('png')">Save PNG</button>
+      <button class="btn sm" onclick="savePlot('csv')">Save CSV</button>
+      <span class="readout" id="plot-readout"></span>
+    </div>`;
+}
+function plotCanvas(){
+  const host = byId('plot-host');
+  if (!host.querySelector('canvas')) host.innerHTML = '<canvas id="plot-canvas"></canvas>';
+  return byId('plot-canvas');
+}
+function redraw(){
+  if (!byId('drawer').classList.contains('open')) return;
+  ({ xrd:drawXRD, saed:drawSAED, rdf:drawRDF, sq:drawSQ, cell:()=>{}, sym:()=>{} }[P.tab])();
+}
+window.addEventListener('resize', ()=>redraw());
+
+function niceTicks(min, max, n){
+  const span = (max-min) || 1;
+  const raw = span/n;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1,2,2.5,5,10].map(m=>m*mag).find(v=>v>=raw) || 10*mag;
+  const out = [];
+  for (let v = Math.ceil(min/step)*step; v <= max+step*1e-6; v += step) out.push(+v.toFixed(10));
+  return out;
+}
+
+function drawPlot(cv, cfg){
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return;
+  cv.width = w*dpr; cv.height = h*dpr;
+  const g = cv.getContext('2d');
+  g.setTransform(dpr,0,0,dpr,0,0);
+  g.fillStyle = '#fff'; g.fillRect(0,0,w,h);
+
+  const S0 = cfg.series.filter(s=>s.x.length);
+  if (!S0.length) return;
+  let xmin = cfg.xmin ?? Math.min(...S0.map(s=>Math.min(...s.x)));
+  let xmax = cfg.xmax ?? Math.max(...S0.map(s=>Math.max(...s.x)));
+  let ymin = cfg.ymin ?? Math.min(...S0.map(s=>Math.min(...s.y)));
+  let ymax = cfg.ymax ?? Math.max(...S0.map(s=>Math.max(...s.y)));
+  if (xmax-xmin < 1e-12) xmax = xmin+1;
+  if (ymax-ymin < 1e-12) ymax = ymin+1;
+  ymax += (ymax-ymin)*0.06;
+
+  const m = { l:56, r:16, t:16, b:36 };
+  const X = x => m.l + (x-xmin)/(xmax-xmin)*(w-m.l-m.r);
+  const Y = y => h-m.b - (y-ymin)/(ymax-ymin)*(h-m.t-m.b);
+  cv.__plot = { cfg, X, Y, xmin, xmax, ymin, ymax, m, w, h };
+
+  g.strokeStyle = '#eef0f3'; g.lineWidth = 1;
+  const xt = niceTicks(xmin,xmax,7), yt = niceTicks(ymin,ymax,5);
+  g.beginPath();
+  xt.forEach(t=>{ g.moveTo(X(t), m.t); g.lineTo(X(t), h-m.b); });
+  yt.forEach(t=>{ g.moveTo(m.l, Y(t)); g.lineTo(w-m.r, Y(t)); });
+  g.stroke();
+
+  g.strokeStyle = '#b9c0ca'; g.beginPath();
+  g.moveTo(m.l, m.t); g.lineTo(m.l, h-m.b); g.lineTo(w-m.r, h-m.b); g.stroke();
+
+  g.fillStyle = '#6a7380'; g.font = '11px ui-monospace,monospace';
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  xt.forEach(t=>g.fillText(String(+t.toFixed(6)), X(t), h-m.b+6));
+  g.textAlign = 'right'; g.textBaseline = 'middle';
+  yt.forEach(t=>g.fillText(String(+t.toFixed(6)), m.l-7, Y(t)));
+
+  g.fillStyle = '#12161b'; g.font = '12px sans-serif';
+  g.textAlign = 'center'; g.textBaseline = 'bottom';
+  g.fillText(cfg.xlabel, m.l+(w-m.l-m.r)/2, h-4);
+  g.save(); g.translate(13, m.t+(h-m.t-m.b)/2); g.rotate(-Math.PI/2);
+  g.textBaseline = 'top'; g.fillText(cfg.ylabel, 0, 0); g.restore();
+
+  g.save();
+  g.beginPath(); g.rect(m.l, m.t, w-m.l-m.r, h-m.t-m.b); g.clip();
+  cfg.series.forEach(s=>{
+    g.strokeStyle = s.color; g.fillStyle = s.color; g.lineWidth = 1.4;
+    g.setLineDash(s.dash ? [5,4] : []);
+    if (s.type === 'stick'){
+      g.beginPath();
+      for (let i=0;i<s.x.length;i++){ g.moveTo(X(s.x[i]), Y(Math.max(ymin,0))); g.lineTo(X(s.x[i]), Y(s.y[i])); }
+      g.stroke();
+    } else {
+      g.beginPath();
+      for (let i=0;i<s.x.length;i++){ const px = X(s.x[i]), py = Y(s.y[i]); i ? g.lineTo(px,py) : g.moveTo(px,py); }
+      g.stroke();
+    }
+  });
+  g.setLineDash([]);
+  g.restore();
+
+  const names = cfg.series.filter(s=>s.name);
+  if (names.length >= 1 && (names.length > 1 || cfg.forceLegend)){
+    g.font = '11px sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle';
+    names.forEach((s,i)=>{
+      const y = m.t + 10 + i*15;
+      g.strokeStyle = s.color; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(w-m.r-130, y); g.lineTo(w-m.r-112, y); g.stroke();
+      g.fillStyle = '#12161b'; g.fillText(s.name, w-m.r-106, y);
+    });
+  }
+  if (cfg.note){
+    g.fillStyle = '#8a929d'; g.font = '11px sans-serif'; g.textAlign = 'right'; g.textBaseline = 'top';
+    g.fillText(cfg.note, w-m.r, m.t-12 < 0 ? 2 : m.t-12);
+  }
+
+  if (!cv.__hooked){
+    cv.__hooked = true;
+    cv.addEventListener('mousemove', ev=>{
+      const p = cv.__plot; if (!p) return;
+      const rect = cv.getBoundingClientRect();
+      const xv = p.xmin + (ev.clientX-rect.left-p.m.l)/(p.w-p.m.l-p.m.r)*(p.xmax-p.xmin);
+      const s0 = p.cfg.series[0];
+      let best = 0;
+      for (let i=0;i<s0.x.length;i++) if (Math.abs(s0.x[i]-xv) < Math.abs(s0.x[best]-xv)) best = i;
+      const ro = byId('plot-readout');
+      if (ro) ro.textContent = `${fmt(s0.x[best],3)}, ${fmt(s0.y[best],4)}`;
+    });
+    cv.addEventListener('mouseleave', ()=>{ const ro = byId('plot-readout'); if (ro) ro.textContent=''; });
+  }
+}
+
+/* ---- data out ---- */
+function plotTable(){
+  const res = P.result[P.tab];
+  if (!res) return null;
+  const runs = res.runs || [res];
+  if (runs.length > 1){
+    if (P.tab === 'saed'){
+      const rows = [];
+      runs.forEach(r=>(r.spots||[]).forEach(s=>rows.push([r.name,s.hkl[0],s.hkl[1],s.hkl[2],s.x,s.y,s.q,isFinite(s.d)?s.d:'',s.I])));
+      return { head:['structure','h','k','l','qx_invA','qy_invA','q_invA','d_A','I_rel'], rows, name:'diffraction_spots_compared' };
+    }
+    const xs = { xrd:r=>r.curve.x, rdf:r=>r.r, sq:r=>r.q }[P.tab];
+    const ys = { xrd:r=>r.curve.y, rdf:r=>r.g, sq:r=>r.S }[P.tab];
+    if (!xs) return null;
+    /* one x column plus one column per structure, on the grid of the first run */
+    const base = xs(runs[0]);
+    const cols = runs.map(r=>{ const rx = xs(r), ry = ys(r);
+      return base.map(x=>{ let lo=0, hi=rx.length-1;
+        while (hi-lo>1){ const mid=(lo+hi)>>1; if (rx[mid]<=x) lo=mid; else hi=mid; }
+        if (x<rx[0]||x>rx[rx.length-1]) return '';
+        const t = (x-rx[lo])/((rx[hi]-rx[lo])||1);
+        return ry[lo] + t*(ry[hi]-ry[lo]); }); });
+    const xname = { xrd:'two_theta_deg', rdf:'r_A', sq:'q_invA' }[P.tab];
+    return { head:[xname, ...runs.map(r=>r.name.replace(/[\s,]+/g,'_'))],
+             rows: base.map((x,i)=>[x, ...cols.map(c=>c[i])]),
+             name: P.tab + '_compared' };
+  }
+  const r = runs[0];
+  if (P.tab === 'xrd') return { head:['two_theta_deg','intensity'], rows:r.curve.x.map((x,i)=>[x, r.curve.y[i]]), name:'xrd_pattern' };
+  if (P.tab === 'saed') return { head:['h','k','l','qx_invA','qy_invA','q_invA','d_A','I_rel'],
+      rows:r.spots.map(s=>[s.hkl[0],s.hkl[1],s.hkl[2],s.x,s.y,s.q,isFinite(s.d)?s.d:'',s.I]), name:'diffraction_spots' };
+  if (P.tab === 'rdf') return { head:['r_A','g_r','coordination'], rows:r.r.map((x,i)=>[x, r.g[i], r.n[i]]), name:'rdf' };
+  if (P.tab === 'sq')  return { head:['q_invA','S_q'], rows:r.q.map((x,i)=>[x, r.S[i]]), name:'structure_factor' };
+  return null;
+}
+function tableText(t, sep='\t'){
+  return [t.head.join(sep), ...t.rows.map(r=>r.map(v=>typeof v==='number'?(+v.toFixed(6)):v).join(sep))].join('\n');
+}
+function copyPlotData(){
+  const t = plotTable();
+  if (!t) return toast('Calculate something first.', true);
+  copyText(tableText(t), 'Data');
+}
+function copyPeaks(){
+  const res = P.result.xrd;
+  if (!res) return toast('Calculate the pattern first.', true);
+  const runs = res.runs || [res];
+  const multi = runs.length > 1;
+  const head = [...(multi?['structure']:[]),'h','k','l','two_theta_deg','d_A','I_rel','multiplicity'];
+  const rows = [];
+  runs.forEach(r=>r.peaks.slice().sort((a,b)=>a.tt-b.tt).forEach(p=>
+    rows.push([...(multi?[r.name]:[]),p.hkl[0],p.hkl[1],p.hkl[2],+p.tt.toFixed(4),+p.d.toFixed(5),+p.I.toFixed(3),p.mult])));
+  copyText(tableText({head,rows}), 'Peak list');
+}
+function copyPlotImage(){
+  const cv = byId('plot-canvas');
+  if (!cv) return toast('Calculate something first.', true);
+  copyCanvas(cv, 'Plot');
+}
+function savePlot(kind){
+  if (kind === 'png'){
+    const cv = byId('plot-canvas');
+    if (!cv) return toast('Calculate something first.', true);
+    cv.toBlob(b=>downloadBlob(b, `${P.tab}_${Date.now()}.png`));
+    return;
+  }
+  const t = plotTable();
+  if (!t) return toast('Calculate something first.', true);
+  downloadText(tableText(t, ','), `${t.name}_${Date.now()}.csv`);
+}
+/* ---------------- 9. export and start up ---------------- */
+function exportTarget(){
+  const s = S(byId('export-struct-sel').value) || structures[0];
+  if (!s) toast('Add a structure first.', true);
+  return s;
+}
+
+function buildPoscar(s, useSupercell, useTransform){
+  const base = useTransform ? worldLattice(s) : localLattice(s);
+  const sc = useSupercell ? s.supercell : [1,1,1];
+  const A = base.map((v,i)=>v.clone().multiplyScalar(sc[i]));
+
+  const groups = new Map();
+  for (let i=0;i<sc[0];i++) for (let j=0;j<sc[1];j++) for (let k=0;k<sc[2];k++)
+    s.atoms.forEach(a=>{
+      if (!groups.has(a.element)) groups.set(a.element, []);
+      groups.get(a.element).push([ (a.direct[0]+i)/sc[0], (a.direct[1]+j)/sc[1], (a.direct[2]+k)/sc[2] ]);
+    });
+
+  const shift = useTransform && s.pos.lengthSq() > 1e-12
+    ? `  origin shifted by ${fmt(s.pos.x,4)} ${fmt(s.pos.y,4)} ${fmt(s.pos.z,4)} A` : '';
+  const L = [`${s.name} ${sc.join('x')}${shift}`, '   1.00000000000000'];
+  A.forEach(v=>L.push(`  ${v.x.toFixed(10).padStart(18)} ${v.y.toFixed(10).padStart(18)} ${v.z.toFixed(10).padStart(18)}`));
+  L.push('  ' + [...groups.keys()].join(' '));
+  L.push('  ' + [...groups.values()].map(v=>v.length).join(' '));
+  L.push('Direct');
+  groups.forEach(list => list.forEach(p =>
+    L.push(`  ${p[0].toFixed(10).padStart(18)} ${p[1].toFixed(10).padStart(18)} ${p[2].toFixed(10).padStart(18)}`)));
+  return L.join('\n') + '\n';
+}
+function copyPoscar(){
+  const s = exportTarget(); if (!s) return;
+  copyText(buildPoscar(s, byId('export-supercell').checked, byId('export-transform').checked), 'POSCAR');
+}
+function downloadPoscar(){
+  const s = exportTarget(); if (!s) return;
+  downloadText(buildPoscar(s, byId('export-supercell').checked, byId('export-transform').checked),
+               `POSCAR_${s.name.replace(/\s+/g,'_')}.vasp`);
+}
+function copyXYZ(){
+  const vis = structures.filter(s=>s.visible);
+  if (!vis.length) return toast('Nothing is visible to export.', true);
+  const rows = [];
+  vis.forEach(s=>{
+    expandAtoms(s).forEach(a=>{
+      const p = toWorld(s, a.pos);
+      rows.push(`${a.element} ${p.x.toFixed(6).padStart(14)} ${p.y.toFixed(6).padStart(14)} ${p.z.toFixed(6).padStart(14)}`);
+    });
+  });
+  copyText([rows.length, `all visible structures from Crystal Workbench: ${vis.map(s=>s.name).join(', ')}`, ...rows].join('\n'), 'XYZ file');
+}
+
+/* ---- image rendering ---- */
+function openRender(){
+  if (!structures.length) return toast('Add a structure first.', true);
+  updateUI();
+  byId('rnd-w').value = Math.round(vw*2);
+  byId('rnd-h').value = Math.round(vh*2);
+  byId('render-modal').classList.add('show');
+}
+function closeRender(){ byId('render-modal').classList.remove('show'); }
+
+function applyRenderView(mode){
+  const s = S(byId('rnd-struct').value) || structures[0];
+  if (mode === 'current' || !s) return;
+  const A = worldLattice(s), B = reciprocal(A);
+  if (mode === 'a') viewAlong(A[0]);
+  else if (mode === 'b') viewAlong(A[1]);
+  else if (mode === 'c') viewAlong(A[2]);
+  else if (mode === 'normal'){
+    const t = S(byId('plane-struct-sel').value) || s;
+    viewAlong(planeNormal(t.plane.h, t.plane.k, t.plane.l, reciprocal(worldLattice(t))));
+  }
+  else if (mode === 'sel') viewAlong(pickedNormalWorld());
+  else if (mode === 'iso'){ camera.up.set(0,1,0); fitView(V3(1,0.75,1.2)); }
+  else if (mode === 'x') viewAlong(V3(1,0,0));
+  else if (mode === 'y') viewAlong(V3(0,1,0));
+  else if (mode === 'z') viewAlong(V3(0,0,1));
+}
+
+async function doRender(action){
+  const W = clamp(parseInt(byId('rnd-w').value)||1600, 64, 8000);
+  const H = clamp(parseInt(byId('rnd-h').value)||1200, 64, 8000);
+  const bgMode = byId('rnd-bg').value;
+  const format = byId('rnd-fmt').value;
+  const keepLabels = byId('rnd-labels').checked;
+
+  applyRenderView(byId('rnd-view').value);
+  controls.update();
+
+  const hidden = [];
+  if (!keepLabels) scene.traverse(o=>{ if (o.userData.isLabel && o.visible){ o.visible = false; hidden.push(o); } });
+
+  const oldBg = scene.background, oldPR = renderer.getPixelRatio();
+  const oldSize = new THREE.Vector2(); renderer.getSize(oldSize);
+  const oldCam = { l:camera.left, r:camera.right, t:camera.top, b:camera.bottom };
+
+  if (bgMode === 'transparent' && format === 'png'){ scene.background = null; renderer.setClearAlpha(0); }
+  else if (bgMode === 'custom') scene.background = new THREE.Color(byId('rnd-bgcolor').value);
+  else scene.background = new THREE.Color(0xffffff);
+
+  const a = W/H;
+  camera.left = -FRUSTUM*a/2; camera.right = FRUSTUM*a/2;
+  camera.top = FRUSTUM/2; camera.bottom = -FRUSTUM/2;
+  camera.updateProjectionMatrix();
+  renderer.setPixelRatio(1);
+  renderer.setSize(W, H, false);
+  renderer.render(scene, camera);
+
+  const canvas = renderer.domElement;
+  const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+  const blob = await new Promise(res=>canvas.toBlob(res, mime, 0.94));
+
+  /* restore */
+  hidden.forEach(o=>o.visible = true);
+  scene.background = oldBg; renderer.setClearAlpha(1);
+  renderer.setPixelRatio(oldPR);
+  renderer.setSize(oldSize.x, oldSize.y, false);
+  camera.left = oldCam.l; camera.right = oldCam.r; camera.top = oldCam.t; camera.bottom = oldCam.b;
+  camera.updateProjectionMatrix();
+  onResize();
+
+  if (!blob) return toast('The image could not be produced.', true);
+  if (action === 'save'){
+    downloadBlob(blob, `crystal_${Date.now()}.${format === 'jpeg' ? 'jpg' : 'png'}`);
+    toast(`Saved a ${W} × ${H} image.`);
+  } else {
+    try{
+      if (format !== 'png') throw new Error('only png can be copied');
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      toast('Image copied to the clipboard.');
+    }catch(e){
+      downloadBlob(blob, `crystal_${Date.now()}.${format === 'jpeg' ? 'jpg' : 'png'}`);
+      toast('The clipboard refused that image, so it was downloaded instead.');
+    }
+  }
+  closeRender();
+}
+
+/* ---- keyboard ---- */
+window.addEventListener('keydown', e=>{
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  if (e.key === 'Escape'){ clearSelection(); closeRender(); }
+  else if (e.key === 'p' || e.key === 'P') setPickMode(!pickMode);
+  else if (e.key === 'a' || e.key === 'A') toggleAxes();
+  else if (e.key === 'f' || e.key === 'F') resetView();
+});
+
+/* ---- start ---- */
+function boot(){
+  onResize();
+  addStructure(parsePoscar(EXAMPLES.si));
+  setPickMode(true);
+  animate();
+  byId('corner').textContent = 'orthographic view · silicon example loaded';
+}
+boot();
+</script>
+</body>
+</html>
