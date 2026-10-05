@@ -24,7 +24,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 
 /* ---------- shell ---------- */
-#app{display:grid;grid-template-columns:274px minmax(0,1fr) 306px;grid-template-rows:minmax(42px,auto) minmax(0,1fr);height:100vh}
+#app{display:grid;grid-template-columns:var(--rail-w,274px) minmax(0,1fr) var(--insp-w,306px);grid-template-rows:minmax(42px,auto) minmax(0,1fr);height:100vh}
 #app>header{
   grid-column:1/-1;display:flex;align-items:center;align-content:center;gap:8px;padding:5px 12px;flex-wrap:wrap;
   background:linear-gradient(#f7f8f9,#e9ecee);border-bottom:1px solid var(--rule);
@@ -38,6 +38,22 @@ button,input,select,textarea{font:inherit;color:inherit}
 .plot-state-tools select{width:150px;max-width:22vw;padding-block:3px}
 .plot-state-tools button{padding-inline:7px}
 .rail,.inspector{background:var(--surface);overflow-y:auto;overflow-x:hidden}
+/* drag handles for the left rail, right inspector and top bar */
+#app>header>*{zoom:var(--hdr-zoom,1)}
+.pf-resize{position:fixed;z-index:45;background:transparent;touch-action:none}
+.pf-resize.v{width:7px;cursor:col-resize}
+.pf-resize.h{height:7px;cursor:row-resize}
+.pf-resize:hover,.pf-resize.drag{background:rgba(15,92,140,.28)}
+.pf-resize::after{
+  content:'';position:absolute;display:none;pointer-events:none;padding:1px 4px;border-radius:2px;
+  background:var(--accent);color:#fff;font:600 11px/1.2 var(--ui);white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.3)
+}
+.pf-resize.v::after{content:'\21D4';top:var(--pf-y,50%);left:50%;transform:translate(-50%,-50%)}
+.pf-resize.h::after{content:'\21D5';left:var(--pf-x,50%);top:50%;transform:translate(-50%,-50%)}
+.pf-resize:hover::after,.pf-resize.drag::after{display:block}
+body.pf-resizing{user-select:none}
+body.pf-resizing.pf-col{cursor:col-resize}body.pf-resizing.pf-row{cursor:row-resize}
+body.pf-resizing #overlay{pointer-events:none}
 .rail{border-right:1px solid var(--rule)}
 .inspector{border-left:1px solid var(--rule)}
 main{display:flex;flex-direction:column;min-width:0;background:var(--bg)}
@@ -141,6 +157,11 @@ hr{border:0;border-top:1px solid var(--rule-soft);margin:9px 0}
 .statusbar .msg{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hover-values{grid-column:1/-1;display:none;font-family:var(--mono);font-size:10.5px;color:var(--ink-2);white-space:normal;overflow-wrap:anywhere;padding-top:2px}
 .hover-values.on{display:block}
+.src-comment{grid-column:1/-1;display:none;font-size:11px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;
+  max-height:5.2em;overflow-y:auto;border-top:1px dashed var(--rule-soft);padding-top:3px;margin-top:1px}
+.src-comment.on{display:block}
+.src-comment b{font-weight:600;color:var(--ink)}
+.src-comment .fc{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
 .msg.err{color:var(--danger)}.msg.ok{color:var(--good)}.msg.warn{color:var(--amber)}
 .statusbar .coord{font-family:var(--mono);color:var(--muted)}
 .focus-exit{display:none;position:fixed;top:10px;right:10px;z-index:90;box-shadow:0 2px 8px rgba(0,0,0,.25)}
@@ -192,7 +213,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
   .plot-state-tools select{width:100%;max-width:none;min-width:0}
 }
 @media (max-width:1100px){
-  #app{grid-template-columns:240px minmax(0,1fr) 270px}
+  #app{grid-template-columns:var(--rail-w,240px) minmax(0,1fr) var(--insp-w,270px)}
 }
 @media (max-width:860px){
   body{overflow:auto}
@@ -332,6 +353,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
         <div><label class="f">X column</label><select id="add-x"></select></div>
         <div><label class="f">Y column</label><select id="add-y"></select></div>
       </div>
+      <div style="margin-top:6px"><label class="f">Group by (one series per value)</label><select id="add-group" title="Split the X/Y data into one series for each distinct value of this column"></select></div>
       <div class="row" style="margin-top:6px">
         <button id="btn-add-series" class="pri" style="flex:1">Add series</button>
         <button id="btn-add-all" style="flex:1" title="Plot every numeric column of this file against the chosen X">Add all Y columns</button>
@@ -437,6 +459,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
     <span class="msg" id="status">No series yet. Pick X and Y columns, then “Add series”.</span>
     <span class="coord" id="cursor"></span>
     <span class="hover-values" id="hover-values"></span>
+    <span class="src-comment" id="src-comment"></span>
   </div>
 </main>
 
@@ -724,6 +747,13 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
       <label class="f">Columns to include</label>
       <div id="e-collist" style="max-height:150px;overflow:auto;border:1px solid var(--rule);background:#fff;padding:5px"></div>
     </div>
+    <div style="margin-top:6px">
+      <label class="f">Keep only these X ranges (blank = everything) — e.g. <span class="mono">10:100, 200:500</span></label>
+      <div class="row"><input id="e-xr" type="text" placeholder="10:100, 200:500">
+        <button id="e-xr-view" title="Append the X window currently visible on the figure">+ current view</button></div>
+      <div id="e-xr-colwrap" hidden style="margin-top:4px"><label class="f">X column used for the ranges (source-file exports)</label><select id="e-xr-col"></select></div>
+      <div id="e-xr-note" class="hint" style="margin-top:2px"></div>
+    </div>
     <div class="grid2" style="margin-top:6px">
       <div><label class="f">Missing values written as</label><select id="e-nan"><option value="nan">nan</option><option value="">(blank)</option><option value="NA">NA</option><option value="0">0</option></select></div>
       <div><label class="f">Grid points (merged)</label><input id="e-grid" type="number" min="10" max="20000" value="500"></div>
@@ -757,6 +787,7 @@ pre.script{background:#12171c;color:#dfe6ec;padding:10px;font-family:var(--mono)
     <div class="row" style="margin-top:8px"><div style="flex:1"><label class="f">File name</label><input id="x-name" type="text" value="figure"></div></div>
     <div class="row" style="margin-top:10px">
       <button id="x-copy">Copy SVG markup</button>
+      <button id="x-copy-png" title="Copy the figure to the clipboard as a PNG image (uses the raster scale above)">Copy PNG</button>
       <button id="x-go" class="pri" style="flex:1">Download</button>
     </div>
     <div class="hint">SVG keeps text as text. PNG at 4× is roughly 300 dpi for a 3-inch-wide column. PDF uses a high-resolution embedded image and preserves the selected overlay/separate-plot layout.</div>
@@ -2418,7 +2449,24 @@ function numericCols(f) { return f.columns.map((c, i) => ({ c, i })).filter(o =>
 const seriesCache = new Map();
 function seriesSig(s) {
   const f = fileById(s.fileId);
-  return [s.fileId, f ? f.stamp : 0, s.xi, s.yi, s.ei, s.xop, s.yop, s.proc, s.procp, s.decim, s.sort].join('\u0000');
+  return [s.fileId, f ? f.stamp : 0, s.xi, s.yi, s.ei, s.xop, s.yop, s.proc, s.procp, s.decim, s.sort, groupKey(s)].join('\u0000');
+}
+/* Group-by: a series may be restricted to the rows whose group column equals
+   one value (s.gi = column index, s.gv = stored value / level code, s.gl = label). */
+function groupKey(s) { return Number.isInteger(s.gi) && s.gi >= 0 ? s.gi + '=' + s.gv : ''; }
+function groupCol(s, f) {
+  if (!(Number.isInteger(s.gi) && s.gi >= 0)) return null;
+  f = f || fileById(s.fileId);
+  return (f && f.columns[s.gi]) || null;
+}
+function groupValues(c) {
+  if (!c) return [];
+  if (c.type === 'category') {
+    const seen = new Set(c.values);
+    return c.levels.map((l, i) => ({ v: i, label: String(l) })).filter(g => seen.has(g.v));
+  }
+  const u = Array.from(new Set(c.values.filter(Number.isFinite))).sort((a, b) => a - b);
+  return u.map(v => ({ v, label: String(C.fmtSig(v, 8)) }));
 }
 function computeSeries(s) {
   const key = s.id + '|' + seriesSig(s);
@@ -2439,6 +2487,7 @@ function computeSeriesRaw(s) {
   const xc = f.columns[s.xi], yc = f.columns[s.yi];
   if (!xc || !yc) return [];
   const ec = s.ei >= 0 ? f.columns[s.ei] : null;
+  const gc = groupCol(s, f);
   let tx = null, ty = null;
   try { tx = C.makeTransform(s.xop, 'x'); } catch (e) { say('X transform: ' + e.message, 'err'); }
   try { ty = C.makeTransform(s.yop, 'y'); } catch (e) { say('Y transform: ' + e.message, 'err'); }
@@ -2446,6 +2495,7 @@ function computeSeriesRaw(s) {
   const out = [];
   const n = Math.min(xc.values.length, yc.values.length);
   for (let i = 0; i < n; i++) {
+    if (gc && gc.values[i] !== s.gv) continue;
     let x = xc.values[i], y = yc.values[i];
     if (tx) x = tx(x, y, i);
     if (ty) y = ty(y, x, i);
@@ -2537,8 +2587,9 @@ function saveTransformToSource(which) {
 function processSourcePoints(s) {
   const f = fileById(s.fileId), xc = f && f.columns[s.xi], yc = f && f.columns[s.yi];
   if (!f || !xc || !yc) return { base: [], points: [] };
-  const base = [];
+  const base = [], gc = groupCol(s, f);
   for (let i = 0; i < f.nrow; i++) {
+    if (gc && gc.values[i] !== s.gv) continue;
     const x = xc.values[i], y = yc.values[i];
     if (Number.isFinite(x) && Number.isFinite(y)) { const p = [x, y]; p.rawIndex = i; base.push(p); }
   }
@@ -2566,6 +2617,7 @@ function saveProcessingToSource() {
   if (!s.proc || s.proc === 'none') { say('Choose a processing operation first.', 'warn'); return; }
   const f = fileById(s.fileId), xc = f && f.columns[s.xi], yc = f && f.columns[s.yi];
   if (!f || !xc || !yc) return;
+  if (s.proc === 'bin' && groupCol(s, f)) { say('Bin averaging cannot be saved for a grouped series — it would overwrite the other groups’ rows.', 'warn'); return; }
   if (!confirm('Save “' + s.proc + '” into source “' + f.name + '”? The selected source columns will be changed.')) return;
   const out = processSourcePoints(s), pts = out.points;
   if (!pts.length) { say('Processing produced no finite points, so the source was not changed.', 'err'); return; }
@@ -2614,7 +2666,8 @@ function seriesName(s) {
   if (!f) return 'series';
   const x = f.columns[s.xi] ? f.columns[s.xi].name : '?';
   const y = f.columns[s.yi] ? f.columns[s.yi].name : '?';
-  return f.short + '_(' + x + ')_Vs_(' + y + ')';
+  const gc = groupCol(s, f);
+  return f.short + '_(' + x + ')_Vs_(' + y + ')' + (gc ? '_[' + gc.name + '=' + s.gl + ']' : '');
 }
 function seriesLabel(s) { return s.label || seriesName(s); }
 
@@ -2917,11 +2970,50 @@ function renderSourceList() {
     d.onclick = () => { state.selFile = f.id; refreshColumnPickers(); syncParsePanel(); render(); };
     box.appendChild(d);
   });
+  renderSourceComment();
   $('parse-panel').hidden = !state.selFile;
   if (state.selFile) {
     const f = fileById(state.selFile);
     $('parse-notes').innerHTML = (f.notes || []).map(esc).join('<br>');
   }
+}
+
+function fileCommentLines(f) {
+  if (f._cmt && f._cmt.stamp === f.stamp && f._cmt.raw === f.raw) return f._cmt.lines;
+  const chars = f.opts && typeof f.opts.comment === 'string' ? f.opts.comment : '#!%';
+  const names = (f.columns || []).map(c => c.name);
+  const lines = [];
+  if (chars) {
+    const all = String(f.raw || '').split(/\r?\n/);
+    for (let i = 0; i < all.length && lines.length < 12; i++) {
+      const t = all[i].trim();
+      if (!t || !chars.includes(t[0])) continue;
+      const body = t.replace(/^[#!%\s]+/, '').trim();
+      if (!body) continue;
+      const toks = body.split(/[\s,;|]+/).filter(Boolean);
+      if (names.length && toks.length === names.length && toks.every(x => names.includes(x))) continue; // just the header
+      lines.push(body.length > 220 ? body.slice(0, 220) + '…' : body);
+    }
+  }
+  f._cmt = { stamp: f.stamp, raw: f.raw, lines };
+  return lines;
+}
+function renderSourceComment() {
+  const box = $('src-comment'); if (!box) return;
+  let ids = [];
+  state.series.forEach(s => { if (s.visible && !ids.includes(s.fileId)) ids.push(s.fileId); });
+  if (!ids.length && state.selFile) ids = [state.selFile];
+  const parts = [];
+  ids.map(fileById).filter(Boolean).forEach(f => {
+    const note = String(f.note || '').trim(), fl = fileCommentLines(f);
+    if (!note && !fl.length) return;
+    let h = '<b>' + esc(f.name) + '</b>';
+    if (note) h += ' — ' + esc(note);
+    if (fl.length) h += '\n<span class="fc">' + fl.map(l => '# ' + esc(l)).join('\n') + '</span>';
+    parts.push(h);
+  });
+  box.innerHTML = parts.join('\n');
+  box.classList.toggle('on', parts.length > 0);
 }
 
 function renderSeriesList() {
@@ -2947,8 +3039,25 @@ function renderSeriesList() {
   if (!state.series.length) box.innerHTML = '<div class="hint">No series yet.</div>';
 }
 
+function axisSwatchColor(a) {
+  const linked = state.series.find(s => s.axis === a.id);
+  return a.color || (linked ? linked.color : '#111111');
+}
 function renderAxesList() {
-  const box = $('axes-list'); box.innerHTML = '';
+  const box = $('axes-list');
+  // Rebuilding the cards while the user types would destroy the focused
+  // input after every keystroke, so only refresh the swatches in that case.
+  const sig = state.axes.map(a => a.id).join('|');
+  const act = document.activeElement;
+  if (box.dataset.sig === sig && act && act !== box && box.contains(act)) {
+    box.querySelectorAll('.axcard').forEach((card, i) => {
+      const sw = card.querySelector('.swatch'), a = state.axes[i];
+      if (sw && a) sw.style.background = axisSwatchColor(a);
+    });
+    return;
+  }
+  box.dataset.sig = sig;
+  box.innerHTML = '';
   state.axes.forEach((a, i) => {
     const linked = state.series.find(s => s.axis === a.id);
     const acol = a.color || (linked ? linked.color : '#111111');
@@ -3061,10 +3170,27 @@ function optionsFor(f, sel, includeNone) {
   });
   return o.join('');
 }
+// Column choices are remembered by NAME, so switching to another source that
+// has columns with the same names keeps the same X / Y / group selection.
+const lastPick = { x: null, y: null, g: null };
+function pickIndex(f, name, fallback) {
+  if (f && name !== null && name !== undefined) {
+    const i = f.columns.findIndex(c => c.name === name);
+    if (i >= 0) return i;
+  }
+  return fallback;
+}
+function rememberPick(f, xi, yi, gi) {
+  if (!f) return;
+  if (xi !== undefined && f.columns[xi]) lastPick.x = f.columns[xi].name;
+  if (yi !== undefined && f.columns[yi]) lastPick.y = f.columns[yi].name;
+  if (gi !== undefined) lastPick.g = gi >= 0 && f.columns[gi] ? f.columns[gi].name : null;
+}
 function refreshColumnPickers() {
   const f = fileById(state.selFile);
-  $('add-x').innerHTML = optionsFor(f, 0);
-  $('add-y').innerHTML = optionsFor(f, Math.min(1, f ? f.columns.length - 1 : 0));
+  $('add-x').innerHTML = optionsFor(f, pickIndex(f, lastPick.x, 0));
+  $('add-y').innerHTML = optionsFor(f, pickIndex(f, lastPick.y, Math.min(1, f ? f.columns.length - 1 : 0)));
+  $('add-group').innerHTML = optionsFor(f, lastPick.g === null ? -1 : pickIndex(f, lastPick.g, -1), true);
   const gf = $('g-file');
   gf.innerHTML = state.files.map(x => `<option value="${x.id}"${x.id === state.selFile ? ' selected' : ''}>${esc(x.name)}</option>`).join('');
   refreshGridCols();
@@ -3113,6 +3239,7 @@ function bindSeries(id, key, cast) {
       if (s.fit) runFit(true);
     }
     if (key === 'xi' || key === 'yi') {
+      rememberPick(fileById(s.fileId), key === 'xi' ? s.xi : undefined, key === 'yi' ? s.yi : undefined);
       $('s-name').value = seriesName(s);
       $('sel-title').textContent = seriesName(s);
       renderSeriesList();
@@ -3469,15 +3596,43 @@ function fmtNum(v, prec, nanStr) {
   if (!Number.isFinite(v)) return nanStr;
   return prec === '' ? String(v) : v.toFixed(+prec);
 }
+/* "10:100, 200:500" (also "10-100", "10 to 100", "10..100"); bounds inclusive. */
+const XR_NUM = '[-+]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][-+]?\\d+)?';
+const XR_RE = new RegExp('^\\s*(' + XR_NUM + ')\\s*(?::|\\.\\.|to|–|—|-)\\s*(' + XR_NUM + ')\\s*$', 'i');
+function parseXRanges(text) {
+  const ranges = [], bad = [];
+  String(text || '').split(/[;,\n]+/).forEach(seg => {
+    if (!seg.trim()) return;
+    const m = XR_RE.exec(seg);
+    if (!m) { bad.push(seg.trim()); return; }
+    const a = +m[1], b = +m[2];
+    ranges.push([Math.min(a, b), Math.max(a, b)]);
+  });
+  return { ranges, bad };
+}
+function inXRanges(x, ranges) {
+  if (!ranges.length) return true;
+  if (!Number.isFinite(x)) return false;
+  for (const r of ranges) if (x >= r[0] && x <= r[1]) return true;
+  return false;
+}
+function currentXView() {
+  if (state.zoom && state.zoom.x) return state.zoom.x;
+  const fig = lastFig || (lastGrid && lastGrid.panelMeta && lastGrid.panelMeta[0] && lastGrid.panelMeta[0].figure);
+  return fig && fig.xScale ? [fig.xScale.lo, fig.xScale.hi] : null;
+}
+let exportNotes = [];
 function buildExport() {
   const scope = $('e-scope').value, d = delimOf(), prec = $('e-prec').value;
+  const xr = parseXRanges($('e-xr').value), R = xr.ranges, keepX = x => inXRanges(x, R);
+  exportNotes = xr.bad.length ? ['Ignored unreadable range(s): ' + xr.bad.join(', ') + '.'] : [];
   const nanStr = $('e-nan').value, header = $('e-header').checked, cmt = $('e-comment').checked ? '# ' : '';
   const files = [];
   const H = arr => header ? cmt + arr.join(d) + '\n' : '';
 
   if (scope === 'plotted') {
     state.series.filter(s => s.visible).forEach(s => {
-      const pts = computeSeries(s);
+      const pts = computeSeries(s).filter(p => keepX(p[0]));
       const cols = ['x', 'y'].concat(pts.some(p => p.length > 2) ? ['err'] : []);
       let t = H(cols);
       pts.forEach(p => t += cols.map((_, i) => fmtNum(p[i], prec, nanStr)).join(d) + '\n');
@@ -3492,7 +3647,10 @@ function buildExport() {
         if (!idx.length) return;
       }
       let t = H(idx.map(i => f.columns[i].name));
+      const rc = R.length ? f.columns.findIndex(c => c.name === $('e-xr-col').value) : -1;
+      if (R.length && rc < 0) exportNotes.push('“' + f.name + '” has no column “' + $('e-xr-col').value + '”, so it was written unfiltered.');
       for (let r = 0; r < f.nrow; r++) {
+        if (rc >= 0 && !keepX(f.columns[rc].values[r])) continue;
         t += idx.map(i => {
           const c = f.columns[i];
           return c.type === 'category' ? (c.raw ? c.raw[r] : c.levels[c.values[r]]) : fmtNum(c.values[r], prec, nanStr);
@@ -3511,6 +3669,7 @@ function buildExport() {
     if (hi > lo) {
       for (let i = 0; i < n; i++) {
         const x = lo + (hi - lo) * i / (n - 1);
+        if (!keepX(x)) continue;
         t += [fmtNum(x, prec, nanStr)].concat(curves.map(c => fmtNum(C.interpAt(c, x), prec, nanStr))).join(d) + '\n';
       }
     }
@@ -3519,13 +3678,13 @@ function buildExport() {
     state.series.filter(s => s.fit && s.fit.result).forEach(s => {
       let t = '# ' + s.fit.result.equation + '\n# R2=' + C.fmtSig(s.fit.result.r2, 6) + ' RMSE=' + C.fmtSig(s.fit.result.rmse, 6) + '\n';
       t += H(['x', 'y_fit']);
-      s.fit.curve.forEach(p => t += fmtNum(p[0], prec, nanStr) + d + fmtNum(p[1], prec, nanStr) + '\n');
+      s.fit.curve.filter(p => keepX(p[0])).forEach(p => t += fmtNum(p[0], prec, nanStr) + d + fmtNum(p[1], prec, nanStr) + '\n');
       files.push({ name: safe(seriesName(s)) + '_fit', text: t });
     });
   } else if (scope === 'stats') {
     let t = H(['series', 'n', 'mean', 'sd', 'sem', 'min', 'max', 'median', 'integral']);
     state.series.filter(s => s.visible).forEach(s => {
-      const pts = inRange(computeSeries(s));
+      const pts = inRange(computeSeries(s)).filter(p => keepX(p[0]));
       if (!pts.length) return;
       const st = C.seriesStats(pts);
       t += [seriesName(s), st.n, st.mean, st.std, st.sem, st.min, st.max, st.median, st.area]
@@ -3544,6 +3703,14 @@ function buildExport() {
   });
   return files;
 }
+function dateStamp() {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+function dated(name) {
+  const m = /^(.*?)(\.[A-Za-z0-9]+)$/.exec(name);
+  return m ? m[1] + '_' + dateStamp() + m[2] : name + '_' + dateStamp();
+}
 function safe(s) { return String(s).replace(/[^\w.\-]+/g, '_').replace(/^_+|_+$/g, '') || 'data'; }
 function seriesDataStem(s) { return safe(seriesName(s)) + '_' + s.id; }
 function extFor(d) { return d === ',' ? 'csv' : d === '\t' ? 'tsv' : 'txt'; }
@@ -3555,6 +3722,8 @@ function download(name, text, mime) {
 }
 function refreshExportPreview() {
   const files = buildExport();
+  const R = parseXRanges($('e-xr').value).ranges;
+  $('e-xr-note').textContent = (R.length ? 'Keeping x in ' + R.map(r => '[' + C.fmtSig(r[0], 6) + ', ' + C.fmtSig(r[1], 6) + ']').join(' ∪ ') + '. ' : '') + exportNotes.join(' ');
   $('e-count').textContent = !files.length ? ''
     : files.length === 1 ? '1 file: ' + files[0].name + '.' + extFor(delimOf())
     : files.length + ' files will be written; the first is previewed below.';
@@ -3563,6 +3732,12 @@ function refreshExportPreview() {
     : '(nothing to export with these settings)';
 }
 function refreshExportColumns() {
+  const names = [];
+  state.files.forEach(f => f.columns.forEach(c => { if (!names.includes(c.name)) names.push(c.name); }));
+  const sel = $('e-xr-col'), prev = sel.value;
+  const want = names.includes(prev) ? prev : (names.includes(lastPick.x) ? lastPick.x : names[0]);
+  sel.innerHTML = names.map(n => `<option value="${escAttr(n)}"${n === want ? ' selected' : ''}>${esc(n)}</option>`).join('');
+  $('e-xr-colwrap').hidden = !['all', 'selected'].includes($('e-scope').value);
   const box = $('e-collist'); box.innerHTML = '';
   state.files.forEach(f => {
     box.appendChild(el('div', { className: 'sub mono' }, esc(f.name)));
@@ -3586,20 +3761,33 @@ function currentFigure(transparent) {
   const fig = P.buildFigure(spec);
   return { svg: fig.svg, width: +spec.width, height: +spec.height };
 }
+function rasterFigure(scale, transparent, opaque) {
+  const built = currentFigure(transparent), svg = built.svg;
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+    img.onload = () => {
+      const cv = el('canvas');
+      cv.width = built.width * scale; cv.height = built.height * scale;
+      const cx = cv.getContext('2d');
+      if (opaque || !transparent) { cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); }
+      cx.drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url);
+      resolve({ canvas: cv, built });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('raster conversion failed')); };
+    img.src = url;
+  });
+}
 function exportFigure() {
-  const fmt = $('x-fmt').value, name = safe($('x-name').value || 'figure');
-  const built = currentFigure($('x-transparent').checked), svg = built.svg;
-  if (fmt === 'svg') { download(name + '.svg', svg, 'image/svg+xml;charset=utf-8'); say('Saved ' + name + '.svg', 'ok'); return; }
+  const fmt = $('x-fmt').value, name = safe($('x-name').value || 'figure') + '_' + dateStamp();
+  const transparent = $('x-transparent').checked;
+  if (fmt === 'svg') {
+    download(name + '.svg', currentFigure(transparent).svg, 'image/svg+xml;charset=utf-8');
+    say('Saved ' + name + '.svg', 'ok'); return;
+  }
   const scale = +$('x-scale').value || 2;
-  const img = new Image();
-  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
-  img.onload = () => {
-    const cv = el('canvas');
-    cv.width = built.width * scale; cv.height = built.height * scale;
-    const cx = cv.getContext('2d');
-    if (fmt === 'pdf' || !$('x-transparent').checked) { cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); }
-    cx.drawImage(img, 0, 0, cv.width, cv.height);
-    URL.revokeObjectURL(url);
+  rasterFigure(scale, transparent, fmt === 'pdf').then(({ canvas: cv, built }) => {
     if (fmt === 'pdf') {
       cv.toBlob(async b => {
         if (!b) { say('PDF conversion failed.', 'err'); return; }
@@ -3612,14 +3800,24 @@ function exportFigure() {
     }
     cv.toBlob(b => {
       if (!b) { say('PNG conversion failed.', 'err'); return; }
-      const a = el('a', { href: URL.createObjectURL(b), download: name + '.png' });
-      document.body.appendChild(a); a.click();
-      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      downloadBlob(name + '.png', b);
       say('Saved ' + name + '.png at ' + scale + '×.', 'ok');
     }, 'image/png');
-  };
-  img.onerror = () => { URL.revokeObjectURL(url); say('PNG conversion failed; the SVG export always works.', 'err'); };
-  img.src = url;
+  }, () => say('PNG conversion failed; the SVG export always works.', 'err'));
+}
+function copyFigurePNG() {
+  if (!navigator.clipboard || !navigator.clipboard.write || typeof ClipboardItem === 'undefined') {
+    say('This browser cannot copy images to the clipboard; use Download instead.', 'warn'); return;
+  }
+  const scale = +$('x-scale').value || 2;
+  const blobPromise = rasterFigure(scale, $('x-transparent').checked, false).then(({ canvas }) =>
+    new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error('PNG conversion failed')), 'image/png')));
+  const done = () => say('Figure copied to the clipboard as PNG (' + scale + '×) — paste it into Word, PowerPoint, Slack…', 'ok');
+  const fail = () => say('Clipboard blocked by the browser; use Download instead.', 'warn');
+  // Passing the promise keeps the click's user-activation (Chrome/Safari);
+  // older engines need the resolved blob, so fall back to that.
+  navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]).then(done, () =>
+    blobPromise.then(b => navigator.clipboard.write([new ClipboardItem({ 'image/png': b })])).then(done, fail));
 }
 function downloadBlob(name, blob) {
   const a = el('a', { href: URL.createObjectURL(blob), download: name });
@@ -3658,13 +3856,14 @@ function pythonScript() {
   const panelGrid = separate ? buildPanelGrid(spec) : null;
   const lineScale = F.boldLines ? 1.75 : 1;
   const legendAnchor = state.legend.pos === 'outside' ? ', bbox_to_anchor=(1.02, 0.5), borderaxespad=0' : '';
-  const dataPrefix = safe($('e-name').value || 'plotforge');
+  const dataPrefix = safe($('e-name').value || 'plotforge') + '_' + dateStamp();
   const q = s => "'" + String(s).replace(/'/g, "\\'") + "'";
   const L = [];
   L.push('"""Regenerates the PlotForge figure with matplotlib.');
   L.push('Export the data as "plotted x/y pairs" and keep the files beside this script."""');
   L.push('import numpy as np');
   L.push('import matplotlib.pyplot as plt');
+  L.push('# Data files carry their export date; edit DATA_PREFIX if you re-export on another day.');
   L.push('DATA_PREFIX = ' + q(dataPrefix));
   L.push('');
   L.push('plt.rcParams.update({');
@@ -3919,13 +4118,13 @@ function overviewHTML(title, grid, n) {
 <script>
 function dl(fmt){
   var svg=document.getElementById('s').innerHTML;
-  if(fmt==='svg'){save(new Blob([svg],{type:'image/svg+xml'}),'overview.svg');return;}
+  if(fmt==='svg'){save(new Blob([svg],{type:'image/svg+xml'}),'overview_${dateStamp()}.svg');return;}
   var img=new Image(),u=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
   img.onload=function(){
     var c=document.createElement('canvas');c.width=${grid.width}*2;c.height=${grid.height}*2;
     var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
     x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);
-    c.toBlob(function(b){save(b,'overview.png');},'image/png');
+    c.toBlob(function(b){save(b,'overview_${dateStamp()}.png');},'image/png');
   };
   img.src=u;
 }
@@ -4027,7 +4226,7 @@ function buildSessionPayload() {
 
 function saveSession() {
   const payload = buildSessionPayload();
-  download('plotforge-session.json', JSON.stringify(payload, null, 1), 'application/json');
+  download(dated('plotforge-session.json'), JSON.stringify(payload, null, 1), 'application/json');
   say('Session saved with source data and ' + state.plotStates.length + ' named plot state(s).', 'ok');
 }
 function loadSession(text) {
@@ -4148,7 +4347,7 @@ function boot() {
     const t = $('paste-area').value;
     if (!t.trim()) { say('Nothing pasted.', 'warn'); return; }
     const f = addFile($('paste-name').value.trim() || 'pasted-' + state.files.length, t);
-    autoSeriesFor(f);
+    say(f.name + ' added: ' + f.nrow + ' rows × ' + f.columns.length + ' columns. Pick X and Y columns, then “Add series”.', f.nrow ? 'ok' : 'warn');
     $('paste-area').value = ''; $('paste-name').value = '';
     refreshColumnPickers(); syncParsePanel(); render();
   };
@@ -4193,6 +4392,12 @@ function boot() {
       const ny = f.columns.findIndex(c => c.name === before[s.yi]);
       s.xi = nx >= 0 ? nx : Math.min(s.xi, f.columns.length - 1);
       s.yi = ny >= 0 ? ny : Math.min(s.yi, f.columns.length - 1);
+      if (Number.isInteger(s.gi) && s.gi >= 0) {
+        const ng = f.columns.findIndex(c => c.name === before[s.gi]);
+        s.gi = ng;
+        const gc = ng >= 0 ? f.columns[ng] : null;
+        if (gc && gc.type === 'category') s.gv = gc.levels.indexOf(s.gl);
+      }
     });
     refreshColumnPickers(); render();
   };
@@ -4207,6 +4412,7 @@ function boot() {
   $('p-note').oninput = () => {
     const f = fileById(state.selFile); if (!f) return;
     f.note = $('p-note').value;
+    renderSourceComment();
   };
   $('p-note').onchange = () => {
     const f = fileById(state.selFile); if (!f) return;
@@ -4236,16 +4442,31 @@ function boot() {
   };
   $('panel-cols').onchange = e => { state.fig.panelCols = +e.target.value; render(); };
 
+  ['add-x', 'add-y', 'add-group'].forEach(id => $(id).addEventListener('change', () => {
+    rememberPick(fileById(state.selFile), +$('add-x').value, +$('add-y').value, +$('add-group').value);
+  }));
   $('btn-add-series').onclick = () => {
     const f = fileById(state.selFile);
     if (!f) { say('Load a file first.', 'warn'); return; }
-    addSeries(f.id, +$('add-x').value, +$('add-y').value);
+    const xi = +$('add-x').value, yi = +$('add-y').value, gi = +$('add-group').value;
+    rememberPick(f, xi, yi, gi);
+    if (gi >= 0 && f.columns[gi]) {
+      const gc = f.columns[gi], groups = groupValues(gc);
+      if (!groups.length) { say('Column “' + gc.name + '” has no usable values to group by.', 'warn'); return; }
+      if (groups.length > 30 && !confirm('“' + gc.name + '” has ' + groups.length + ' distinct values. Create ' + groups.length + ' series?')) return;
+      groups.forEach(g => addSeries(f.id, xi, yi, { gi, gv: g.v, gl: g.label }));
+      syncSeriesEditor(); render();
+      say('Grouped by “' + gc.name + '”: ' + groups.length + ' series added (one per value).', 'ok');
+      return;
+    }
+    addSeries(f.id, xi, yi);
     syncSeriesEditor(); render();
   };
   $('btn-add-all').onclick = () => {
     const f = fileById(state.selFile);
     if (!f) { say('Load a file first.', 'warn'); return; }
     const xi = +$('add-x').value;
+    rememberPick(f, xi);
     const candidates = f.columns.filter((c, i) => i !== xi && c.type === 'number');
     if (!candidates.length) { say('No other numeric columns in this file.', 'warn'); return; }
     if (!confirm('Add all ' + candidates.length + ' numeric Y columns from “' + f.name + '” as separate series?')) return;
@@ -4421,7 +4642,20 @@ function boot() {
 
   // ---- export data
   $('btn-export-data').onclick = () => { refreshExportColumns(); refreshExportPreview(); $('m-export').classList.add('on'); };
-  $('e-scope').onchange = () => { $('e-cols').hidden = $('e-scope').value !== 'selected'; refreshExportPreview(); };
+  $('e-scope').onchange = () => {
+    $('e-cols').hidden = $('e-scope').value !== 'selected';
+    $('e-xr-colwrap').hidden = !['all', 'selected'].includes($('e-scope').value);
+    refreshExportPreview();
+  };
+  $('e-xr').addEventListener('input', refreshExportPreview);
+  $('e-xr-col').addEventListener('change', refreshExportPreview);
+  $('e-xr-view').onclick = () => {
+    const v = currentXView();
+    if (!v || !Number.isFinite(v[0]) || !Number.isFinite(v[1])) { say('Plot something first; the visible X window is used.', 'warn'); return; }
+    const cur = $('e-xr').value.trim();
+    $('e-xr').value = (cur ? cur + ', ' : '') + C.fmtSig(v[0], 8) + ':' + C.fmtSig(v[1], 8);
+    refreshExportPreview();
+  };
   ['e-delim', 'e-custom', 'e-prec', 'e-nan', 'e-header', 'e-comment', 'e-one', 'e-grid'].forEach(id =>
     $(id).addEventListener('change', refreshExportPreview));
   $('e-refresh').onclick = refreshExportPreview;
@@ -4435,7 +4669,8 @@ function boot() {
     const files = buildExport();
     if (!files.length) { say('Nothing matches those export settings.', 'warn'); return; }
     const ext = extFor(delimOf()), pre = safe($('e-name').value || 'plotforge');
-    files.forEach((f, i) => setTimeout(() => download(pre + '_' + f.name + '.' + ext, f.text), i * 120));
+    const day = dateStamp();
+    files.forEach((f, i) => setTimeout(() => download(pre + '_' + day + '_' + f.name + '.' + ext, f.text), i * 120));
     say('Downloading ' + files.length + ' file(s).', 'ok');
     $('m-export').classList.remove('on');
   };
@@ -4443,6 +4678,7 @@ function boot() {
   // ---- export figure
   $('btn-export-fig').onclick = () => $('m-figexport').classList.add('on');
   $('x-go').onclick = exportFigure;
+  $('x-copy-png').onclick = copyFigurePNG;
   $('x-copy').onclick = () => navigator.clipboard.writeText(currentSVG(false))
     .then(() => say('SVG markup copied.', 'ok'), () => say('Clipboard blocked; use Download.', 'warn'));
 
@@ -4450,7 +4686,7 @@ function boot() {
   $('btn-python').onclick = () => { $('py-out').textContent = pythonScript(); $('m-python').classList.add('on'); };
   $('py-copy').onclick = () => navigator.clipboard.writeText($('py-out').textContent)
     .then(() => say('Script copied.', 'ok'), () => say('Clipboard blocked; use Download.', 'warn'));
-  $('py-go').onclick = () => download('replot.py', $('py-out').textContent, 'text/x-python');
+  $('py-go').onclick = () => download(dated('replot.py'), $('py-out').textContent, 'text/x-python');
 
   // ---- overview
   $('btn-grid').onclick = () => {
@@ -4487,9 +4723,110 @@ function boot() {
   $('btn-focus-exit').onclick = () => setPlotOnly(false);
 
   setupOverlay();
+  setupResizers();
   syncFigureInputs();
   renderPlotStatePicker();
   render();
+}
+
+/* ---------- resizable panels -------------------------------- */
+// Thin handles sit on the rail's right edge, the inspector's left edge and
+// the header's bottom edge. The side panels change width (their contents
+// reflow to fill it); the header scales its contents up or down.
+function setupResizers() {
+  const app = $('app'), rail = document.querySelector('.rail'), insp = document.querySelector('.inspector');
+  const hdr = document.querySelector('#app > header');
+  if (!app || !rail || !insp || !hdr) return;
+  const KEY = 'plotforge-layout';
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (_) { saved = {}; }
+  const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (_) {} };
+  const applySaved = () => {
+    if (saved.rail) app.style.setProperty('--rail-w', saved.rail + 'px'); else app.style.removeProperty('--rail-w');
+    if (saved.insp) app.style.setProperty('--insp-w', saved.insp + 'px'); else app.style.removeProperty('--insp-w');
+    if (saved.hdr) app.style.setProperty('--hdr-zoom', saved.hdr); else app.style.removeProperty('--hdr-zoom');
+  };
+  applySaved();
+  const mk = (cls, title) => { const d = el('div', { className: 'pf-resize ' + cls, title }); document.body.appendChild(d); return d; };
+  const hRail = mk('v', 'Drag to resize the left panel (double-click to reset)');
+  const hInsp = mk('v', 'Drag to resize the right panel (double-click to reset)');
+  const hHdr = mk('h', 'Drag to make the top bar larger or smaller (double-click to reset)');
+  const all = [hRail, hInsp, hHdr];
+  const place = () => {
+    const off = document.body.classList.contains('plot-only') || window.innerWidth <= 860;
+    all.forEach(h => { h.hidden = off; });
+    if (off) return;
+    const r = rail.getBoundingClientRect(), i = insp.getBoundingClientRect(), h = hdr.getBoundingClientRect();
+    Object.assign(hRail.style, { left: (r.right - 3) + 'px', top: r.top + 'px', height: r.height + 'px' });
+    Object.assign(hInsp.style, { left: (i.left - 4) + 'px', top: i.top + 'px', height: i.height + 'px' });
+    Object.assign(hHdr.style, { left: h.left + 'px', top: (h.bottom - 3) + 'px', width: h.width + 'px' });
+  };
+  const minCentre = 320;
+  const drag = (handle, kind) => {
+    handle.addEventListener('pointermove', e => {
+      if (handle.classList.contains('drag')) return;
+      if (kind === 'hdr') handle.style.setProperty('--pf-x', (e.clientX - handle.getBoundingClientRect().left) + 'px');
+      else handle.style.setProperty('--pf-y', (e.clientY - handle.getBoundingClientRect().top) + 'px');
+    });
+    handle.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      handle.classList.add('drag');
+      document.body.classList.add('pf-resizing', kind === 'hdr' ? 'pf-row' : 'pf-col');
+      const sx = e.clientX, sy = e.clientY;
+      const rw = rail.getBoundingClientRect().width, iw = insp.getBoundingClientRect().width;
+      const hh = hdr.getBoundingClientRect().height;
+      const move = ev => {
+        const vw = window.innerWidth;
+        if (kind === 'rail') {
+          const max = Math.max(180, vw - iw - minCentre);
+          saved.rail = Math.round(Math.min(max, Math.max(180, rw + ev.clientX - sx)));
+          app.style.setProperty('--rail-w', saved.rail + 'px');
+        } else if (kind === 'insp') {
+          const max = Math.max(200, vw - rw - minCentre);
+          saved.insp = Math.round(Math.min(max, Math.max(200, iw - (ev.clientX - sx))));
+          app.style.setProperty('--insp-w', saved.insp + 'px');
+        } else {
+          // The bar may re-wrap as it grows, so search for the zoom whose
+          // height best matches the pointer instead of scaling linearly.
+          const target = hh + ev.clientY - sy;
+          let lo = 0.7, hi = 2.2;
+          for (let k = 0; k < 9; k++) {
+            const mid = (lo + hi) / 2;
+            app.style.setProperty('--hdr-zoom', mid);
+            if (hdr.getBoundingClientRect().height <= target) lo = mid; else hi = mid;
+          }
+          saved.hdr = Math.floor(lo * 100) / 100;
+          app.style.setProperty('--hdr-zoom', saved.hdr);
+        }
+        if (kind === 'hdr') handle.style.setProperty('--pf-x', (ev.clientX - hdr.getBoundingClientRect().left) + 'px');
+        else handle.style.setProperty('--pf-y', (ev.clientY - rail.getBoundingClientRect().top) + 'px');
+        place();
+      };
+      const up = ev => {
+        handle.removeEventListener('pointermove', move);
+        handle.removeEventListener('pointerup', up);
+        handle.removeEventListener('pointercancel', up);
+        try { handle.releasePointerCapture(ev.pointerId); } catch (_) {}
+        handle.classList.remove('drag');
+        document.body.classList.remove('pf-resizing', 'pf-row', 'pf-col');
+        persist(); place(); render();
+      };
+      handle.addEventListener('pointermove', move);
+      handle.addEventListener('pointerup', up);
+      handle.addEventListener('pointercancel', up);
+    });
+    handle.addEventListener('dblclick', () => {
+      delete saved[kind];
+      applySaved(); persist(); place(); render();
+    });
+  };
+  drag(hRail, 'rail'); drag(hInsp, 'insp'); drag(hHdr, 'hdr');
+  window.addEventListener('resize', place);
+  if ('ResizeObserver' in window) { const ro = new ResizeObserver(place); [app, hdr, rail, insp].forEach(x => ro.observe(x)); }
+  new MutationObserver(place).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  requestAnimationFrame(place);
 }
 
 function intake(fileList) {
@@ -4505,7 +4842,7 @@ function intake(fileList) {
       } else {
         const f = addFile(file.name, text);
         if (f.nrow === 0) say(file.name + ': no data rows found. Adjust the delimiter or header settings under Sources.', 'warn');
-        else if (!state.series.some(s => s.fileId === f.id)) autoSeriesFor(f);
+        else say(file.name + ' loaded: ' + f.nrow + ' rows × ' + f.columns.length + ' columns. Pick X and Y columns, then “Add series”.', 'ok');
       }
       if (--pending === 0) { refreshColumnPickers(); syncParsePanel(); render(); }
     };
@@ -4542,7 +4879,14 @@ optimiser will otherwise settle into a local minimum. Each fit reports R², adju
 <p style="margin:0 0 8px">Use <b>Add fitted data as a new series</b> to turn the sampled fit curve into an independent, editable series and source.</p>
 <h4 style="margin:10px 0 4px">Exports</h4>
 <p style="margin:0">Data in any delimiter, plotted pairs or full source columns, merged on a shared x grid, fit curves, or a statistics table.
-Figures as SVG (text stays text) or PNG up to 8×. The Python export rebuilds the same figure in matplotlib from the exported data.</p>`;
+Figures as SVG (text stays text) or PNG up to 8×. The Python export rebuilds the same figure in matplotlib from the exported data.</p>
+<ul style="margin:6px 0 0 18px;padding:0">
+<li><b>X ranges</b> in Export data keep only rows whose x lies inside any listed window, e.g. <code>10:100, 200:500</code> (bounds inclusive).</li>
+<li><b>Copy PNG</b> in Export figure puts the figure on the clipboard at the chosen raster scale.</li>
+<li>Every downloaded file name carries the date (YYYY-MM-DD).</li>
+<li><b>Group by</b> under Series splits the chosen X/Y into one series per distinct value of another column.</li>
+<li>Drag the edges of the left panel, right panel or top bar to resize them; double-click an edge to reset.</li>
+</ul>`;
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
