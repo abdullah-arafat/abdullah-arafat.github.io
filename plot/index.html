@@ -995,6 +995,19 @@ function parseTable(text, opts) {
     return finalize(names, rows, dc, notes, 'lammps-dump');
   }
 
+  // ---- LAMMPS log, one run block per source (set by the importer when a log
+  //      has several thermo blocks; opts.logBlock picks the block)
+  if (typeof opts.logBlock === 'number' && (opts.headerMode === undefined || opts.headerMode === 'auto')) {
+    const blocks = lammpsLogBlocks(allLines, dc);
+    if (blocks.length) {
+      const k = Math.min(Math.max(0, opts.logBlock), blocks.length - 1);
+      const b = blocks[k];
+      notes.push('LAMMPS log: run block ' + (k + 1) + ' of ' + blocks.length + ' (header on line ' + (b.line + 1) +
+        ', ' + b.names.length + ' columns' + (b.warnings ? ', ' + b.warnings + ' WARNING line(s) skipped' : '') + ').');
+      return finalize(dedupeNames(b.names), b.rows, dc, notes, 'lammps-log');
+    }
+  }
+
   // ---- LAMMPS log: thermo table starts at a line whose first token is Step
   //      and ends at "Loop time" / non-numeric line. Multiple runs are stacked.
   const logStarts = [];
@@ -1084,6 +1097,48 @@ function parseTable(text, opts) {
   }
   notes.push('Delimiter: ' + (typeof delim === 'string' ? delim : 'whitespace') + '.');
   return finalize(names, rows, dc, notes, 'table', delim);
+}
+
+/* Find every thermo block in a LAMMPS log. A header is a line whose first
+   token is "Step", or the first non-blank line after LAMMPS' "Per MPI rank
+   memory" banner (thermo_style custom without a step column). Rows run until
+   "Loop time", ERROR, Performance, the next header, or a non-numeric /
+   mismatched line; WARNING lines printed mid-run are skipped. */
+function lammpsLogBlocks(allLines, dc) {
+  const isHeader = t => {
+    const tok = t.split(/\s+/);
+    return tok.length > 1 && tok.every(x => !isNumericToken(x, dc));
+  };
+  const starts = new Set();
+  allLines.forEach((l, i) => {
+    const t = l.trim();
+    if (/^step\b/i.test(t) && isHeader(t)) starts.add(i);
+    if (/^Per MPI rank memory/i.test(t)) {
+      let j = i + 1;
+      while (j < allLines.length && !allLines[j].trim()) j++;
+      if (j < allLines.length && isHeader(allLines[j].trim())) starts.add(j);
+    }
+  });
+  const blocks = [];
+  Array.from(starts).sort((a, b) => a - b).forEach(s => {
+    const names = allLines[s].trim().split(/\s+/);
+    const rows = [];
+    let warnings = 0;
+    for (let i = s + 1; i < allLines.length; i++) {
+      const t = allLines[i].trim();
+      if (!t) continue;
+      if (/^WARNING/i.test(t)) { warnings++; continue; }
+      if (/^(Loop time|ERROR|Performance)/i.test(t) || starts.has(i)) break;
+      const f = splitLine(t, 'whitespace');
+      if (f.length !== names.length || !f.every(x => isNumericToken(x, dc))) break;
+      rows.push(f);
+    }
+    if (rows.length) blocks.push({ line: s, names, rows, warnings });
+  });
+  return blocks;
+}
+function countLogBlocks(text) {
+  return lammpsLogBlocks(String(text).replace(/^\uFEFF/, '').split(/\r?\n/), false).length;
 }
 
 // Convert string cells to numbers where possible; keep text columns as
@@ -1807,7 +1862,7 @@ function exampleFiles() {
 /* ---------- exports ----------------------------------------- */
 
 const API = {
-  toNumber, isNumericToken, splitLine, sniffDelimiter, isComment, dedupeNames, parseTable,
+  toNumber, isNumericToken, splitLine, sniffDelimiter, isComment, dedupeNames, parseTable, lammpsLogBlocks, countLogBlocks,
   compileExpr, evalColumn, makeTransform, finiteXY,
   movingAverage, savitzkyGolay, derivative, integral, normalize, binAverage, decimate,
   mean, std, quantile, seriesStats, blockAverage, amin, amax, xmin, xmax,
@@ -2688,7 +2743,34 @@ function addFile(name, text, note) {
   state.selFile = f.id;
   return f;
 }
-function sourceStem(name) { return String(name || 'source').replace(/\.[^.]+$/, '') || 'source'; }
+/* A LAMMPS log with two or more thermo blocks becomes one source per run,
+   named "<file> [run k]"; anything else goes through addFile unchanged. */
+function addFileSplit(name, text, note) {
+  const nBlocks = C.countLogBlocks(text);
+  if (nBlocks < 2 || /^\s*ITEM:\s*ATOMS/im.test(text)) return [addFile(name, text, note)];
+  const made = [];
+  for (let k = 0; k < nBlocks; k++) {
+    const f = {
+      id: uid++, name: name + ' [run ' + (k + 1) + ']', raw: text, note: note || '',
+      opts: { delimiter: 'auto', headerMode: 'auto', headerRow: 1, skipRows: 0, comment: '#!%', decimalComma: false, logBlock: k }
+    };
+    f.short = sourceStem(f.name);
+    reparse(f, true);
+    state.files.push(f);
+    made.push(f);
+  }
+  state.selFile = made[0].id;
+  return made;
+}
+function splitMessage(made) {
+  return made[0].name.replace(/\s*\[run \d+\]$/, '') + ': ' + made.length + ' LAMMPS run blocks found, split into ' + made.length +
+    ' sources (' + made.map(f => f.nrow + '×' + f.columns.length).join(', ') + '). Pick X and Y columns, then “Add series”.';
+}
+function sourceStem(name) {
+  const m = /^(.*?)\s*\[run (\d+)\]$/.exec(String(name || ''));
+  if (m) return (String(m[1]).replace(/\.[^.]+$/, '') || 'source') + '_run' + m[2];
+  return String(name || 'source').replace(/\.[^.]+$/, '') || 'source';
+}
 
 function savedDerivedColumns(f) {
   return (f.columns || []).filter(c => c.derived).map(c => ({
@@ -2719,7 +2801,8 @@ function reparse(f, quiet) {
   const res = C.parseTable(f.raw, {
     delimiter: o.delimiter === 'custom' ? (o.custom || ',') : o.delimiter,
     headerMode: o.headerMode, headerRow: Math.max(0, (+o.headerRow || 1) - 1),
-    skipRows: +o.skipRows || 0, comment: o.comment, decimalComma: !!o.decimalComma
+    skipRows: +o.skipRows || 0, comment: o.comment, decimalComma: !!o.decimalComma,
+    logBlock: o.logBlock
   });
   f.columns = res.columns; f.nrow = res.nrow; f.notes = res.notes; f.kind = res.kind;
   restoreDerivedColumns(f, derived);
@@ -4346,7 +4429,9 @@ function boot() {
   $('btn-paste-go').onclick = () => {
     const t = $('paste-area').value;
     if (!t.trim()) { say('Nothing pasted.', 'warn'); return; }
-    const f = addFile($('paste-name').value.trim() || 'pasted-' + state.files.length, t);
+    const made = addFileSplit($('paste-name').value.trim() || 'pasted-' + state.files.length, t);
+    const f = made[0];
+    if (made.length > 1) say(splitMessage(made), 'ok'); else
     say(f.name + ' added: ' + f.nrow + ' rows × ' + f.columns.length + ' columns. Pick X and Y columns, then “Add series”.', f.nrow ? 'ok' : 'warn');
     $('paste-area').value = ''; $('paste-name').value = '';
     refreshColumnPickers(); syncParsePanel(); render();
@@ -4379,11 +4464,13 @@ function boot() {
   // ---- re-parse
   $('btn-reparse').onclick = () => {
     const f = fileById(state.selFile); if (!f) return;
+    const prevBlock = f.opts.logBlock;
     f.opts = {
       delimiter: $('p-delim').value, custom: $('p-custom').value,
       headerMode: $('p-header').value, headerRow: +$('p-headerrow').value,
       skipRows: +$('p-skip').value, comment: $('p-comment').value, decimalComma: $('p-decimal').checked
     };
+    if (typeof prevBlock === 'number') f.opts.logBlock = prevBlock;
     const before = f.columns.map(c => c.name);
     reparse(f);
     // keep series pointing at the same column name where possible
@@ -4840,8 +4927,10 @@ function intake(fileList) {
       if (/\.json$/i.test(file.name) && /"format"\s*:\s*"plotforge/.test(text.slice(0, 400))) {
         loadSession(text);
       } else {
-        const f = addFile(file.name, text);
-        if (f.nrow === 0) say(file.name + ': no data rows found. Adjust the delimiter or header settings under Sources.', 'warn');
+        const made = addFileSplit(file.name, text);
+        const f = made[0];
+        if (made.length > 1) say(splitMessage(made), 'ok');
+        else if (f.nrow === 0) say(file.name + ': no data rows found. Adjust the delimiter or header settings under Sources.', 'warn');
         else say(file.name + ' loaded: ' + f.nrow + ' rows × ' + f.columns.length + ' columns. Pick X and Y columns, then “Add series”.', 'ok');
       }
       if (--pending === 0) { refreshColumnPickers(); syncParsePanel(); render(); }
@@ -4857,7 +4946,7 @@ const HELP = `
 <h4 style="margin:10px 0 4px">Reading files</h4>
 <ul style="margin:0 0 8px 18px;padding:0">
 <li>The delimiter is detected by scoring commas, tabs, semicolons, pipes and whitespace for consistent field counts. Override it per file under <b>Sources</b>.</li>
-<li>LAMMPS <code>log.*</code> files: thermo blocks are found by their <code>Step …</code> header, several runs are stacked, and <code>Loop time</code> footers are ignored.</li>
+<li>LAMMPS <code>log.*</code> files: thermo blocks are found by their <code>Step …</code> header (or the line after <code>Per MPI rank memory</code>). A log with several runs is split into one source per run, <code>[run 1]</code>, <code>[run 2]</code>…, each with its own columns, so runs with different <code>thermo_style</code> settings stay separate. Mid-run <code>WARNING</code> lines are skipped and <code>Loop time</code> footers end a run.</li>
 <li>LAMMPS dumps: fields come from the <code>ITEM: ATOMS</code> line.</li>
 <li><code>fix ave/time</code> style files: the commented line above the data is used as the header.</li>
 <li><code>nan</code>, <code>inf</code>, <code>N/A</code>, empty cells, Fortran <code>1.5D-3</code>, quoted fields, decimal commas and ragged rows are all handled. A bad value breaks the line at that point instead of dropping the rest of the row.</li>
